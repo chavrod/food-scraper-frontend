@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import { chromium, Browser, Page } from "playwright-core";
+import { chromium } from "playwright";
 
 import { Product, ScrapeSummary, ShopName } from "@/utils/types";
 
@@ -30,7 +30,7 @@ export default async function FetchData({
 
   // console.log(sortedResultsSliced);
 
-  results.products.push(...tescoResults.products);
+  results.products.push(...sortedResultsSliced);
 
   return results;
 }
@@ -138,67 +138,51 @@ async function scrapeSuprvalue(query: string) {
 }
 
 async function scrapeAldi(query: string) {
-  const url = `https://groceries.aldi.ie/en-GB/Search?keywords=${query}`;
-  const headers = {
-    // ... your headers here ...
-  };
-
   try {
-    const response = await axios.get(url, { headers });
+    const browser = await chromium.launch();
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
-    const dom = new JSDOM(response.data);
-    const document = dom.window.document;
+    const url = `https://groceries.aldi.ie/en-GB/Search?keywords=${query}`;
+    await page.goto(url);
 
-    const totalItems = (() => {
-      const productTab = document.querySelector(
-        "li#ProductSearchMenuTab a.active"
-      );
-      const resultText = productTab?.textContent || "";
-      const match = resultText.match(/\d+/);
-      return match ? parseInt(match[0]) : 0;
-    })();
+    // Wait for the search results to load
+    await page.waitForSelector('[data-qa="search-results"]');
 
-    const products = (() => {
-      const rows = document.querySelectorAll("div#vueSearchResults .row");
-      let products: Product[] = [];
+    // const html = await page.content();
+    // console.log(html);
 
-      rows.forEach((prod) => {
-        let product: Product = {
-          name: "",
-          price: 0,
-          imgSrc: undefined,
-          shopName: ShopName.ALDI, // Assuming you have this enum defined
-        };
+    const rows = await page.$$('[data-qa="search-results"]');
+    const products: Product[] = [];
+    for (const prod of rows) {
+      let product: Product = {
+        name: "",
+        price: 0,
+        imgSrc: undefined,
+        shopName: ShopName.ALDI,
+      };
 
-        const nameElement = prod.querySelector(
-          '[data-qa="search-product-title"]'
-        );
-        const priceElement = prod.querySelector(".product-tile-price .h4 span");
-        const imageElement = prod.querySelector("img");
+      const nameElement = await prod.$('[data-qa="search-product-title"]');
+      const priceElement = await prod.$(".product-tile-price .h4 span");
+      const imageElement = await prod.$("img");
 
-        product.name = nameElement
-          ? nameElement.getAttribute("title") || ""
-          : "";
-        product.price = priceElement
-          ? parseFloat(priceElement.textContent?.trim() || "0")
-          : 0;
-        product.imgSrc = imageElement
-          ? imageElement.getAttribute("src") || undefined
-          : undefined;
+      product.name = (await nameElement?.textContent()) || "";
+      const priceText = await priceElement?.textContent();
+      product.price = priceText
+        ? parseFloat(priceText.replace(/[^0-9.-]+/g, ""))
+        : 0;
+      product.imgSrc = (await imageElement?.getAttribute("src")) || undefined;
 
-        if (product.name !== "" && product.price > 0) {
-          products.push(product);
-        }
-      });
+      if (product.name !== "" && product.price > 0) {
+        products.push(product);
+      }
+    }
 
-      return products;
-    })();
-
+    await browser.close();
     console.log(products);
-
     return {
       products: products,
-      summary: { count: totalItems, shopName: ShopName.ALDI },
+      summary: { count: products.length, shopName: ShopName.ALDI },
     };
   } catch (error) {
     console.error("Error fetching and parsing data:", error);

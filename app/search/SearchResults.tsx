@@ -63,13 +63,13 @@ export default function SearchResults({
                     {product.name}
                   </Text>
                   <Text fz="sm" align="left">
-                    Shop: Tesco
+                    Shop: {product.shopName}
                   </Text>
                 </Stack>
                 <Container>
                   <Text align="center">
                     {product.price
-                      ? `$${product.price.toFixed(2)}`
+                      ? `€${product.price.toFixed(2)}`
                       : "Price not available"}
                   </Text>
                 </Container>
