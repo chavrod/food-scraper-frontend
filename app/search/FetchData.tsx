@@ -1,4 +1,5 @@
 import { load } from "cheerio";
+import { JSDOM } from "jsdom";
 import { chromium } from "playwright";
 
 import { Product, ScrapeSummary, ShopName } from "@/utils/types";
@@ -17,13 +18,12 @@ export default async function FetchData({
   // Add the scraping from different shops
   const tescoResults = await scrapeTesco(query);
   const aldiResults = await scrapeAldi(query);
-
-  // results.push(await scrapeSuprvalue(query));
-  // results.push(await scrapeLidl(query));
+  const superValuResults = await scrapeSuprvalue(query);
 
   const allResultsUnsorted = [
     ...tescoResults.products,
     ...aldiResults.products,
+    ...superValuResults.products,
   ];
   const allResultsSorted = allResultsUnsorted.sort((a, b) => a.price - b.price);
   const sortedResultsSliced = allResultsSorted.slice(0, 30);
@@ -67,18 +67,13 @@ async function scrapeTesco(query: string) {
     );
 
     const html = await response.text();
-    const $ = load(html);
+    const { window } = new JSDOM(html);
+    const $ = (selector: string) => window.document.querySelectorAll(selector);
 
     // Extract the total number of items
-    const itemsDisplayed = $(
-      'div.pagination__items-displayed[data-auto="product-bin-count"] strong'
-    );
-    const totalItems =
-      itemsDisplayed.length > 1 ? parseInt(itemsDisplayed.last().text()) : 0;
-
     let products: Product[] = [];
 
-    $("li.product-list--list-item").each((index, item) => {
+    $("li.product-list--list-item").forEach((item) => {
       let product: Product = {
         name: "",
         price: 0,
@@ -86,29 +81,29 @@ async function scrapeTesco(query: string) {
         shopName: ShopName.TESCO,
       };
 
-      const productDetails = $(item).find("div.product-details--wrapper");
+      const productDetails = item.querySelector("div.product-details--wrapper");
 
-      const nameTag = productDetails.find("h3");
-      if (nameTag.length) {
-        const nameSpan = nameTag.find("span");
-        if (nameSpan.length) {
-          product.name = nameSpan.text();
+      const nameTag = productDetails?.querySelector("h3");
+      if (nameTag) {
+        const nameSpan = nameTag.querySelector("span");
+        if (nameSpan) {
+          product.name = nameSpan.textContent || "";
         }
       }
 
-      const formTag = productDetails.find("form");
-      if (formTag.length) {
-        const priceTag = formTag.find("p").first();
-        if (priceTag.length) {
-          const priceText = priceTag.text();
+      const formTag = productDetails?.querySelector("form");
+      if (formTag) {
+        const priceTag = formTag.querySelector("p");
+        if (priceTag) {
+          const priceText = priceTag.textContent || "";
           const priceValue = parseFloat(priceText.replace(/[^0-9.-]+/g, "")); // Strip non-numeric characters
           product.price = priceValue;
         }
       }
 
-      const imgSrcset = $(item)
-        .find("div.product-image__container img")
-        .attr("srcset");
+      const imgSrcset = item
+        .querySelector("div.product-image__container img")
+        ?.getAttribute("srcset");
       if (imgSrcset) {
         const firstImageFromSrcset = imgSrcset
           .split(",")[0]
@@ -124,7 +119,7 @@ async function scrapeTesco(query: string) {
 
     return {
       products,
-      summary: { count: totalItems, shopName: ShopName.TESCO },
+      summary: { count: products.length, shopName: ShopName.TESCO },
     };
   } catch (error) {
     console.error("Error fetching and parsing data:", error);
@@ -133,8 +128,74 @@ async function scrapeTesco(query: string) {
 }
 
 async function scrapeSuprvalue(query: string) {
-  // Code to scrape Suprvalue
-  // Return { products, summary }
+  try {
+    const browser = await chromium.launch();
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    const url = `https://shop.supervalu.ie/sm/delivery/rsid/5550/results?q=${query}`;
+    await page.goto(url);
+
+    // Wait for the search results to load
+    await page.waitForSelector('[class^="Listing"]');
+
+    // const text = await page.$eval(
+    //   '[class^="Listing"]',
+    //   (element) => element.textContent
+    // );
+    // console.log(text);
+
+    const rows = await page.$$('[class^="ColListing"]');
+
+    const products: Product[] = [];
+    for (const prod of rows) {
+      let product: Product = {
+        name: "",
+        price: 0,
+        imgSrc: undefined,
+        shopName: ShopName.SUPERVALU,
+      };
+
+      const nameElement = await prod.$('span[class^="ProductCardTitle"] > div');
+      const priceElement = await prod.$(
+        '[class^="ProductCardPricing"] > span > span'
+      );
+      const imageElement = await prod.$(
+        '[class^="ProductCardImageWrapper"] > div > img'
+      );
+
+      // product.name = (await nameElement?.textContent()) || "";
+      if (nameElement) {
+        product.name = await nameElement.evaluate(
+          (el) => el.childNodes[0]?.nodeValue?.trim() ?? ""
+        );
+      } else {
+        product.name = "";
+      }
+      const priceText = await priceElement?.textContent();
+      product.price = priceText
+        ? parseFloat(priceText.replace(/[^0-9.-]+/g, ""))
+        : 0;
+      product.imgSrc = (await imageElement?.getAttribute("src")) || undefined;
+
+      if (product.name !== "" && product.price > 0) {
+        products.push(product);
+      }
+    }
+
+    await browser.close();
+    console.log(products);
+    return {
+      products: products,
+      summary: { count: products.length, shopName: ShopName.SUPERVALU },
+    };
+  } catch (error) {
+    console.error("Error fetching and parsing data:", error);
+    return {
+      products: [],
+      summary: { count: 0, shopName: ShopName.SUPERVALU },
+    };
+  }
 }
 
 async function scrapeAldi(query: string) {
@@ -179,7 +240,7 @@ async function scrapeAldi(query: string) {
     }
 
     await browser.close();
-    console.log(products);
+
     return {
       products: products,
       summary: { count: products.length, shopName: ShopName.ALDI },
@@ -189,78 +250,3 @@ async function scrapeAldi(query: string) {
     return { products: [], summary: { count: 0, shopName: ShopName.ALDI } };
   }
 }
-
-// async function scrapeAldi(query: string) {
-//   const headers = {
-//     authority: "groceries.aldi.ie",
-//     accept:
-//       "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-//     "cache-control": "max-age=0",
-//     cookie:
-//       'ak_bmsc=0FBB0E31BE850178F2D31F827C6BB78C~000000000000000000000000000000~YAAQzyRIF0xCF8+JAQAAHr1v2hSwB026R9UTLOjb3yoA2jrVtn7KSK6OQdgXsZQmKHaxVRlQm+xfnjHLQf0RB1O/jQZFZdntSzLpR/gjiHcuVzJR+pIhQD2ZoG3WUgkJQ2mrDxVeVc3fRHQ/KjVoE6yry9wTzUtJTpJijXpSL0KUgue86wyOJcbZ5zy86Bwx6dWa7TKRowGj4jDAwaAlIJmBu+SSsc3/c8+xJ8g9k/smHkI5j3PzMgQ7aHsiAR1KMrGIcz0Hd0tz0jiA9RcTqa3fPlxklewZ+fSAa1e6tYyXOOWd2oxuH6N65QXMqBD5LmRbQgTuZjEiieDjmMpPQUf2lS6+CncdfvlWrAi4jJZRXOHpyfbaR/h48G9Rc9k/q4oZXg4FUjwSLukvnvUtMNIO8EnF8/UPchybxf1dglOq0/euqLBfkWzc3XFVNeAg7eXrCkIIzxiAxwzLWAzJMzzhuQ6TimqngGMPFCIb/JsH1x3ysWYP; adobeujs-optin=%7B%22aam%22%3Atrue%2C%22adcloud%22%3Atrue%2C%22aa%22%3Atrue%2C%22campaign%22%3Atrue%2C%22ecid%22%3Atrue%2C%22livefyre%22%3Atrue%2C%22target%22%3Atrue%2C%22mediaaa%22%3Atrue%7D; OptanonAlertBoxClosed=2023-08-09T13:15:05.720Z; _gcl_au=1.1.1972710460.1691586906; AMCVS_95446750574EBBDF7F000101%40AdobeOrg=1; _ga=GA1.2.1005301742.1691586906; _gid=GA1.2.1447183757.1691586906; s_cc=true; aam_uuid=68164202567709005542337412241962537642; AMCV_95446750574EBBDF7F000101%40AdobeOrg=-1124106680%7CMCMID%7C67754901530110785602373258956633617728%7CMCAAMLH-1692191722%7C6%7CMCAAMB-1692191722%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%7CMCOPTOUT-1691594122s%7CNONE%7CMCAID%7CNONE%7CvVersion%7C5.2.0%7CMCIDTS%7C19579; visid_incap_2476515=qI8knzfdR2iryTbpOyHby6eR02QAAAAAQUIPAAAAAABZXTbrUpvzMLn6MU93XYQP; nlbi_2476515=nXlYDWgYjD8as3DDKHuTygAAAABXsvQqXrZJrWx3UFNJJL6X; aam_uuid=68164202567709005542337412241962537642; .CUST_a763fb4a-0224-4ca8-bdaa-a33a4b47a026=1|uoVdSy2XBNSmV/m+9qRGBjzGXxgxaFOEtqTAw21hD+aQBKNozm0y78LupZUhtq3iU1QBR+yeblhaWm7XAWz7PnC3PpgEyNZ2BGJh34RQm9yc4mEtSokVlmiQEFvGMqkBF3iE+zbVtIUdh+Jd3J8DHJ7Ewe9wST2uknUNzJ1fr9JKnZEE3L84x1jYzwP9vqFIu6VVeFjqjKI8Eidxftr5hOKkJMINFhxJL6oe5gb8q58He/NNsxJ8U2juks/owO+fCRq0ZlMuGKCHVvz/hovw8u2zA+1JsVmUEVCECC8X5wkUyasVLc7DZ/V23q5suS1wRr341fMV3mgYHjg5IsdcYTr2Glp4VYcTvdKq74lWk7F2GqvKVVJxuhkn9HrS44odWtQigYP60JVMkUOpEPLUSspZNjuYb3b+Yz87ry5pMgU5dz85wWgekKKlF71GRg3mZo5PCDfR9n86aM3Q1HqxUB6knuD7dj3KBkiDxcDAMIosehT54lMyp4iVr9nhkmBXq2cOpH8/D1s7ONiBuO3b40lv05SGLyZAt/n1Dc7sAprshdq1HjSw7uWjWrO4ppPPVmAS4PG8BFZ2gF5cHQ8wKOZdelgDJp8SzEOPbemWSoJpY4tXvFKR42SQf4kOEjxK; _hjSessionUser_2365630=eyJpZCI6IjZkNjI2MDIzLTg2MDAtNWNmMy05MDUwLTVhMGY3MzNhYjM5ZCIsImNyZWF0ZWQiOjE2OTE1ODY5ODU0MjgsImV4aXN0aW5nIjp0cnVlfQ==; s_ips=965; s_tp=1100; RT="z=1&dm=aldi.ie&si=tcpneopjuc&ss=ll3r5zf7&sl=0&tt=0"; bm_sv=4C7F1587AD4A9915E385B3CC345E95DF~YAAQrSVIF9jfx9CJAQAAcf902hQVMpI0YQPlPoduPijSrbvN2Ieb/cNWv5yfrnWXHfHQT+sNWjjXo6nM2frhg5qk9+iqGCMTD/YBDvGmUkmvOcBthpA4wkwg92wBuZN1zIlwFJMDJdfb39/6lVRiJSq4w782D4SKYOusjZw/H8RPjTE/hKHTKfPUNeINp3kpLWBCLW5iVesKbh/zsTbm42wlQXrfNN2IAZQT9bWZxI3GPEdV7dpDo6QFFmdEww==~1; s_ppv=%2Fsearch%2C88%2C88%2C965%2C1%2C1; _hjIncludedInSessionSample_2365630=0; OptanonConsent=isIABGlobal=false&datestamp=Wed+Aug+09+2023+14%3A22%3A08+GMT%2B0100+(Irish+Standard+Time)&version=6.7.0&hosts=&consentId=5dfddb8d-2cf5-42eb-9e94-c1df372577bc&interactionCount=1&landingPath=NotLandingPage&groups=C0001%3A1%2CC0002%3A1%2CC0003%3A1%2CC0004%3A1&geolocation=%3B&AwaitingReconsent=false; s_sq=%5B%5BB%5D%5D; gpv_pn=%2Fen-GB%2FSearch; s_vnum=1723122906110%26vn%3D2; s_invisit=true; s_nr=1691589570482-Repeat; _hjMinimizedPolls=910308; incap_ses_1381_2476515=UMCtQNBCimKKPyU5Yk0qE8Sb02QAAAAA8yo+nGrC52chqPtMnG4h6g==',
-//     "sec-ch-ua":
-//       '"Not/A)Brand";v="99", "Google Chrome";v="115", "Chromium";v="115"',
-//     "sec-ch-ua-mobile": "?0",
-//     "sec-ch-ua-platform": '"macOS"',
-//     "sec-fetch-dest": "document",
-//     "sec-fetch-mode": "navigate",
-//     "sec-fetch-site": "none",
-//     "sec-fetch-user": "?1",
-//     "upgrade-insecure-requests": "1",
-//     "user-agent":
-//       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
-//   };
-//   try {
-//     const response = await fetch(
-//       `https://groceries.aldi.ie/en-GB/Search?keywords=${query}`,
-//       {
-//         headers: headers,
-//         cache: "no-store",
-//       }
-//     );
-
-//     const html = await response.text();
-//     const $ = load(html);
-
-//     // Extract the total number of items
-//     const productTab = $("li#ProductSearchMenuTab a.active");
-//     const resultText = productTab.text();
-//     const match = resultText.match(/\d+/);
-//     const totalItems = match ? parseInt(match[0]) : 0;
-
-//     // Extract the items
-//     let products: Product[] = [];
-
-//     const rows = $("div#vueSearchResults .row");
-//     rows.each((index, prod) => {
-//       let product: Product = {
-//         name: "",
-//         price: 0,
-//         imgSrc: undefined,
-//         shopName: ShopName.ALDI,
-//       };
-
-//       const nameElement = $(prod).find('[data-qa="search-product-title"]');
-//       const priceElement = $(prod).find(".product-tile-price .h4 span");
-//       const imageElement = $(prod).find("img");
-
-//       console.log(nameElement.text());
-//       product.name = nameElement ? nameElement.attr("title") || "" : "";
-//       product.price = priceElement ? parseFloat(priceElement.text().trim()) : 0;
-//       product.imgSrc = imageElement ? imageElement.attr("src") : undefined;
-
-//       if (product.name !== "" && product.price > 0) {
-//         products.push(product);
-//       }
-//     });
-//     console.log(products);
-//     return {
-//       products: products,
-//       summary: { count: totalItems, shopName: ShopName.ALDI },
-//     };
-//   } catch (error) {
-//     console.error("Error fetching and parsing data:", error);
-//     return { products: [], summary: { count: 0, shopName: ShopName.ALDI } };
-//   }
-// }

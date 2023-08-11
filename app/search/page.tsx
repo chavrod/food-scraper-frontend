@@ -17,9 +17,14 @@ export default async function Home(params: Props) {
   const results = await searchProducts(searchText);
   const { products, summary } = results || { products: [], summary: [] };
 
+  const handlePageChangle = (page) => {};
+
   return (
     <>
-      <SearchResults products={products} />
+      <SearchResults
+        products={products}
+        handlePageChangle={handlePageChangle}
+      />
     </>
   );
 }
