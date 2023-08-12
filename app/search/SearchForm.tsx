@@ -4,14 +4,18 @@ import { useForm } from "@mantine/form";
 import { TextInput, Group, Button, Checkbox } from "@mantine/core";
 import { useRouter } from "next/navigation";
 
-export default function SearchForm() {
+interface SearchFormProps {
+  searchText: string;
+}
+
+export default function SearchForm({ searchText }: SearchFormProps) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
 
   const form = useForm({
     initialValues: {
-      q: "",
+      q: searchText || "",
       p: 1,
     },
 
