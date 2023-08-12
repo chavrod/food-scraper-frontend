@@ -1,5 +1,3 @@
-import SearchForm from "./SearchForm";
-
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
@@ -11,7 +9,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           alignItems: "center", // Center children horizontally
         }}
       >
-        <SearchForm />
         {children}
       </main>
     </>
