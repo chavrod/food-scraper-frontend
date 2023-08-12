@@ -10,19 +10,27 @@ import {
   Stack,
   Pagination,
 } from "@mantine/core";
-
-import { Product, ScrapeSummary } from "@/utils/types";
+// Intenral Utils
+import { Product, ScrapeSummary, SearchMetaData } from "@/utils/types";
+// Intenral Components
 
 interface SearchResultsProps {
   products?: Product[];
-  summary?: ScrapeSummary;
+  summaryPerShop: ScrapeSummary[];
+  searchMetaData: SearchMetaData | {};
+}
+
+function isSearchMetaData(obj: any): obj is SearchMetaData {
+  return "totalPages" in obj;
 }
 
 export default function SearchResults({
   products = [],
-  summary,
+  summaryPerShop,
+  searchMetaData,
 }: SearchResultsProps): ReactElement {
   const [loading, setLoading] = useState(false);
+  const [activePage, setPage] = useState(1);
 
   useEffect(() => {
     if (!products[0]) return;
@@ -41,6 +49,19 @@ export default function SearchResults({
 
   return (
     <Stack>
+      <Stack>
+        <Text>Results summary</Text>
+        <Group>
+          {summaryPerShop.map((item, index) => (
+            <Paper key={index}>
+              <Stack>
+                <Text>{item.shopName}</Text>
+                <Text>{item.count}</Text>
+              </Stack>
+            </Paper>
+          ))}
+        </Group>
+      </Stack>
       <Grid gutter="md" justify="center">
         {products.map((product, index) => (
           <Grid.Col key={index} span={12} md={6} lg={4}>
@@ -78,7 +99,16 @@ export default function SearchResults({
           </Grid.Col>
         ))}
       </Grid>
-      <Pagination pb="lg" spacing={5} total={summary?.count || 0} />
+      {isSearchMetaData(searchMetaData) && searchMetaData.totalPages && (
+        <Pagination
+          mb={30}
+          pb="xl"
+          spacing={5}
+          value={activePage}
+          onChange={setPage}
+          total={searchMetaData.totalPages}
+        />
+      )}
     </Stack>
   );
 }

@@ -12,6 +12,7 @@ export default function SearchForm() {
   const form = useForm({
     initialValues: {
       q: "",
+      p: 1,
     },
 
     validate: {
@@ -19,8 +20,8 @@ export default function SearchForm() {
     },
   });
 
-  const handleFormSubmit = (values: { q: string }) => {
-    router.push(`?q=${values.q}`);
+  const handleFormSubmit = (values: { q: string; p: number }) => {
+    router.push(`?q=${values.q}&p=${values.p}`);
 
     setLoading(true);
 

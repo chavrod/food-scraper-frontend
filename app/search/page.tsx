@@ -1,29 +1,37 @@
 import SearchResults from "./SearchResults";
 import FetchData from "./FetchData";
 
-async function searchProducts(searchText = "") {
+async function searchProducts(searchText = "", page = "") {
   if (searchText === "") return;
-  return FetchData({ query: searchText });
+  return FetchData({ query: searchText, page: page });
 }
 
 type Props = {
   searchParams?: {
     q?: string | undefined;
+    p?: string | undefined;
   };
 };
 
 export default async function Home(params: Props) {
   const searchText = params.searchParams?.q;
-  const results = await searchProducts(searchText);
-  const { products, summary } = results || { products: [], summary: [] };
+  const searchPage = params.searchParams?.p;
+  const results = await searchProducts(searchText, searchPage);
+  const { products, summaryPerShop, searchMetaData } = results || {
+    products: [],
+    summaryPerShop: [],
+    searchMetaData: {},
+  };
 
-  const handlePageChangle = (page) => {};
+  // const handlePageChangle = (page) => {};
 
   return (
     <>
       <SearchResults
         products={products}
-        handlePageChangle={handlePageChangle}
+        summaryPerShop={summaryPerShop}
+        searchMetaData={searchMetaData}
+        // handlePageChangle={handlePageChangle}
       />
     </>
   );

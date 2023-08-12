@@ -1,36 +1,140 @@
-import { load } from "cheerio";
 import { JSDOM } from "jsdom";
 import { chromium } from "playwright";
-
-import { Product, ScrapeSummary, ShopName } from "@/utils/types";
+// Intenral Utils
+import {
+  Product,
+  ScrapeSummary,
+  ShopName,
+  ShopPageCount,
+  SearchMetaData,
+} from "@/utils/types";
+import { cacheResults, getCachedResults } from "@/utils/cache";
 
 export default async function FetchData({
   query,
+  page,
 }: {
   query: string;
-}): Promise<{ products: Product[]; summary: ScrapeSummary[] }> {
-  // Return array
-  const results: { products: Product[]; summary: ScrapeSummary[] } = {
+  page: string;
+}): Promise<{
+  products: Product[];
+  summaryPerShop: ScrapeSummary[];
+  searchMetaData: SearchMetaData;
+}> {
+  // Check cache first
+  const cachedProducts = await getCachedResults(query, (page = "1"));
+  const cachedTotalPages = await getCachedResults(query, "totalPages");
+
+  const cachedSummaryPerShop = await Promise.all(
+    Object.values(ShopName).map(async (shopName) => {
+      const count = await getCachedResults(query, shopName);
+      return { shopName, count };
+    })
+  );
+
+  if (cachedProducts && cachedTotalPages) {
+    console.log("FOUND CACHED RESULTS!");
+    console.log("cachedProducts", cachedProducts);
+    console.log("cachedTotalPages", cachedTotalPages);
+    console.log("cachedSummaryPerShop", cachedSummaryPerShop);
+    return {
+      products: cachedProducts,
+      summaryPerShop: cachedSummaryPerShop,
+      searchMetaData: {
+        currentPage: Number(page),
+        totalPages: cachedTotalPages,
+        keyword: query,
+      },
+    };
+  }
+  console.log("CACHED RESULTS NOT FOUND!");
+
+  // If not found in cache, initialize results
+  const results: {
+    products: Product[];
+    summaryPerShop: ScrapeSummary[];
+    searchMetaData: SearchMetaData;
+  } = {
     products: [],
-    summary: [],
+    summaryPerShop: [],
+    searchMetaData: {
+      currentPage: 0,
+      totalPages: 0,
+      keyword: query,
+    },
   };
 
   // Add the scraping from different shops
-  const tescoResults = await scrapeTesco(query);
-  const aldiResults = await scrapeAldi(query);
-  const superValuResults = await scrapeSuprvalue(query);
-
+  const [tescoResults, aldiResults, superValuResults] = await Promise.all([
+    scrapeTesco(query),
+    scrapeAldi(query),
+    scrapeSuprvalue(query),
+  ]);
   const allResultsUnsorted = [
     ...tescoResults.products,
     ...aldiResults.products,
     ...superValuResults.products,
   ];
+  results.summaryPerShop = [
+    tescoResults.summaryPerShop,
+    aldiResults.summaryPerShop,
+    superValuResults.summaryPerShop,
+  ];
+
+  // Sorting and paginating results
   const allResultsSorted = allResultsUnsorted.sort((a, b) => a.price - b.price);
-  const sortedResultsSliced = allResultsSorted.slice(0, 30);
+  const sortedResultsPaginated = [];
+  for (
+    let i = 0;
+    i < allResultsSorted.length;
+    i += Number(process.env.RESULTS_PER_PAGE)
+  ) {
+    const page = allResultsSorted.slice(
+      i,
+      i + Number(process.env.RESULTS_PER_PAGE) + 1
+    );
+    sortedResultsPaginated.push(page);
+  }
+  console.log("RESULTS SORTED AND PAGINATED");
+  console.log("TOTAL RESULTS: ", allResultsSorted.length);
+  results.summaryPerShop.forEach((shop) => {
+    console.log(`${shop.shopName} RESULTS: `, shop.count);
+  });
+  console.log("NUMBER OF PAGES : ", sortedResultsPaginated.length);
 
-  // console.log(sortedResultsSliced);
+  const totalPages = Math.ceil(
+    allResultsSorted.length / Number(process.env.RESULTS_PER_PAGE)
+  );
+  // TODO: Handle cases where 0.5 or negative. or strings are entered as a page
+  const pageToDisplay = Number(page) > totalPages ? totalPages : Number(page);
 
-  results.products.push(...sortedResultsSliced);
+  results.products.push(...sortedResultsPaginated[pageToDisplay]);
+  results.searchMetaData.currentPage = pageToDisplay;
+  results.searchMetaData.totalPages = totalPages;
+
+  await cacheResults({
+    keyword: query,
+    page: "totalPages",
+    results: totalPages,
+  });
+  await Promise.all(
+    results.summaryPerShop.map((shop) => {
+      return cacheResults({
+        keyword: query,
+        page: shop.shopName,
+        results: shop.count,
+      });
+    })
+  );
+  await Promise.all(
+    sortedResultsPaginated.map((pageContent, index) => {
+      return cacheResults({
+        keyword: query,
+        page: Number(index) + 1,
+        results: pageContent,
+      });
+    })
+  );
 
   return results;
 }
@@ -59,7 +163,7 @@ async function scrapeTesco(query: string) {
 
   try {
     const response = await fetch(
-      `https://www.tesco.ie/groceries/en-IE/search?query=${query}`,
+      `https://www.tesco.ie/groceries/en-IE/search?query=${query}&sortBy=price-ascending&page=1&count=${ShopPageCount.TESCO_LONG}`,
       {
         headers: headers,
         cache: "no-store",
@@ -68,132 +172,103 @@ async function scrapeTesco(query: string) {
 
     const html = await response.text();
     const { window } = new JSDOM(html);
-    const $ = (selector: string) => window.document.querySelectorAll(selector);
+    const document = window.document;
 
     // Extract the total number of items
+    const strongElementWithTotalCount = document.querySelector(
+      "div.pagination__items-displayed > strong:nth-child(2)"
+    );
+    const textContentWithTotalCount = strongElementWithTotalCount
+      ? strongElementWithTotalCount.textContent
+      : "";
+    const match = textContentWithTotalCount
+      ? textContentWithTotalCount.match(/(\d+)/)
+      : false;
+    const totalNumberOfItems = match ? Number(match[1]) : 0;
     let products: Product[] = [];
 
-    $("li.product-list--list-item").forEach((item) => {
-      let product: Product = {
-        name: "",
-        price: 0,
-        imgSrc: undefined,
-        shopName: ShopName.TESCO,
+    if (totalNumberOfItems === 0)
+      return {
+        products: [],
+        summaryPerShop: { count: 0, shopName: ShopName.TESCO },
       };
 
-      const productDetails = item.querySelector("div.product-details--wrapper");
+    const totalPages = Math.ceil(totalNumberOfItems / ShopPageCount.TESCO_LONG);
 
-      const nameTag = productDetails?.querySelector("h3");
-      if (nameTag) {
-        const nameSpan = nameTag.querySelector("span");
-        if (nameSpan) {
-          product.name = nameSpan.textContent || "";
+    for (let i = 0; i < totalPages; i++) {
+      console.log("TESCO PAGE NO: ", i + 1);
+      const pageResponse = await fetch(
+        `https://www.tesco.ie/groceries/en-IE/search?query=${query}&sortBy=price-ascending&page=${i}&count=${ShopPageCount.TESCO_LONG}`,
+        {
+          headers: headers,
+          cache: "no-store",
         }
-      }
+      );
 
-      const formTag = productDetails?.querySelector("form");
-      if (formTag) {
-        const priceTag = formTag.querySelector("p");
-        if (priceTag) {
-          const priceText = priceTag.textContent || "";
-          const priceValue = parseFloat(priceText.replace(/[^0-9.-]+/g, "")); // Strip non-numeric characters
-          product.price = priceValue;
-        }
-      }
+      const pageHtml = await pageResponse.text();
+      const { window: pageWindow } = new JSDOM(pageHtml);
+      const pageDocument = pageWindow.document;
 
-      const imgSrcset = item
-        .querySelector("div.product-image__container img")
-        ?.getAttribute("srcset");
-      if (imgSrcset) {
-        const firstImageFromSrcset = imgSrcset
-          .split(",")[0]
-          .trim()
-          .split(" ")[0];
-        product.imgSrc = firstImageFromSrcset;
-      }
+      pageDocument
+        .querySelectorAll("li.product-list--list-item")
+        .forEach((item) => {
+          let product: Product = {
+            name: "",
+            price: 0,
+            imgSrc: undefined,
+            shopName: ShopName.TESCO,
+          };
 
-      if (product.name && product.price) {
-        products.push(product);
-      }
-    });
+          const productDetails = item.querySelector(
+            "div.product-details--wrapper"
+          );
+
+          const nameTag = productDetails?.querySelector("h3");
+          if (nameTag) {
+            const nameSpan = nameTag.querySelector("span");
+            if (nameSpan) {
+              product.name = nameSpan.textContent || "";
+            }
+          }
+
+          const formTag = productDetails?.querySelector("form");
+          if (formTag) {
+            const priceTag = formTag.querySelector("p");
+            if (priceTag) {
+              const priceText = priceTag.textContent || "";
+              const priceValue = parseFloat(
+                priceText.replace(/[^0-9.-]+/g, "")
+              ); // Strip non-numeric characters
+              product.price = priceValue;
+            }
+          }
+
+          const imgSrcset = item
+            .querySelector("div.product-image__container img")
+            ?.getAttribute("srcset");
+          if (imgSrcset) {
+            const firstImageFromSrcset = imgSrcset
+              .split(",")[0]
+              .trim()
+              .split(" ")[0];
+            product.imgSrc = firstImageFromSrcset;
+          }
+
+          if (product.name && product.price) {
+            products.push(product);
+          }
+        });
+    }
 
     return {
       products,
-      summary: { count: products.length, shopName: ShopName.TESCO },
-    };
-  } catch (error) {
-    console.error("Error fetching and parsing data:", error);
-    return { products: [], summary: { count: 0, shopName: ShopName.TESCO } };
-  }
-}
-
-async function scrapeSuprvalue(query: string) {
-  try {
-    const browser = await chromium.launch();
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
-    const url = `https://shop.supervalu.ie/sm/delivery/rsid/5550/results?q=${query}`;
-    await page.goto(url);
-
-    // Wait for the search results to load
-    await page.waitForSelector('[class^="Listing"]');
-
-    // const text = await page.$eval(
-    //   '[class^="Listing"]',
-    //   (element) => element.textContent
-    // );
-    // console.log(text);
-
-    const rows = await page.$$('[class^="ColListing"]');
-
-    const products: Product[] = [];
-    for (const prod of rows) {
-      let product: Product = {
-        name: "",
-        price: 0,
-        imgSrc: undefined,
-        shopName: ShopName.SUPERVALU,
-      };
-
-      const nameElement = await prod.$('span[class^="ProductCardTitle"] > div');
-      const priceElement = await prod.$(
-        '[class^="ProductCardPricing"] > span > span'
-      );
-      const imageElement = await prod.$(
-        '[class^="ProductCardImageWrapper"] > div > img'
-      );
-
-      // product.name = (await nameElement?.textContent()) || "";
-      if (nameElement) {
-        product.name = await nameElement.evaluate(
-          (el) => el.childNodes[0]?.nodeValue?.trim() ?? ""
-        );
-      } else {
-        product.name = "";
-      }
-      const priceText = await priceElement?.textContent();
-      product.price = priceText
-        ? parseFloat(priceText.replace(/[^0-9.-]+/g, ""))
-        : 0;
-      product.imgSrc = (await imageElement?.getAttribute("src")) || undefined;
-
-      if (product.name !== "" && product.price > 0) {
-        products.push(product);
-      }
-    }
-
-    await browser.close();
-    console.log(products);
-    return {
-      products: products,
-      summary: { count: products.length, shopName: ShopName.SUPERVALU },
+      summaryPerShop: { count: totalNumberOfItems, shopName: ShopName.TESCO },
     };
   } catch (error) {
     console.error("Error fetching and parsing data:", error);
     return {
       products: [],
-      summary: { count: 0, shopName: ShopName.SUPERVALU },
+      summaryPerShop: { count: 0, shopName: ShopName.TESCO },
     };
   }
 }
@@ -204,49 +279,163 @@ async function scrapeAldi(query: string) {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    const url = `https://groceries.aldi.ie/en-GB/Search?keywords=${query}`;
-    await page.goto(url);
+    let products: Product[] = [];
+    let totalNumberOfItems = 0;
+    let totalNumberOfPages = 0;
+    const itemsPerPage = ShopPageCount.ALDI; // Replace with the appropriate count for this shop
 
-    // Wait for the search results to load
-    await page.waitForSelector('[data-qa="search-results"]');
+    let currentPage = 1;
 
-    // const html = await page.content();
-    // console.log(html);
+    do {
+      console.log("ALDI PAGE: ", currentPage);
+      const url = `https://groceries.aldi.ie/en-GB/Search?keywords=${query}&sortBy=DisplayPrice&sortDirection=asc&page=${currentPage}`;
+      await page.goto(url);
 
-    const rows = await page.$$('[data-qa="search-results"]');
-    const products: Product[] = [];
-    for (const prod of rows) {
-      let product: Product = {
-        name: "",
-        price: 0,
-        imgSrc: undefined,
-        shopName: ShopName.ALDI,
-      };
+      // Wait for the search results to load
+      await page.waitForSelector('[data-qa="search-results"]');
 
-      const nameElement = await prod.$('[data-qa="search-product-title"]');
-      const priceElement = await prod.$(".product-tile-price .h4 span");
-      const imageElement = await prod.$("img");
-
-      product.name = (await nameElement?.textContent()) || "";
-      const priceText = await priceElement?.textContent();
-      product.price = priceText
-        ? parseFloat(priceText.replace(/[^0-9.-]+/g, ""))
-        : 0;
-      product.imgSrc = (await imageElement?.getAttribute("src")) || undefined;
-
-      if (product.name !== "" && product.price > 0) {
-        products.push(product);
+      // Extract the total number of items once if it hasn't been done yet
+      if (totalNumberOfItems === 0) {
+        const totalNumberOfItemsElement = await page.$("div#vueSearchSummary");
+        const totalNumberOfItemsAttribute =
+          await totalNumberOfItemsElement?.getAttribute("data-totalcount");
+        totalNumberOfItems = totalNumberOfItemsAttribute
+          ? parseInt(totalNumberOfItemsAttribute, 10)
+          : 0;
+        totalNumberOfPages = Math.ceil(totalNumberOfItems / itemsPerPage);
       }
-    }
+
+      const rows = await page.$$('[data-qa="search-results"]');
+
+      for (const prod of rows) {
+        let product: Product = {
+          name: "",
+          price: 0,
+          imgSrc: undefined,
+          shopName: ShopName.ALDI,
+        };
+
+        const nameElement = await prod.$('[data-qa="search-product-title"]');
+        const priceElement = await prod.$(".product-tile-price .h4 span");
+        const imageElement = await prod.$("img");
+
+        product.name = (await nameElement?.textContent()) || "";
+        const priceText = await priceElement?.textContent();
+        product.price = priceText
+          ? parseFloat(priceText.replace(/[^0-9.-]+/g, ""))
+          : 0;
+        product.imgSrc = (await imageElement?.getAttribute("src")) || undefined;
+
+        if (product.name !== "" && product.price > 0) {
+          products.push(product);
+        }
+      }
+
+      currentPage++; // Increment the page number for the next iteration
+    } while (currentPage <= totalNumberOfPages);
 
     await browser.close();
 
     return {
       products: products,
-      summary: { count: products.length, shopName: ShopName.ALDI },
+      summaryPerShop: { count: totalNumberOfItems, shopName: ShopName.ALDI },
     };
   } catch (error) {
     console.error("Error fetching and parsing data:", error);
-    return { products: [], summary: { count: 0, shopName: ShopName.ALDI } };
+    return {
+      products: [],
+      summaryPerShop: { count: 0, shopName: ShopName.ALDI },
+    };
+  }
+}
+
+async function scrapeSuprvalue(query: string) {
+  try {
+    const browser = await chromium.launch();
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    let products: Product[] = [];
+    let totalNumberOfItems = 0;
+    let totalNumberOfPages = 0;
+    const itemsPerPage = ShopPageCount.SUPERVALU;
+
+    let currentPage = 1;
+    let skipIndex = 0;
+
+    do {
+      const url = `https://shop.supervalu.ie/sm/delivery/rsid/5550/results?q=${query}&sort=price&page=${currentPage}&skip=${skipIndex}`;
+      await page.goto(url);
+
+      // Wait for the search results to load
+      await page.waitForSelector('[class^="Listing"]');
+
+      // Extract the total number of items once if it hasn't been done yet
+      if (totalNumberOfItems === 0) {
+        const totalNumberOfItemsElement = await page.$('h4[class^="Subtitle"]');
+        const totalNumberOfItemsText =
+          await totalNumberOfItemsElement?.textContent();
+        totalNumberOfItems = totalNumberOfItemsText
+          ? parseFloat(totalNumberOfItemsText.replace(/[^0-9.-]+/g, ""))
+          : 0;
+        totalNumberOfPages = Math.ceil(totalNumberOfItems / itemsPerPage);
+      }
+
+      const rows = await page.$$('[class^="ColListing"]');
+
+      for (const prod of rows) {
+        let product: Product = {
+          name: "",
+          price: 0,
+          imgSrc: undefined,
+          shopName: ShopName.SUPERVALU,
+        };
+
+        const nameElement = await prod.$(
+          'span[class^="ProductCardTitle"] > div'
+        );
+        const priceElement = await prod.$(
+          '[class^="ProductCardPricing"] > span > span'
+        );
+        const imageElement = await prod.$(
+          '[class^="ProductCardImageWrapper"] > div > img'
+        );
+
+        if (nameElement) {
+          product.name = await nameElement.evaluate(
+            (el) => el.childNodes[0]?.nodeValue?.trim() ?? ""
+          );
+        } else {
+          product.name = "";
+        }
+        const priceText = await priceElement?.textContent();
+        product.price = priceText
+          ? parseFloat(priceText.replace(/[^0-9.-]+/g, ""))
+          : 0;
+        product.imgSrc = (await imageElement?.getAttribute("src")) || undefined;
+
+        if (product.name !== "" && product.price > 0) {
+          products.push(product);
+        }
+      }
+      currentPage++;
+      skipIndex += ShopPageCount.SUPERVALU;
+    } while (currentPage <= totalNumberOfPages);
+
+    await browser.close();
+
+    return {
+      products: products,
+      summaryPerShop: {
+        count: totalNumberOfItems,
+        shopName: ShopName.SUPERVALU,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching and parsing data:", error);
+    return {
+      products: [],
+      summaryPerShop: { count: 0, shopName: ShopName.SUPERVALU },
+    };
   }
 }

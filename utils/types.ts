@@ -4,6 +4,13 @@ export enum ShopName {
   SUPERVALU = "SUPERVALU",
 }
 
+export enum ShopPageCount {
+  ALDI = 36,
+  TESCO_SHORT = 24,
+  TESCO_LONG = 48,
+  SUPERVALU = 30,
+}
+
 export interface Product {
   name: string;
   price: number;
@@ -14,4 +21,10 @@ export interface Product {
 export interface ScrapeSummary {
   count: number;
   shopName: ShopName;
+}
+
+export interface SearchMetaData {
+  currentPage: number;
+  totalPages: number;
+  keyword: string;
 }
