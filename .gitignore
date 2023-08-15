@@ -1,38 +1,39 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
-.pnp.js
+sw_customer/node_modules
+sw_customer/.pnp
+sw_customer.pnp.js
 
 # testing
-/coverage
+sw_customer/coverage
 
 # next.js
-/.next/
-/out/
+sw_customer/.next/
+sw_customer/out/
 
 # production
-/build
+sw_customer/build
 
 # misc
 .DS_Store
-*.pem
+sw_customer/.DS_Store
+sw_customer/*.pem
 
 # debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+sw_customer/npm-debug.log*
+sw_customer/yarn-debug.log*
+sw_customer/yarn-error.log*
 
 # local env files
-.env*.local
+sw_customer/.env*.local
 
 # vercel
 .vercel
 
 # typescript
-*.tsbuildinfo
-next-env.d.ts
-/test-results/
-/playwright-report/
-/playwright/.cache/
+sw_customer/*.tsbuildinfo
+sw_customer/next-env.d.ts
+sw_customer/test-results/
+sw_customer/playwright-report/
+sw_customer/playwright/.cache/
