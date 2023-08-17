@@ -5,9 +5,16 @@ from django.core.validators import MinValueValidator
 
 
 class ShopName(models.TextChoices):
-    ALDI = ("ALDI",)
-    TESCO = ("TESCO",)
+    ALDI = "ALDI"
+    TESCO = "TESCO"
     SUPERVALU = "SUPERVALU"
+
+
+class ShopPageCount(models.TextChoices):
+    ALDI = 36
+    TESCO_SHORT = 24
+    TESCO_LONG = 48
+    SUPERVALU = 30
 
 
 class Product(models.Model):
