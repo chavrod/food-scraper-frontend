@@ -1,9 +1,9 @@
 from shop_wiz.settings import RESULTS_PER_PAGE
 import core.models as core_modes
 
-from playwright.async_api import async_playwright
-import asyncio
-import aiohttp
+# from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
+import requests
 import re
 import os
 from typing import List, Dict
@@ -23,10 +23,9 @@ async def scrape_data(query: str, page: str) -> Dict:
         "searchMetaData": {"currentPage": 0, "totalPages": 0, "keyword": query},
     }
 
-    # Using asyncio.gather for the equivalent of Promise.all
-    tesco_results, aldi_results, super_value_results = await asyncio.gather(
-        scrape_tesco(query), scrape_aldi(query), scrape_super_value(query)
-    )
+    tesco_results = scrape_tesco(query)
+    aldi_results = scrape_aldi(query)
+    super_value_results = scrape_supervalu(query)
 
     all_results_unsorted = (
         tesco_results["products"]
@@ -92,88 +91,25 @@ async def scrape_tesco(query: str):
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
     }
 
-    async with aiohttp.ClientSession() as session:
-        try:
-            url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page=1&count={core_modes.ShopPageCount.TESCO_LONG}"
-            async with session.get(url, headers=headers) as response:
-                html = await response.text()
-                soup = BeautifulSoup(html, "html.parser")
+    try:
+        url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page=1&count={core_modes.ShopPageCount.TESCO_LONG}"
+        response = requests.get(url, headers=headers)
+        html = await response.text()
+        soup = BeautifulSoup(html, "html.parser")
 
-                strong_element_with_total_count = soup.select_one(
-                    "div.pagination__items-displayed > strong:nth-child(2)"
-                )
-                text_content_with_total_count = (
-                    strong_element_with_total_count.get_text()
-                    if strong_element_with_total_count
-                    else ""
-                )
-                match = re.search(r"(\d+)", text_content_with_total_count)
-                total_number_of_items = int(match.group(1)) if match else 0
-                products = []
+        strong_element_with_total_count = soup.select_one(
+            "div.pagination__items-displayed > strong:nth-child(2)"
+        )
+        text_content_with_total_count = (
+            strong_element_with_total_count.get_text()
+            if strong_element_with_total_count
+            else ""
+        )
+        match = re.search(r"(\d+)", text_content_with_total_count)
+        total_number_of_items = int(match.group(1)) if match else 0
+        products = []
 
-                if total_number_of_items == 0:
-                    return {
-                        "products": [],
-                        "summaryPerShop": {
-                            "count": 0,
-                            "shopName": core_modes.ShopName.TESCO,
-                        },
-                    }
-
-                total_pages = math.ceil(
-                    total_number_of_items / core_modes.ShopPageCount.TESCO_LONG
-                )
-
-                for i in range(1, total_pages + 1):
-                    print(f"TESCO PAGE NO: {i}")
-                    page_url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page={i}&count={core_modes.ShopPageCount.TESCO_LONG}"
-                    async with session.get(page_url, headers=headers) as page_response:
-                        page_html = await page_response.text()
-                        page_soup = BeautifulSoup(page_html, "html.parser")
-
-                        for item in page_soup.select("li.product-list--list-item"):
-                            product = {
-                                "name": "",
-                                "price": 0,
-                                "imgSrc": None,
-                                "shopName": core_modes.ShopName.TESCO,
-                            }
-
-                            name_span = item.select_one(
-                                "div.product-details--wrapper h3 span"
-                            )
-                            product["name"] = name_span.get_text() if name_span else ""
-
-                            price_tag = item.select_one(
-                                "div.product-details--wrapper form p"
-                            )
-                            if price_tag:
-                                price_text = price_tag.get_text() or ""
-                                product["price"] = float(
-                                    re.sub(r"[^0-9.-]+", "", price_text)
-                                )
-
-                            img_srcset = item.select_one(
-                                "div.product-image__container img"
-                            )["srcset"]
-                            if img_srcset:
-                                first_image_from_srcset = (
-                                    img_srcset.split(",")[0].strip().split(" ")[0]
-                                )
-                                product["imgSrc"] = first_image_from_srcset
-
-                            if product["name"] and product["price"]:
-                                products.append(product)
-
-                return {
-                    "products": products,
-                    "summaryPerShop": {
-                        "count": total_number_of_items,
-                        "shopName": core_modes.ShopName.TESCO,
-                    },
-                }
-        except Exception as e:
-            print(f"Error fetching and parsing data: {e}")
+        if total_number_of_items == 0:
             return {
                 "products": [],
                 "summaryPerShop": {
@@ -182,85 +118,248 @@ async def scrape_tesco(query: str):
                 },
             }
 
+        total_pages = math.ceil(
+            total_number_of_items / core_modes.ShopPageCount.TESCO_LONG
+        )
 
-async def scrape_aldi(query: str):
-    async with async_playwright() as p:
-        browser = await p.chromium.launch()
+        for i in range(1, total_pages + 1):
+            print(f"TESCO PAGE NO: {i}")
+            page_url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page={i}&count={core_modes.ShopPageCount.TESCO_LONG}"
+            page_response = requests.get(page_url, headers=headers)
+            page_html = await page_response.text
+            page_soup = BeautifulSoup(page_html, "html.parser")
 
-        page = await browser.new_page()
-
-        products = []
-        total_number_of_items = 0
-        total_number_of_pages = 0
-        items_per_page = core_modes.ShopPageCount.ALDI
-
-        current_page = 1
-
-        while True:
-            print(f"ALDI PAGE: {current_page}")
-            url = f"https://groceries.aldi.ie/en-GB/Search?keywords={query}&sortBy=DisplayPrice&sortDirection=asc&page={current_page}"
-            await page.goto(url)
-
-            # Wait for the search results to load
-            await page.wait_for_selector('[data-qa="search-results"]')
-
-            if total_number_of_items == 0:
-                total_number_of_items_element = await page.query_selector(
-                    "div#vueSearchSummary"
-                )
-                total_number_of_items_attribute = (
-                    await total_number_of_items_element.get_attribute("data-totalcount")
-                )
-                total_number_of_items = (
-                    int(total_number_of_items_attribute)
-                    if total_number_of_items_attribute
-                    else 0
-                )
-                total_number_of_pages = math.ceil(
-                    total_number_of_items / items_per_page
-                )
-
-            rows = await page.query_selector_all('[data-qa="search-results"]')
-
-            for prod in rows:
+            for item in page_soup.select("li.product-list--list-item"):
                 product = {
                     "name": "",
                     "price": 0,
                     "imgSrc": None,
-                    "shopName": core_modes.ShopName.ALDI,
+                    "shopName": core_modes.ShopName.TESCO,
                 }
 
-                # Extracting elements
-                name_element = await prod.query_selector(
-                    '[data-qa="search-product-title"]'
-                )
-                price_element = await prod.query_selector(
-                    ".product-tile-price .h4 span"
-                )
-                image_element = await prod.query_selector("img")
+                name_span = item.select_one("div.product-details--wrapper h3 span")
+                product["name"] = name_span.get_text() if name_span else ""
 
-                # Extracting relevant data
-                product["name"] = await name_element.text_content() or ""
-                price_text = await price_element.text_content()
+                price_tag = item.select_one("div.product-details--wrapper form p")
+                if price_tag:
+                    price_text = price_tag.get_text() or ""
+                    product["price"] = float(re.sub(r"[^0-9.-]+", "", price_text))
 
-                price_match = re.search(r"(\d+\.\d+)", price_text)
-                product["price"] = float(price_match.group(1)) if price_match else 0
+                img_srcset = item.select_one("div.product-image__container img")[
+                    "srcset"
+                ]
+                if img_srcset:
+                    first_image_from_srcset = (
+                        img_srcset.split(",")[0].strip().split(" ")[0]
+                    )
+                    product["imgSrc"] = first_image_from_srcset
 
-                product["imgSrc"] = await image_element.get_attribute("src") or None
-
-                if product["name"] and product["price"] > 0:
+                if product["name"] and product["price"]:
                     products.append(product)
-
-            current_page += 1
-            if current_page > total_number_of_pages:
-                break
-
-        await browser.close()
 
         return {
             "products": products,
             "summaryPerShop": {
                 "count": total_number_of_items,
-                "shopName": core_modes.ShopName.ALDI,
+                "shopName": core_modes.ShopName.TESCO,
             },
+        }
+    except Exception as e:
+        print(f"Error fetching and parsing data from {core_modes.ShopName.TESCO}: {e}")
+        return {
+            "products": [],
+            "summaryPerShop": {
+                "count": 0,
+                "shopName": core_modes.ShopName.TESCO,
+            },
+        }
+
+
+def scrape_aldi(query: str):
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+
+            products = []
+            total_number_of_items = 0
+            total_number_of_pages = 0
+            items_per_page = core_modes.ShopPageCount.ALDI
+
+            current_page = 1
+
+            while True:
+                print(f"ALDI PAGE: {current_page}")
+                url = f"https://groceries.aldi.ie/en-GB/Search?keywords={query}&sortBy=DisplayPrice&sortDirection=asc&page={current_page}"
+                page.goto(url)
+
+                # Wait for the search results to load
+                page.wait_for_selector('[data-qa="search-results"]')
+
+                if total_number_of_items == 0:
+                    total_number_of_items_element = page.query_selector(
+                        "div#vueSearchSummary"
+                    )
+                    total_number_of_items_attribute = (
+                        total_number_of_items_element.get_attribute("data-totalcount")
+                    )
+                    total_number_of_items = (
+                        int(total_number_of_items_attribute)
+                        if total_number_of_items_attribute
+                        else 0
+                    )
+                    total_number_of_pages = math.ceil(
+                        total_number_of_items / items_per_page
+                    )
+
+                rows = page.query_selector_all('[data-qa="search-results"]')
+
+                for prod in rows:
+                    product = {
+                        "name": "",
+                        "price": 0,
+                        "imgSrc": None,
+                        "shopName": core_modes.ShopName.ALDI,
+                    }
+
+                    # Extracting elements
+                    name_element = prod.query_selector(
+                        '[data-qa="search-product-title"]'
+                    )
+                    price_element = prod.query_selector(".product-tile-price .h4 span")
+                    image_element = prod.query_selector("img")
+
+                    # Extracting relevant data
+                    product["name"] = name_element.text_content() or ""
+
+                    price_text = price_element.text_content()
+                    price_match = re.search(r"(\d+\.\d+)", price_text)
+                    product["price"] = float(price_match.group(1)) if price_match else 0
+
+                    product["imgSrc"] = image_element.get_attribute("src") or None
+
+                    if product["name"] and product["price"] > 0:
+                        products.append(product)
+
+                current_page += 1
+                if current_page > total_number_of_pages:
+                    break
+
+            browser.close()
+
+            return {
+                "products": products,
+                "summaryPerShop": {
+                    "count": total_number_of_items,
+                    "shopName": core_modes.ShopName.ALDI,
+                },
+            }
+    except Exception as e:
+        print(f"Error fetching and parsing data from {core_modes.ShopName.ALDI}: {e}")
+        return {
+            "products": [],
+            "summaryPerShop": {"count": 0, "shopName": core_modes.ShopName.ALDI},
+        }
+
+
+from playwright.sync_api import sync_playwright
+
+
+def scrape_supervalu(query: str):
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+
+            products = []
+            total_number_of_items = 0
+            total_number_of_pages = 0
+            items_per_page = core_modes.ShopPageCount.SUPERVALU
+
+            current_page = 1
+            skip_index = 0
+
+            while True:
+                url = f"https://shop.supervalu.ie/sm/delivery/rsid/5550/results?q={query}&sort=price&page={current_page}&skip={skip_index}"
+                page.goto(url)
+
+                # Wait for the search results to load
+                page.wait_for_selector('[class^="Listing"]')
+
+                # Extract the total number of items once if it hasn't been done yet
+                if total_number_of_items == 0:
+                    total_items_element = page.query_selector('h4[class^="Subtitle"]')
+                    total_items_text = (
+                        total_items_element.text_content()
+                        if total_items_element
+                        else None
+                    )
+                    match = (
+                        re.search(r"(\d+)", total_items_text)
+                        if total_items_text
+                        else None
+                    )
+                    total_number_of_items = int(match.group(1)) if match else 0
+                    total_number_of_pages = math.ceil(
+                        total_number_of_items / items_per_page
+                    )
+
+                rows = page.query_selector_all('[class^="ColListing"]')
+
+                for prod in rows:
+                    product = {
+                        "name": "",
+                        "price": 0,
+                        "imgSrc": None,
+                        "shopName": core_modes.ShopName.SUPERVALU,
+                    }
+
+                    name_element = prod.query_selector(
+                        'span[class^="ProductCardTitle"] > div'
+                    )
+                    price_element = prod.query_selector(
+                        '[class^="ProductCardPricing"] > span > span'
+                    )
+                    image_element = prod.query_selector(
+                        '[class^="ProductCardImageWrapper"] > div > img'
+                    )
+
+                    product["name"] = (
+                        name_element.text_content() if name_element else ""
+                    )
+                    price_text = price_element.text_content() if price_element else None
+
+                    # Extracting the float value from the price text
+                    match = re.search(r"(\d+\.\d+)", price_text) if price_text else None
+                    product["price"] = float(match.group(1)) if match else 0
+
+                    product["imgSrc"] = (
+                        image_element.get_attribute("src") if image_element else None
+                    )
+
+                    if product["name"] and product["price"] > 0:
+                        products.append(product)
+
+                current_page += 1
+                skip_index += items_per_page
+
+                if current_page > total_number_of_pages:
+                    break
+
+            browser.close()
+
+            return {
+                "products": products,
+                "summaryPerShop": {
+                    "count": total_number_of_items,
+                    "shopName": core_modes.ShopName.SUPERVALU,
+                },
+            }
+    except Exception as e:
+        print(
+            f"Error fetching and parsing data from {core_modes.ShopName.SUPERVALU}: {e}"
+        )
+        return {
+            "products": [],
+            "summaryPerShop": {"count": 0, "shopName": core_modes.ShopName.SUPERVALU},
         }
