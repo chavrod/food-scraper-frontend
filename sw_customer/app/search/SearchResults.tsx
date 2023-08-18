@@ -15,31 +15,32 @@ import {
   Button,
 } from "@mantine/core";
 // Intenral Utils
-import { Product, ScrapeSummary, SearchMetaData } from "@/utils/types";
+import {
+  Product,
+  ScrapeSummary,
+  SearchMetaData,
+  ScrapeStats,
+} from "@/utils/types";
 // Intenral Components
 
 interface SearchResultsProps {
   searchText?: string;
-  isCachedResults: boolean;
-  products?: Product[] | false;
+  products?: Product[] | undefined;
   summaryPerShop: ScrapeSummary[];
   searchMetaData: SearchMetaData | {};
+  averageScrapingTime: number | null;
 }
 
 export default function SearchResults({
   searchText,
-  isCachedResults,
-  products = [],
+  products,
   summaryPerShop,
   searchMetaData,
+  averageScrapingTime,
 }: SearchResultsProps): ReactElement {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
-  const [isProductsFound, setIsProductsFound] = useState(false);
-  const [isSearchPerformed, setIsSearchPerformed] = useState(false);
-
-  console.log(isCachedResults);
 
   const form = useForm({
     initialValues: {
@@ -56,23 +57,17 @@ export default function SearchResults({
     router.push(`?query=${values.q}&page=${values.p}`);
 
     setLoading(true);
-    setIsSearchPerformed(true);
   };
 
+  // TODO: Make sure even if nothing is found, we still populate the
+
   useEffect(() => {
-    console.log("useEffect EXECUTED");
-
-    if (!searchText) return;
-
-    if (products) {
-      setIsProductsFound(true);
-      setLoading(false);
-    } else {
-      setIsProductsFound(true);
-      setLoading(false);
-    }
-    setIsSearchPerformed(false);
-  }, [searchText, products]); // Re-run the effect when results change
+    console.log("helooo");
+    console.log(form.values.q);
+    console.log(products);
+    if (form.values.q !== "" && !products) setLoading(true);
+    if (!averageScrapingTime && products) setLoading(false);
+  }, [products, averageScrapingTime, form.values.q]);
 
   return (
     <>
@@ -90,28 +85,25 @@ export default function SearchResults({
           </Button>
         </Group>
       </form>
-      {loading && isCachedResults && (
+      {loading && (
         <Stack>
-          The results were cached, this should not take long!!
+          {averageScrapingTime ? (
+            <>
+              Results were NOT cached....Wait a bit... So far is has taken{" "}
+              {averageScrapingTime} seconds on average
+            </>
+          ) : (
+            <>Processing request!!</>
+          )}
+
           <Loader
             size="xl"
             style={{ textAlign: "center", margin: "20px auto" }}
           />
         </Stack>
       )}
-      {loading && !isCachedResults && (
-        <Stack>
-          Results were NOT cached....Wait one minute...
-          <Loader
-            size="xl"
-            style={{ textAlign: "center", margin: "20px auto" }}
-          />
-        </Stack>
-      )}
-      {!loading && !isProductsFound && isSearchPerformed && (
-        <>Sorry, nothinh was found at this search</>
-      )}
-      {!loading && isProductsFound && (
+
+      {!loading && products && products.length > 0 && (
         <Stack>
           <Stack>
             <Text>Results summary</Text>
@@ -164,6 +156,10 @@ export default function SearchResults({
             ))}
           </Grid>
         </Stack>
+      )}
+
+      {!loading && products && products.length === 0 && (
+        <>Sorry, there was nothing found!</>
       )}
     </>
   );

@@ -20,8 +20,6 @@ export default async function getData<DataType, P extends object = Params>({
   apiFunc,
   unpackName,
 }: GetDataProps<P>): Promise<GetDataReturnType<DataType, ScrapeStats>> {
-  console.log("CUSTOMER API PASSED: ", apiFunc);
-
   if (apiFunc === undefined || ("query" in params && params.query === "")) {
     return { data: undefined, error: true };
   }
@@ -29,9 +27,10 @@ export default async function getData<DataType, P extends object = Params>({
   try {
     const res = await apiFunc(params);
 
-    if (res.status === 204) {
+    if (res.status === 206) {
+      const jsonRes = await res.json();
       return {
-        data: { averageTimeSeconds: /* value or default value */ 0 },
+        data: { averageTimeSeconds: jsonRes.averageTimeSeconds },
         error: false,
       };
     }

@@ -30,5 +30,5 @@ export interface SearchMetaData {
 }
 
 export interface ScrapeStats {
-  averageTimeSeconds: number;
+  averageTimeSeconds: number | null;
 }

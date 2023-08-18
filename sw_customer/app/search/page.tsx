@@ -8,6 +8,7 @@ import customerApi from "@/api/customerApi";
 import {
   Product,
   ScrapeSummary,
+  ScrapeStats,
   ShopName,
   SearchMetaData,
 } from "@/utils/types";
@@ -23,8 +24,6 @@ export default async function Home(params: Props) {
   const searchText = params.searchParams?.query;
   const searchPage = params.searchParams?.params;
 
-  console.log("CUSTOMER API: ", customerApi.getProducts);
-
   const { data, error } = await getData<
     Product[],
     { query: string; page: string }
@@ -34,29 +33,26 @@ export default async function Home(params: Props) {
     unpackName: "products",
   });
 
-  let products: Product[] = [];
+  let products: Product[] | undefined;
   let summaryPerShop: ScrapeSummary[] = [];
   let searchMetaData = {};
+  let scrapeStats: ScrapeStats = { averageTimeSeconds: null };
 
   if (Array.isArray(data)) {
-    const products = data;
-    // handle products array
-  } else if (data && "averageTime" in data) {
-    const averageTime = data.averageTime;
-    // handle averageTime value
+    products = data;
+  } else if (data && "averageTimeSeconds" in data) {
+    scrapeStats.averageTimeSeconds = data.averageTimeSeconds;
   }
-
-  let cachedResults;
 
   return (
     <>
       {/* <SearchForm searchText={searchText || ""} /> */}
       <SearchResults
         searchText={searchText || ""}
-        isCachedResults={cachedResults ? true : false}
         products={products}
         summaryPerShop={summaryPerShop}
         searchMetaData={searchMetaData}
+        averageScrapingTime={scrapeStats.averageTimeSeconds}
       />
       <Pagination searchMetaData={searchMetaData} />
     </>
