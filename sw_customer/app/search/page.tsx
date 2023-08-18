@@ -3,8 +3,8 @@ import Pagination from "./Pagination";
 import SearchForm from "./SearchForm";
 import SearchResults from "./SearchResults";
 // Intenral Utils
-import scrapeData from "@/utils/scrapeData";
-import checkCache from "@/utils/checkCache";
+import getData from "@/api/getData";
+import customerApi from "@/api/customerApi";
 import {
   Product,
   ScrapeSummary,
@@ -12,49 +12,41 @@ import {
   SearchMetaData,
 } from "@/utils/types";
 
-async function searchProducts(searchText = "", page = "") {
-  if (searchText === "") return;
-  return scrapeData({ query: searchText, page: page });
-}
-
 type Props = {
   searchParams?: {
-    q?: string | undefined;
-    p?: string | undefined;
-    cached?: string | undefined;
+    query?: string | undefined;
+    params?: string | undefined;
   };
 };
 
 export default async function Home(params: Props) {
-  const isCached = params.searchParams?.cached;
-  const searchText = params.searchParams?.q;
-  const searchPage = params.searchParams?.p;
+  const searchText = params.searchParams?.query;
+  const searchPage = params.searchParams?.params;
+
+  console.log("CUSTOMER API: ", customerApi.getProducts);
+
+  const { data, error } = await getData<
+    Product[],
+    { query: string; page: string }
+  >({
+    params: { query: searchText || "", page: searchPage || "1" },
+    apiFunc: customerApi.getProducts,
+    unpackName: "products",
+  });
 
   let products: Product[] = [];
   let summaryPerShop: ScrapeSummary[] = [];
   let searchMetaData = {};
 
-  let cachedResults;
-
-  if (searchText && searchText !== "") {
-    cachedResults = await checkCache({
-      query: searchText,
-      page: searchPage || "1",
-    });
-
-    if (cachedResults) {
-      ({ products, summaryPerShop, searchMetaData } = cachedResults);
-    } else {
-      const results = await scrapeData({
-        query: searchText,
-        page: searchPage || "1",
-      });
-
-      if (results) {
-        ({ products, summaryPerShop, searchMetaData } = results);
-      }
-    }
+  if (Array.isArray(data)) {
+    const products = data;
+    // handle products array
+  } else if (data && "averageTime" in data) {
+    const averageTime = data.averageTime;
+    // handle averageTime value
   }
+
+  let cachedResults;
 
   return (
     <>

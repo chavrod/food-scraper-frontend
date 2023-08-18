@@ -28,3 +28,7 @@ export interface SearchMetaData {
   totalPages: number;
   keyword: string;
 }
+
+export interface ScrapeStats {
+  averageTimeSeconds: number;
+}

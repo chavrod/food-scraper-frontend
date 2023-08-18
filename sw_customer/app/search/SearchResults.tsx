@@ -53,7 +53,7 @@ export default function SearchResults({
   });
 
   const handleFormSubmit = (values: { q: string; p: number }) => {
-    router.push(`?q=${values.q}&p=${values.p}`);
+    router.push(`?query=${values.q}&page=${values.p}`);
 
     setLoading(true);
     setIsSearchPerformed(true);
