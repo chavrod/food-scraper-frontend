@@ -27,7 +27,7 @@ class Product(models.Model):
 class CachedProductsPage(models.Model):
     query = models.CharField(max_length=30)
     page = models.IntegerField(validators=[MinValueValidator(1)])
-    results = models.JSONField()
+    results = models.JSONField(default=dict)
     relevant_only = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
 

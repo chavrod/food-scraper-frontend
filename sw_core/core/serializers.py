@@ -16,14 +16,19 @@ class CachedProductsPageSerializer(DynamicModelSerializer):
         # Restrict the data to only accept 'query' and 'page'
         data = {key: data[key] for key in ["query", "page"] if key in data}
 
-        internal_value = super().to_internal_value(data)
+        try:
+            internal_value = super().to_internal_value(data)
+        except Exception as e:
+            print(f"Exception raised during super call: {e}")
+            raise e  # re-raise the exception for normal handling
 
         # Ensure 'page' defaults to 1 if it's less than 1 or not an integer
         try:
             page_value = int(internal_value["page"])
             if page_value != float(data["page"]) or page_value < 1:
                 raise ValueError
-        except (ValueError, TypeError, KeyError):
+        except (ValueError, TypeError, KeyError) as e:
             internal_value["page"] = 1
+            print(f"Error setting page value: {e}")
 
         return internal_value
