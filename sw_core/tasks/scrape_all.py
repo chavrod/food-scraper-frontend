@@ -10,13 +10,21 @@ from typing import List, Dict
 import math
 from bs4 import BeautifulSoup
 
+from celery import shared_task
 
 RESULTS_PER_PAGE = int(os.environ.get("RESULTS_PER_PAGE", 10))
 
+# TODO: delete, Testing only
+from time import sleep
 
-async def scrape_data(query: str, page: str) -> Dict:
+
+@shared_task
+def scrape_data(query: str, page: str) -> Dict:
     serialised_page = page or 1
 
+    sleep(10)
+
+    return
     results = {
         "products": [],
         "summaryPerShop": [],
@@ -73,7 +81,7 @@ async def scrape_data(query: str, page: str) -> Dict:
     return results
 
 
-async def scrape_tesco(query: str):
+def scrape_tesco(query: str):
     headers = {
         "authority": "www.tesco.ie",
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -94,7 +102,7 @@ async def scrape_tesco(query: str):
     try:
         url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page=1&count={core_modes.ShopPageCount.TESCO_LONG}"
         response = requests.get(url, headers=headers)
-        html = await response.text()
+        html = response.text()
         soup = BeautifulSoup(html, "html.parser")
 
         strong_element_with_total_count = soup.select_one(
@@ -126,7 +134,7 @@ async def scrape_tesco(query: str):
             print(f"TESCO PAGE NO: {i}")
             page_url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page={i}&count={core_modes.ShopPageCount.TESCO_LONG}"
             page_response = requests.get(page_url, headers=headers)
-            page_html = await page_response.text
+            page_html = page_response.text
             page_soup = BeautifulSoup(page_html, "html.parser")
 
             for item in page_soup.select("li.product-list--list-item"):

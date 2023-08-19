@@ -37,11 +37,8 @@ class CachedProductsPageViewSet(
         if not cached_pages.exists():
             # Start the scraping process
             # scrape_data(query_param, page_param)  # This would be your scraping function
-            print("QUERY PARAM:", query_param)
-            print("PAGE PARAM:", page_param)
-            # return
             return Response(
-                {"detail": "Results were not saved."}, status=status.HTTP_204_NO_CONTENT
+                data={"averageTimeSeconds": 50}, status=status.HTTP_206_PARTIAL_CONTENT
             )
 
         # If requested page is greater than the greatest cached page, return the latest available page

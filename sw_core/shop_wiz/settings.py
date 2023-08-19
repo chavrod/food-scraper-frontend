@@ -25,12 +25,11 @@ SECRET_KEY = "django-insecure-t93ipdy)sdc_)x)qjqv=*djc37)9@epx@9e06_u9a)$&&n#gqj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
-
 # Application definition
 
 INSTALLED_APPS = [
+    "channels",
+    "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -38,9 +37,18 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "shop_wiz",
+    "core",
 ]
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
+    }
+}
+
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -68,8 +76,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "shop_wiz.wsgi.application"
-
+# WSGI_APPLICATION = "shop_wiz.wsgi.application"
+ASGI_APPLICATION = "shop_wiz.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -104,6 +112,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+ALLOWED_HOSTS = ["*"]
+# ALLOWED_HOSTS = ['mydomain.com', 'www.mydomain.com']
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -129,3 +144,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 RESULTS_PER_PAGE = 24
+
+
+# REDIS config
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"

@@ -23,6 +23,9 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image_url = models.URLField(blank=True, null=True)
 
+    def __str__(self) -> str:
+        return f"{self.shop}: {self.name} {self.price}"
+
 
 class CachedProductsPage(models.Model):
     query = models.CharField(max_length=30)
@@ -33,3 +36,6 @@ class CachedProductsPage(models.Model):
 
     class Meta:
         ordering = ["query"]
+
+    def __str__(self) -> str:
+        return f"{self.query}: {self.page} page"
