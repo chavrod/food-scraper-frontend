@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { ReactElement, useState, useEffect } from "react";
-// External
+// External Styling
 import { useForm } from "@mantine/form";
 import {
   Loader,
@@ -42,6 +42,41 @@ export default function SearchResults({
 
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    console.log(averageScrapingTime);
+    if (averageScrapingTime) {
+      const socket = new WebSocket("ws://localhost:8000/ws/scraped_result/");
+
+      socket.onopen = () => {
+        console.log("WebSocket is connected.");
+
+        // Sending a message to the server after connection
+        const messageData = {
+          message: form.values.q,
+          sender: "Client",
+        };
+
+        socket.send(JSON.stringify(messageData));
+      };
+
+      socket.onmessage = (event) => {
+        console.log("MESSAGE RECEIVED");
+        const responseData = JSON.parse(event.data);
+        console.log(responseData.message); // Process the received data as required
+        socket.close();
+      };
+
+      socket.onerror = (error) => {
+        console.error("WebSocket Error:", error);
+      };
+
+      // Cleanup the socket connection on component unmount
+      return () => {
+        socket.close();
+      };
+    }
+  }, [averageScrapingTime]);
+
   const form = useForm({
     initialValues: {
       q: searchText || "",
@@ -58,14 +93,12 @@ export default function SearchResults({
 
     setLoading(true);
   };
+  // TODO: Set loading on refresh
 
   // TODO: Make sure even if nothing is found, we still populate the
 
+  // TODO: Make sure we do not end up in an infinite loop
   useEffect(() => {
-    console.log("helooo");
-    console.log(form.values.q);
-    console.log(products);
-    if (form.values.q !== "" && !products) setLoading(true);
     if (!averageScrapingTime && products) setLoading(false);
   }, [products, averageScrapingTime, form.values.q]);
 
