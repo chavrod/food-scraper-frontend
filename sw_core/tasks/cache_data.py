@@ -23,7 +23,11 @@ from celery import shared_task
 
 
 @shared_task
-def scrape_data(query: str, page: str) -> Dict:
+def cache_data(query: str, page: str, is_relevant_only: bool, is_ascending: bool):
+    data = scrape_data(query, page, is_relevant_only)
+
+
+def scrape_data(query: str, page: str, is_relevant_only: bool) -> Dict:
     serialised_page = int(page) if page else 1
 
     results = {
@@ -32,9 +36,11 @@ def scrape_data(query: str, page: str) -> Dict:
         "searchMetaData": {"currentPage": 0, "totalPages": 0, "keyword": query},
     }
 
-    tesco_results = scrape_tesco(query)
-    aldi_results = scrape_aldi(query)
-    super_value_results = scrape_supervalu(query)
+    tesco_results = scrape_tesco(query=query, is_relevant_only=is_relevant_only)
+    aldi_results = scrape_aldi(query=query, is_relevant_only=is_relevant_only)
+    super_value_results = scrape_supervalu(
+        query=query, is_relevant_only=is_relevant_only
+    )
 
     all_results_unsorted = (
         tesco_results["products"]
@@ -84,7 +90,7 @@ def scrape_data(query: str, page: str) -> Dict:
     return results
 
 
-def scrape_tesco(query: str):
+def scrape_tesco(query: str, is_relevant_only: bool):
     headers = {
         "authority": "www.tesco.ie",
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -101,46 +107,15 @@ def scrape_tesco(query: str):
         "upgrade-insecure-requests": "1",
         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
     }
-
     try:
-        url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page=1&count={core_modes.ShopPageCount.TESCO_LONG}"
-        response = requests.get(url, headers=headers)
-        html = response.text
-        soup = BeautifulSoup(html, "html.parser")
-
-        strong_element_with_total_count = soup.select_one(
-            "div.pagination__items-displayed > strong:nth-child(2)"
-        )
-        text_content_with_total_count = (
-            strong_element_with_total_count.get_text()
-            if strong_element_with_total_count
-            else ""
-        )
-        match = re.search(r"(\d+)", text_content_with_total_count)
-        total_number_of_items = int(match.group(1)) if match else 0
         products = []
+        if is_relevant_only:
+            url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}"
+            response = requests.get(url, headers=headers)
+            html = response.text
+            soup = BeautifulSoup(html, "html.parser")
 
-        if total_number_of_items == 0:
-            return {
-                "products": [],
-                "summaryPerShop": {
-                    "count": 0,
-                    "shopName": core_modes.ShopName.TESCO,
-                },
-            }
-
-        total_pages = math.ceil(
-            total_number_of_items / core_modes.ShopPageCount.TESCO_LONG
-        )
-
-        for i in range(1, total_pages + 1):
-            print(f"TESCO PAGE NO: {i}")
-            page_url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page={i}&count={core_modes.ShopPageCount.TESCO_LONG}"
-            page_response = requests.get(page_url, headers=headers)
-            page_html = page_response.text
-            page_soup = BeautifulSoup(page_html, "html.parser")
-
-            for item in page_soup.select("li.product-list--list-item"):
+            for item in soup.select("li.product-list--list-item"):
                 product = {
                     "name": "",
                     "price": 0,
@@ -167,6 +142,70 @@ def scrape_tesco(query: str):
 
                 if product["name"] and product["price"]:
                     products.append(product)
+        else:
+            url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page=1&count={core_modes.ShopPageCount.TESCO_LONG}"
+            response = requests.get(url, headers=headers)
+            html = response.text
+            soup = BeautifulSoup(html, "html.parser")
+
+            strong_element_with_total_count = soup.select_one(
+                "div.pagination__items-displayed > strong:nth-child(2)"
+            )
+            text_content_with_total_count = (
+                strong_element_with_total_count.get_text()
+                if strong_element_with_total_count
+                else ""
+            )
+            match = re.search(r"(\d+)", text_content_with_total_count)
+            total_number_of_items = int(match.group(1)) if match else 0
+
+            if total_number_of_items == 0:
+                return {
+                    "products": [],
+                    "summaryPerShop": {
+                        "count": 0,
+                        "shopName": core_modes.ShopName.TESCO,
+                    },
+                }
+
+            total_pages = math.ceil(
+                total_number_of_items / core_modes.ShopPageCount.TESCO_LONG
+            )
+
+            for i in range(1, total_pages + 1):
+                print(f"TESCO PAGE NO: {i}")
+                page_url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page={i}&count={core_modes.ShopPageCount.TESCO_LONG}"
+                page_response = requests.get(page_url, headers=headers)
+                page_html = page_response.text
+                page_soup = BeautifulSoup(page_html, "html.parser")
+
+                for item in page_soup.select("li.product-list--list-item"):
+                    product = {
+                        "name": "",
+                        "price": 0,
+                        "imgSrc": None,
+                        "shopName": core_modes.ShopName.TESCO,
+                    }
+
+                    name_span = item.select_one("div.product-details--wrapper h3 span")
+                    product["name"] = name_span.get_text() if name_span else ""
+
+                    price_tag = item.select_one("div.product-details--wrapper form p")
+                    if price_tag:
+                        price_text = price_tag.get_text() or ""
+                        product["price"] = float(re.sub(r"[^0-9.-]+", "", price_text))
+
+                    img_srcset = item.select_one("div.product-image__container img")[
+                        "srcset"
+                    ]
+                    if img_srcset:
+                        first_image_from_srcset = (
+                            img_srcset.split(",")[0].strip().split(" ")[0]
+                        )
+                        product["imgSrc"] = first_image_from_srcset
+
+                    if product["name"] and product["price"]:
+                        products.append(product)
 
         return {
             "products": products,
@@ -186,7 +225,7 @@ def scrape_tesco(query: str):
         }
 
 
-def scrape_aldi(query: str):
+def scrape_aldi(query: str, is_relevant_only: bool):
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
@@ -199,15 +238,20 @@ def scrape_aldi(query: str):
 
             current_page = 1
 
+            def build_url(query: str, current_page: int):
+                if is_relevant_only:
+                    return f"https://groceries.aldi.ie/en-GB/Search?keywords={query}"
+                else:
+                    return f"https://groceries.aldi.ie/en-GB/Search?keywords={query}&sortBy=DisplayPrice&sortDirection=asc&page={current_page}"
+
             while True:
                 print(f"ALDI PAGE: {current_page}")
-                url = f"https://groceries.aldi.ie/en-GB/Search?keywords={query}&sortBy=DisplayPrice&sortDirection=asc&page={current_page}"
-                page.goto(url)
+                page.goto(build_url(query=query, current_page=current_page))
 
                 # Wait for the search results to load
                 page.wait_for_selector('[data-qa="search-results"]')
 
-                if total_number_of_items == 0:
+                if not is_relevant_only or total_number_of_items == 0:
                     total_number_of_items_element = page.query_selector(
                         "div#vueSearchSummary"
                     )
@@ -249,11 +293,13 @@ def scrape_aldi(query: str):
 
                     product["imgSrc"] = image_element.get_attribute("src") or None
 
+                    print("ALDI product: ", product)
+
                     if product["name"] and product["price"] > 0:
                         products.append(product)
 
                 current_page += 1
-                if current_page > total_number_of_pages:
+                if is_relevant_only or current_page > total_number_of_pages:
                     break
 
             browser.close()
@@ -276,7 +322,7 @@ def scrape_aldi(query: str):
 from playwright.sync_api import sync_playwright
 
 
-def scrape_supervalu(query: str):
+def scrape_supervalu(query: str, is_relevant_only: bool):
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
@@ -290,16 +336,25 @@ def scrape_supervalu(query: str):
             current_page = 1
             skip_index = 0
 
+            def build_url(query: str, current_page: int, skip_index: int):
+                if is_relevant_only:
+                    return f"https://shop.supervalu.ie/sm/delivery/rsid/5550/results?q={query}"
+                else:
+                    return f"https://shop.supervalu.ie/sm/delivery/rsid/5550/results?q={query}&sort=price&page={current_page}&skip={skip_index}"
+
             while True:
                 print(f"SUPERVALU PAGE: {current_page}")
-                url = f"https://shop.supervalu.ie/sm/delivery/rsid/5550/results?q={query}&sort=price&page={current_page}&skip={skip_index}"
-                page.goto(url)
+                page.goto(
+                    build_url(
+                        query=query, current_page=current_page, skip_index=skip_index
+                    )
+                )
 
                 # Wait for the search results to load
                 page.wait_for_selector('[class^="Listing"]')
 
                 # Extract the total number of items once if it hasn't been done yet
-                if total_number_of_items == 0:
+                if not is_relevant_only or total_number_of_items == 0:
                     total_items_element = page.query_selector('h4[class^="Subtitle"]')
                     total_items_text = (
                         total_items_element.text_content()
@@ -355,7 +410,7 @@ def scrape_supervalu(query: str):
                 current_page += 1
                 skip_index += items_per_page
 
-                if current_page > total_number_of_pages:
+                if is_relevant_only or current_page > total_number_of_pages:
                     break
 
             browser.close()
@@ -386,12 +441,17 @@ if __name__ == "__main__":
     # Add arguments for query and page
     parser.add_argument("query", type=str, help="The query to search for.")
     parser.add_argument("page", type=str, help="The page number to retrieve.")
+    parser.add_argument(
+        "is_relevant_only",
+        type=str,
+        help="Only scrape first page of most relevant searches.",
+    )
 
     # Parse the arguments
     args = parser.parse_args()
 
     # Call the function with parsed arguments
-    result = scrape_data(args.query, args.page)
+    result = scrape_data(args.query, args.page, args.is_relevant_only)
 
     # Display the desired results
     for shop in result["summaryPerShop"]:
