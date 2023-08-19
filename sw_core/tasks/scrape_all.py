@@ -1,30 +1,31 @@
+import os
+import sys
+import django
+
+sys.path.append("/Users/dmitry/projects/shopping_wiz/sw_core")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shop_wiz.settings")
+django.setup()
+
 from shop_wiz.settings import RESULTS_PER_PAGE
 import core.models as core_modes
 
 # from playwright.async_api import async_playwright
 from playwright.sync_api import sync_playwright
+import argparse
 import requests
 import re
-import os
 from typing import List, Dict
 import math
+
 from bs4 import BeautifulSoup
 
 from celery import shared_task
 
-RESULTS_PER_PAGE = int(os.environ.get("RESULTS_PER_PAGE", 10))
-
-# TODO: delete, Testing only
-from time import sleep
-
 
 @shared_task
 def scrape_data(query: str, page: str) -> Dict:
-    serialised_page = page or 1
+    serialised_page = int(page) if page else 1
 
-    sleep(10)
-
-    return
     results = {
         "products": [],
         "summaryPerShop": [],
@@ -40,6 +41,7 @@ def scrape_data(query: str, page: str) -> Dict:
         + aldi_results["products"]
         + super_value_results["products"]
     )
+
     results["summaryPerShop"] = [
         tesco_results["summaryPerShop"],
         aldi_results["summaryPerShop"],
@@ -48,6 +50,7 @@ def scrape_data(query: str, page: str) -> Dict:
 
     # Sorting and paginating results
     all_results_sorted = sorted(all_results_unsorted, key=lambda x: x["price"])
+
     sorted_results_paginated = [
         all_results_sorted[i : i + RESULTS_PER_PAGE]
         for i in range(0, len(all_results_sorted), RESULTS_PER_PAGE)
@@ -59,7 +62,7 @@ def scrape_data(query: str, page: str) -> Dict:
         print(f'{shop["shopName"]} RESULTS:', shop["count"])
     print("NUMBER OF PAGES:", len(sorted_results_paginated))
 
-    total_pages = math.ceil(len(all_results_sorted) / RESULTS_PER_PAGE)
+    total_pages = len(sorted_results_paginated)
     page_to_display = min(total_pages, serialised_page)
 
     results["products"].extend(sorted_results_paginated[page_to_display - 1])
@@ -102,7 +105,7 @@ def scrape_tesco(query: str):
     try:
         url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page=1&count={core_modes.ShopPageCount.TESCO_LONG}"
         response = requests.get(url, headers=headers)
-        html = response.text()
+        html = response.text
         soup = BeautifulSoup(html, "html.parser")
 
         strong_element_with_total_count = soup.select_one(
@@ -168,7 +171,7 @@ def scrape_tesco(query: str):
         return {
             "products": products,
             "summaryPerShop": {
-                "count": total_number_of_items,
+                "count": len(products),
                 "shopName": core_modes.ShopName.TESCO,
             },
         }
@@ -258,7 +261,7 @@ def scrape_aldi(query: str):
             return {
                 "products": products,
                 "summaryPerShop": {
-                    "count": total_number_of_items,
+                    "count": len(products),
                     "shopName": core_modes.ShopName.ALDI,
                 },
             }
@@ -288,6 +291,7 @@ def scrape_supervalu(query: str):
             skip_index = 0
 
             while True:
+                print(f"SUPERVALU PAGE: {current_page}")
                 url = f"https://shop.supervalu.ie/sm/delivery/rsid/5550/results?q={query}&sort=price&page={current_page}&skip={skip_index}"
                 page.goto(url)
 
@@ -359,7 +363,7 @@ def scrape_supervalu(query: str):
             return {
                 "products": products,
                 "summaryPerShop": {
-                    "count": total_number_of_items,
+                    "count": len(products),
                     "shopName": core_modes.ShopName.SUPERVALU,
                 },
             }
@@ -371,3 +375,24 @@ def scrape_supervalu(query: str):
             "products": [],
             "summaryPerShop": {"count": 0, "shopName": core_modes.ShopName.SUPERVALU},
         }
+
+
+if __name__ == "__main__":
+    # Argument parser setup
+    parser = argparse.ArgumentParser(
+        description="Scrape data based on a query and page number."
+    )
+
+    # Add arguments for query and page
+    parser.add_argument("query", type=str, help="The query to search for.")
+    parser.add_argument("page", type=str, help="The page number to retrieve.")
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Call the function with parsed arguments
+    result = scrape_data(args.query, args.page)
+
+    # Display the desired results
+    for shop in result["summaryPerShop"]:
+        print(f'{shop["shopName"]} RESULTS:', shop["count"])

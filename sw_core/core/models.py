@@ -10,7 +10,7 @@ class ShopName(models.TextChoices):
     SUPERVALU = "SUPERVALU"
 
 
-class ShopPageCount(models.TextChoices):
+class ShopPageCount(models.IntegerChoices):
     ALDI = 36
     TESCO_SHORT = 24
     TESCO_LONG = 48
