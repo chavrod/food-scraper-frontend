@@ -33,10 +33,9 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
             await self.send(
                 text_data=json.dumps(
                     {
-                        "query": cached_page["products"]["query"],
-                        "results": cached_page["products"]["results"],
+                        "query": cached_page["page_instance"].query,
+                        "results": cached_page["page_instance"].results,
                         "total_pages": cached_page["total_pages"],
-                        "current_page": cached_page["current_page"],
                         "sender": "Server",
                     }
                 )

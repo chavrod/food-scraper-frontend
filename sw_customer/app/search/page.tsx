@@ -1,6 +1,5 @@
 // Intenral Components
 import Pagination from "./Pagination";
-import SearchForm from "./SearchForm";
 import SearchResults from "./SearchResults";
 // Intenral Utils
 import getData from "@/api/getData";
@@ -42,7 +41,12 @@ export default async function Home(params: SearchProps) {
   });
 
   let products: Product[] | undefined;
-  let searchMetaData: SearchMetaData = {};
+  let searchMetaData: SearchMetaData = {
+    currentPage: 0,
+    totalPages: 0,
+    keyword: "",
+    isRelevantOnly: true,
+  };
   let summaryPerShop: ScrapeSummary[] = [];
   let scrapeStats: ScrapeStats = { averageTimeSeconds: null };
 
@@ -52,6 +56,7 @@ export default async function Home(params: SearchProps) {
       currentPage: data.metadata.currentPage,
       totalPages: data.metadata.totalPages,
       keyword: data.metadata.keyword,
+      isRelevantOnly: data.metadata.isRelevantOnly,
     };
   } else if (data && "averageTimeSeconds" in data) {
     scrapeStats.averageTimeSeconds = data.averageTimeSeconds;

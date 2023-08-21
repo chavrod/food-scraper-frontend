@@ -63,7 +63,7 @@ export default function SearchResults({
       socket.onmessage = (event) => {
         console.log("MESSAGE RECEIVED");
         const responseData = JSON.parse(event.data);
-        console.log(responseData.message); // Process the received data as required
+        console.log(responseData); // Process the received data as required
         socket.close();
       };
 

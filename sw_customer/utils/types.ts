@@ -27,6 +27,7 @@ export interface SearchMetaData {
   currentPage?: number;
   totalPages?: number;
   keyword?: string;
+  isRelevantOnly?: boolean;
 }
 
 export interface ScrapeStats {

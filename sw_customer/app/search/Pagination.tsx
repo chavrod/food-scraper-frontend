@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { SearchMetaData } from "@/utils/types";
 
 interface PaginationFormProps {
-  searchMetaData: SearchMetaData | {};
+  searchMetaData: SearchMetaData;
 }
 
 export default function PaginationForm({
@@ -14,35 +14,30 @@ export default function PaginationForm({
 }: PaginationFormProps) {
   const router = useRouter();
 
-  // Add this type guard function
-  function isSearchMetaData(obj: any): obj is SearchMetaData {
-    return "currentPage" in obj;
-  }
-
-  if (!isSearchMetaData(searchMetaData)) {
-    // Handle the case where searchMetaData is not of type SearchMetaData
-    return null;
-  }
-
-  const [activePage, setPage] = useState(searchMetaData.currentPage);
+  const [activePage, setPage] = useState(
+    searchMetaData?.currentPage || undefined
+  );
 
   useEffect(() => {
     setPage(searchMetaData.currentPage);
   }, [searchMetaData]);
 
-  const handlePageChange = (p: number) => {
+  const handlePageChange = (page: number) => {
     // Scroll smoothly to the top of the page
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     // Wait for the scroll to complete (you can adjust the timeout as needed)
     setTimeout(() => {
-      router.push(`?query=${searchMetaData.keyword}&page=${p}`);
+      console.log(searchMetaData.isRelevantOnly);
+      router.push(
+        `?query=${searchMetaData.keyword}&page=${page}&is_relevant_only=${searchMetaData.isRelevantOnly}`
+      );
     }, 500); // Adjust this time based on your scrolling speed
   };
 
   return (
     <>
-      {searchMetaData.totalPages && (
+      {searchMetaData?.totalPages && searchMetaData.totalPages > 0 && (
         <Pagination
           mb={30}
           py="xl"

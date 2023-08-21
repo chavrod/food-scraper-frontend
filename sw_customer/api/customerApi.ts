@@ -7,7 +7,7 @@ const getProducts = (params: {
 }) => {
   const encodedQuery = encodeURIComponent(params.query);
   const encodedPage = encodeURIComponent(params.page);
-  const encodedisRelevantOnly = encodeURIComponent(params.page);
+  const encodedisRelevantOnly = encodeURIComponent(params.isRelevantOnly);
 
   return apiClient.get(
     `cached_products_page/${encodedQuery}/${encodedPage}/${encodedisRelevantOnly}`
