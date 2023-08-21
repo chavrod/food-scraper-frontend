@@ -37,12 +37,12 @@ class CachedAllProduct(models.Model):
         return f"{self.shop}: {self.name} {self.price}"
 
 
+# All products are sorted in ascending order
 class CachedProductsPage(models.Model):
     query = models.CharField(max_length=30)
     page = models.IntegerField(validators=[MinValueValidator(1)])
-    results = models.JSONField(default=dict)
+    results = models.JSONField(default=list)
     is_relevant_only = models.BooleanField(default=True)
-    is_ascending = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -50,3 +50,9 @@ class CachedProductsPage(models.Model):
 
     def __str__(self) -> str:
         return f"{self.query}: {self.page} page"
+
+
+class ScrapeSummary(models.Model):
+    query = models.CharField(max_length=30)
+    shop = models.CharField(max_length=30, choices=ShopName.choices)
+    created = models.DateTimeField(auto_now_add=True)

@@ -6,8 +6,11 @@ sys.path.append("/Users/dmitry/projects/shopping_wiz/sw_core")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shop_wiz.settings")
 django.setup()
 
+from django.db import transaction
+
 from shop_wiz.settings import RESULTS_PER_PAGE
 import core.models as core_modes
+from core.serializers import CachedProductsPageSerializer
 
 # from playwright.async_api import async_playwright
 from playwright.sync_api import sync_playwright
@@ -23,39 +26,40 @@ from celery import shared_task
 
 
 @shared_task
-def cache_data(query: str, page: str, is_relevant_only: bool, is_ascending: bool):
-    data = scrape_data(query, page, is_relevant_only)
+def cache_data(query: str, page: str, is_relevant_only: bool):
+    scraped_data = scrape_data(query, page, is_relevant_only)
 
+    # TODO: If cunt is zero, do something else!
 
-def scrape_data(query: str, page: str, is_relevant_only: bool) -> Dict:
-    serialised_page = int(page) if page else 1
+    sorted_and_paginated_data = sort_and_paginate(scraped_data)
 
-    results = {
-        "products": [],
-        "summaryPerShop": [],
-        "searchMetaData": {"currentPage": 0, "totalPages": 0, "keyword": query},
-    }
-
-    tesco_results = scrape_tesco(query=query, is_relevant_only=is_relevant_only)
-    aldi_results = scrape_aldi(query=query, is_relevant_only=is_relevant_only)
-    super_value_results = scrape_supervalu(
-        query=query, is_relevant_only=is_relevant_only
+    save_results_to_db(
+        query=query,
+        sorted_and_paginated_data=sorted_and_paginated_data,
+        is_relevant_only=is_relevant_only,
     )
 
-    all_results_unsorted = (
-        tesco_results["products"]
-        + aldi_results["products"]
-        + super_value_results["products"]
-    )
 
-    results["summaryPerShop"] = [
-        tesco_results["summaryPerShop"],
-        aldi_results["summaryPerShop"],
-        super_value_results["summaryPerShop"],
-    ]
+def save_results_to_db(query, sorted_and_paginated_data, is_relevant_only):
+    with transaction.atomic():
+        for index, page_data in enumerate(sorted_and_paginated_data, start=1):
+            serializer = CachedProductsPageSerializer(
+                data={
+                    "query": query,
+                    "page": index,
+                    "results": page_data,
+                    "is_relevant_only": is_relevant_only,
+                }
+            )
 
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+
+def sort_and_paginate(data):
+    unsorted_results = data["products"]
     # Sorting and paginating results
-    all_results_sorted = sorted(all_results_unsorted, key=lambda x: x["price"])
+    all_results_sorted = sorted(unsorted_results, key=lambda x: x["price"])
 
     sorted_results_paginated = [
         all_results_sorted[i : i + RESULTS_PER_PAGE]
@@ -64,28 +68,36 @@ def scrape_data(query: str, page: str, is_relevant_only: bool) -> Dict:
 
     print("RESULTS SORTED AND PAGINATED")
     print("TOTAL RESULTS:", len(all_results_sorted))
-    for shop in results["summaryPerShop"]:
+    for shop in data["summaryPerShop"]:
         print(f'{shop["shopName"]} RESULTS:', shop["count"])
     print("NUMBER OF PAGES:", len(sorted_results_paginated))
 
-    total_pages = len(sorted_results_paginated)
-    page_to_display = min(total_pages, serialised_page)
+    return data
 
-    results["products"].extend(sorted_results_paginated[page_to_display - 1])
-    results["searchMetaData"]["currentPage"] = page_to_display
-    results["searchMetaData"]["totalPages"] = total_pages
 
-    # await cache_results({
-    #     "keyword": query,
-    #     "page": "totalPages",
-    #     "results": total_pages
-    # })
+def scrape_data(query: str, page: str, is_relevant_only: bool) -> Dict:
+    serialised_page = int(page) if page else 1
 
-    # # Using asyncio.gather for caching multiple results concurrently
-    # await asyncio.gather(
-    #     *[cache_results({"keyword": query, "page": shop["shopName"], "results": shop["count"]}) for shop in results["summaryPerShop"]],
-    #     *[cache_results({"keyword": query, "page": index + 1, "results": page_content}) for index, page_content in enumerate(sorted_results_paginated)]
-    # )
+    results = {
+        "products": [],
+        "summaryPerShop": [],
+    }
+
+    tesco_results = scrape_tesco(query=query, is_relevant_only=is_relevant_only)
+    aldi_results = scrape_aldi(query=query, is_relevant_only=is_relevant_only)
+    supervalu_results = scrape_supervalu(query=query, is_relevant_only=is_relevant_only)
+
+    results["products"] = (
+        tesco_results["products"]
+        + aldi_results["products"]
+        + supervalu_results["products"]
+    )
+
+    results["summaryPerShop"] = [
+        tesco_results["summaryPerShop"],
+        aldi_results["summaryPerShop"],
+        supervalu_results["summaryPerShop"],
+    ]
 
     return results
 

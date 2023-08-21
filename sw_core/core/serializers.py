@@ -4,23 +4,19 @@ import core.models as core_models
 
 
 class CachedProductsPageSerializer(DynamicModelSerializer):
-    # Define the query and page fields explicitly
     query = serializers.CharField(max_length=30, required=True)
-    page = serializers.IntegerField(required=True)
+    page = serializers.IntegerField(default=1)
+    is_relevant_only = serializers.BooleanField(required=True)
 
     class Meta:
         model = core_models.CachedProductsPage
         exclude = []
 
     def to_internal_value(self, data):
-        # Restrict the data to only accept 'query' and 'page'
-        data = {key: data[key] for key in ["query", "page"] if key in data}
+        is_relevant_only_str = data.get("is_relevant_only", "").lower()
+        data["is_relevant_only"] = is_relevant_only_str == "true"
 
-        try:
-            internal_value = super().to_internal_value(data)
-        except Exception as e:
-            print(f"Exception raised during super call: {e}")
-            raise e  # re-raise the exception for normal handling
+        internal_value = super().to_internal_value(data)
 
         # Ensure 'page' defaults to 1 if it's less than 1 or not an integer
         try:
