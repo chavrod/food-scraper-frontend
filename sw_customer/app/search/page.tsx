@@ -13,22 +13,28 @@ import {
   SearchMetaData,
 } from "@/utils/types";
 
-type Props = {
+type SearchProps = {
   searchParams?: {
     query?: string | undefined;
-    params?: string | undefined;
+    page?: string | undefined;
+    is_relevant_only?: string | undefined;
   };
 };
 
-export default async function Home(params: Props) {
+export default async function Home(params: SearchProps) {
   const searchText = params.searchParams?.query;
-  const searchPage = params.searchParams?.params;
+  const searchPage = params.searchParams?.page;
+  const isRelevantOnly = params.searchParams?.is_relevant_only;
 
   const { data, error } = await getData<
     Product[],
-    { query: string; page: string }
+    { query: string; page: string; isRelevantOnly: string }
   >({
-    params: { query: searchText || "", page: searchPage || "1" },
+    params: {
+      query: searchText || "",
+      page: searchPage || "1",
+      isRelevantOnly: isRelevantOnly || "true",
+    },
     apiFunc: customerApi.getProducts,
     unpackName: "products",
   });

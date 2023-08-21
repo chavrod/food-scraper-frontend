@@ -81,6 +81,7 @@ export default function SearchResults({
     initialValues: {
       q: searchText || "",
       p: 1,
+      is_relevant_only: "true",
     },
 
     validate: {
@@ -88,8 +89,14 @@ export default function SearchResults({
     },
   });
 
-  const handleFormSubmit = (values: { q: string; p: number }) => {
-    router.push(`?query=${values.q}&page=${values.p}`);
+  const handleFormSubmit = (values: {
+    q: string;
+    p: number;
+    is_relevant_only: string;
+  }) => {
+    router.push(
+      `?query=${values.q}&page=${values.p}&is_relevant_only=${values.is_relevant_only}`
+    );
 
     setLoading(true);
   };
