@@ -30,8 +30,15 @@ def cache_data(query: str, page: str, is_relevant_only: bool):
     scraped_data = scrape_data(query, page, is_relevant_only)
 
     # TODO: If cunt is zero, do something else!
+    unsorted_results = scraped_data["products"]
 
-    sorted_and_paginated_data = sort_and_paginate(scraped_data)
+    sorted_and_paginated_data = sort_and_paginate(unsorted_results)
+
+    print("RESULTS SORTED AND PAGINATED")
+    print("TOTAL RESULTS:", len(unsorted_results))
+    for shop in scraped_data["summaryPerShop"]:
+        print(f'{shop["shopName"]} RESULTS:', shop["count"])
+    print("NUMBER OF PAGES:", len(sorted_and_paginated_data))
 
     save_results_to_db(
         query=query,
@@ -57,27 +64,17 @@ def save_results_to_db(query, sorted_and_paginated_data, is_relevant_only):
 
 
 def sort_and_paginate(data):
-    unsorted_results = data["products"]
-    # Sorting and paginating results
-    all_results_sorted = sorted(unsorted_results, key=lambda x: x["price"])
+    sorted_results = sorted(data, key=lambda x: x["price"])
 
     sorted_results_paginated = [
-        all_results_sorted[i : i + RESULTS_PER_PAGE]
-        for i in range(0, len(all_results_sorted), RESULTS_PER_PAGE)
+        sorted_results[i : i + RESULTS_PER_PAGE]
+        for i in range(0, len(sorted_results), RESULTS_PER_PAGE)
     ]
 
-    print("RESULTS SORTED AND PAGINATED")
-    print("TOTAL RESULTS:", len(all_results_sorted))
-    for shop in data["summaryPerShop"]:
-        print(f'{shop["shopName"]} RESULTS:', shop["count"])
-    print("NUMBER OF PAGES:", len(sorted_results_paginated))
-
-    return data
+    return sorted_results_paginated
 
 
-def scrape_data(query: str, page: str, is_relevant_only: bool) -> Dict:
-    serialised_page = int(page) if page else 1
-
+def scrape_data(query: str, is_relevant_only: bool) -> Dict:
     results = {
         "products": [],
         "summaryPerShop": [],

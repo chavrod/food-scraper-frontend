@@ -29,7 +29,7 @@ class CachedProductsPageViewSet(
         if not cached_pages.exists():
             # Start the scraping process
             cache_data(
-                query_param, page_param, is_relevant_only
+                query_param, is_relevant_only
             )  # This would be your scraping function
             return Response(
                 data={"averageTimeSeconds": 50}, status=status.HTTP_206_PARTIAL_CONTENT
