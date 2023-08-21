@@ -13,18 +13,15 @@ class CachedProductsPageSerializer(DynamicModelSerializer):
         exclude = []
 
     def to_internal_value(self, data):
-        is_relevant_only_str = data.get("is_relevant_only", "").lower()
-        data["is_relevant_only"] = is_relevant_only_str == "true"
-
-        internal_value = super().to_internal_value(data)
-
-        # Ensure 'page' defaults to 1 if it's less than 1 or not an integer
+        # Preprocess the 'page' value first
         try:
-            page_value = int(internal_value["page"])
+            page_value = int(data["page"])
             if page_value != float(data["page"]) or page_value < 1:
                 raise ValueError
         except (ValueError, TypeError, KeyError) as e:
-            internal_value["page"] = 1
+            data["page"] = 1
             print(f"Error setting page value: {e}")
+
+        internal_value = super().to_internal_value(data)
 
         return internal_value

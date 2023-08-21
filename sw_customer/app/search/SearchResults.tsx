@@ -52,7 +52,8 @@ export default function SearchResults({
 
         // Sending a message to the server after connection
         const messageData = {
-          message: form.values.q,
+          query: form.values.query,
+          is_relevant_only: form.values.is_relevant_only,
           sender: "Client",
         };
 
@@ -79,23 +80,23 @@ export default function SearchResults({
 
   const form = useForm({
     initialValues: {
-      q: searchText || "",
-      p: 1,
+      query: searchText || "",
+      page: 1,
       is_relevant_only: "true",
     },
 
     validate: {
-      q: (value: string) => (value.length <= 0 ? "Invalid name" : null),
+      query: (value: string) => (value.length <= 0 ? "Invalid name" : null),
     },
   });
 
   const handleFormSubmit = (values: {
-    q: string;
-    p: number;
+    query: string;
+    page: number;
     is_relevant_only: string;
   }) => {
     router.push(
-      `?query=${values.q}&page=${values.p}&is_relevant_only=${values.is_relevant_only}`
+      `?query=${values.query}&page=${values.page}&is_relevant_only=${values.is_relevant_only}`
     );
 
     setLoading(true);
@@ -107,7 +108,7 @@ export default function SearchResults({
   // TODO: Make sure we do not end up in an infinite loop
   useEffect(() => {
     if (!averageScrapingTime && products) setLoading(false);
-  }, [products, averageScrapingTime, form.values.q]);
+  }, [products, averageScrapingTime, form.values.query]);
 
   return (
     <>
@@ -118,7 +119,7 @@ export default function SearchResults({
             withAsterisk
             placeholder="Type a product name"
             disabled={loading}
-            {...form.getInputProps("q")}
+            {...form.getInputProps("query")}
           />
           <Button type="submit" loading={loading}>
             Search

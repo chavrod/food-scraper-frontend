@@ -19,6 +19,10 @@ class CachedProductsPageViewSet(
     queryset = core_models.CachedProductsPage.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
+        print("HITTING THE VIEW")
+        is_relevant_only_str = kwargs.get("is_relevant_only", "").lower()
+        kwargs["is_relevant_only"] = is_relevant_only_str != "false"
+
         serializer = self.get_serializer(data=kwargs)
         serializer.is_valid(raise_exception=True)
 
@@ -29,12 +33,13 @@ class CachedProductsPageViewSet(
         # Check if we have cached data for this query
         cached_pages = self.queryset.filter(query=query_param).order_by("-page")
         if not cached_pages.exists():
+            print("RESULTS WERE NOT CACHED. STARTING THE SCRAPING....")
             # Start the scraping process
             cache_data.delay(query_param, is_relevant_only)
             return Response(
                 data={"averageTimeSeconds": 50}, status=status.HTTP_206_PARTIAL_CONTENT
             )
-
+        print("FOUND CACHED RESULTS!!! SENDING RESPONSE....")
         # If requested page is greater than the greatest cached page, return the latest available page
         if page_param > cached_pages.first().page:
             page_param = cached_pages.first().page

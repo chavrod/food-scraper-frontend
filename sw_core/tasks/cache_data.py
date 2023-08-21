@@ -9,7 +9,7 @@ django.setup()
 from django.db import transaction
 
 from shop_wiz.settings import RESULTS_PER_PAGE
-import core.models as core_modes
+import core.models as core_models
 from core.serializers import CachedProductsPageSerializer
 
 import argparse
@@ -22,23 +22,13 @@ from celery import shared_task
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 
-import time
-
 
 @shared_task
 def cache_data(query: str, is_relevant_only: bool):
-    duration = 10
-    end_time = time.time() + duration
-
-    counter = 1
-    while time.time() < end_time:
-        print("CELERY: ", counter)
-        counter += 1
-        time.sleep(1)
-
-    return None
-
-    scraped_data = scrape_data(query, page, is_relevant_only)
+    print(
+        f"PASSING ARGS TO THE SCRAPING FNS: query: {query}, is_relevant_only: {is_relevant_only}"
+    )
+    scraped_data = scrape_data(query, is_relevant_only)
 
     # TODO: If cunt is zero, do something else!
     unsorted_results = scraped_data["products"]
@@ -71,9 +61,9 @@ def save_results_to_db(query, sorted_and_paginated_data, is_relevant_only):
                     "is_relevant_only": is_relevant_only,
                 }
             )
-        print(f"SAVING PAGE {index}")
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+            print(f"SAVING PAGE {index}")
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
 
 def sort_and_paginate(data):
@@ -142,7 +132,7 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                     "name": "",
                     "price": 0,
                     "imgSrc": None,
-                    "shopName": core_modes.ShopName.TESCO,
+                    "shopName": core_models.ShopName.TESCO,
                 }
 
                 name_span = item.select_one("div.product-details--wrapper h3 span")
@@ -165,7 +155,7 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                 if product["name"] and product["price"]:
                     products.append(product)
         else:
-            url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page=1&count={core_modes.ShopPageCount.TESCO_LONG}"
+            url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page=1&count={core_models.ShopPageCount.TESCO_LONG}"
             response = requests.get(url, headers=headers)
             html = response.text
             soup = BeautifulSoup(html, "html.parser")
@@ -186,17 +176,17 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                     "products": [],
                     "summaryPerShop": {
                         "count": 0,
-                        "shopName": core_modes.ShopName.TESCO,
+                        "shopName": core_models.ShopName.TESCO,
                     },
                 }
 
             total_pages = math.ceil(
-                total_number_of_items / core_modes.ShopPageCount.TESCO_LONG
+                total_number_of_items / core_models.ShopPageCount.TESCO_LONG
             )
 
             for i in range(1, total_pages + 1):
                 print(f"TESCO PAGE NO: {i}")
-                page_url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page={i}&count={core_modes.ShopPageCount.TESCO_LONG}"
+                page_url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page={i}&count={core_models.ShopPageCount.TESCO_LONG}"
                 page_response = requests.get(page_url, headers=headers)
                 page_html = page_response.text
                 page_soup = BeautifulSoup(page_html, "html.parser")
@@ -206,7 +196,7 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                         "name": "",
                         "price": 0,
                         "imgSrc": None,
-                        "shopName": core_modes.ShopName.TESCO,
+                        "shopName": core_models.ShopName.TESCO,
                     }
 
                     name_span = item.select_one("div.product-details--wrapper h3 span")
@@ -233,16 +223,16 @@ def scrape_tesco(query: str, is_relevant_only: bool):
             "products": products,
             "summaryPerShop": {
                 "count": len(products),
-                "shopName": core_modes.ShopName.TESCO,
+                "shopName": core_models.ShopName.TESCO,
             },
         }
     except Exception as e:
-        print(f"Error fetching and parsing data from {core_modes.ShopName.TESCO}: {e}")
+        print(f"Error fetching and parsing data from {core_models.ShopName.TESCO}: {e}")
         return {
             "products": [],
             "summaryPerShop": {
                 "count": 0,
-                "shopName": core_modes.ShopName.TESCO,
+                "shopName": core_models.ShopName.TESCO,
             },
         }
 
@@ -256,7 +246,7 @@ def scrape_aldi(query: str, is_relevant_only: bool):
             products = []
             total_number_of_items = 0
             total_number_of_pages = 0
-            items_per_page = core_modes.ShopPageCount.ALDI
+            items_per_page = core_models.ShopPageCount.ALDI
 
             current_page = 1
 
@@ -296,7 +286,7 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                         "name": "",
                         "price": 0,
                         "imgSrc": None,
-                        "shopName": core_modes.ShopName.ALDI,
+                        "shopName": core_models.ShopName.ALDI,
                     }
 
                     # Extracting elements
@@ -315,8 +305,6 @@ def scrape_aldi(query: str, is_relevant_only: bool):
 
                     product["imgSrc"] = image_element.get_attribute("src") or None
 
-                    print("ALDI product: ", product)
-
                     if product["name"] and product["price"] > 0:
                         products.append(product)
 
@@ -330,14 +318,14 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                 "products": products,
                 "summaryPerShop": {
                     "count": len(products),
-                    "shopName": core_modes.ShopName.ALDI,
+                    "shopName": core_models.ShopName.ALDI,
                 },
             }
     except Exception as e:
-        print(f"Error fetching and parsing data from {core_modes.ShopName.ALDI}: {e}")
+        print(f"Error fetching and parsing data from {core_models.ShopName.ALDI}: {e}")
         return {
             "products": [],
-            "summaryPerShop": {"count": 0, "shopName": core_modes.ShopName.ALDI},
+            "summaryPerShop": {"count": 0, "shopName": core_models.ShopName.ALDI},
         }
 
 
@@ -353,7 +341,7 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
             products = []
             total_number_of_items = 0
             total_number_of_pages = 0
-            items_per_page = core_modes.ShopPageCount.SUPERVALU
+            items_per_page = core_models.ShopPageCount.SUPERVALU
 
             current_page = 1
             skip_index = 0
@@ -400,7 +388,7 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                         "name": "",
                         "price": 0,
                         "imgSrc": None,
-                        "shopName": core_modes.ShopName.SUPERVALU,
+                        "shopName": core_models.ShopName.SUPERVALU,
                     }
 
                     name_element = prod.query_selector(
@@ -441,16 +429,16 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                 "products": products,
                 "summaryPerShop": {
                     "count": len(products),
-                    "shopName": core_modes.ShopName.SUPERVALU,
+                    "shopName": core_models.ShopName.SUPERVALU,
                 },
             }
     except Exception as e:
         print(
-            f"Error fetching and parsing data from {core_modes.ShopName.SUPERVALU}: {e}"
+            f"Error fetching and parsing data from {core_models.ShopName.SUPERVALU}: {e}"
         )
         return {
             "products": [],
-            "summaryPerShop": {"count": 0, "shopName": core_modes.ShopName.SUPERVALU},
+            "summaryPerShop": {"count": 0, "shopName": core_models.ShopName.SUPERVALU},
         }
 
 

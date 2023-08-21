@@ -26,26 +26,33 @@ export default async function Home(params: SearchProps) {
   const searchPage = params.searchParams?.page;
   const isRelevantOnly = params.searchParams?.is_relevant_only;
 
-  const { data, error } = await getData<
-    Product[],
-    { query: string; page: string; isRelevantOnly: string }
-  >({
+  // <
+  //   Product[],
+  //   { query: string; page: string; isRelevantOnly: string }
+  // >
+
+  const { data, error } = await getData({
     params: {
       query: searchText || "",
       page: searchPage || "1",
       isRelevantOnly: isRelevantOnly || "true",
     },
     apiFunc: customerApi.getProducts,
-    unpackName: "products",
+    unpackName: "cached_products_page",
   });
 
   let products: Product[] | undefined;
+  let searchMetaData: SearchMetaData = {};
   let summaryPerShop: ScrapeSummary[] = [];
-  let searchMetaData = {};
   let scrapeStats: ScrapeStats = { averageTimeSeconds: null };
 
-  if (Array.isArray(data)) {
-    products = data;
+  if (data && "results" in data && "metadata" in data) {
+    products = data.results;
+    searchMetaData = {
+      currentPage: data.metadata.currentPage,
+      totalPages: data.metadata.totalPages,
+      keyword: data.metadata.keyword,
+    };
   } else if (data && "averageTimeSeconds" in data) {
     scrapeStats.averageTimeSeconds = data.averageTimeSeconds;
   }

@@ -24,9 +24,9 @@ export interface ScrapeSummary {
 }
 
 export interface SearchMetaData {
-  currentPage: number;
-  totalPages: number;
-  keyword: string;
+  currentPage?: number;
+  totalPages?: number;
+  keyword?: string;
 }
 
 export interface ScrapeStats {

@@ -1,4 +1,4 @@
-import { ScrapeStats } from "@/utils/types";
+import { ScrapeStats, Product, SearchMetaData } from "@/utils/types";
 
 type Params = { [name: string]: any };
 
@@ -10,8 +10,13 @@ interface GetDataProps<P = Params> {
   unpackName: string;
 }
 
-interface GetDataReturnType<DataType, ScrapeStats> {
-  data: DataType | ScrapeStats | undefined;
+interface ProductData {
+  results: Product[];
+  metadata: SearchMetaData;
+}
+
+interface GetDataReturnType {
+  data: ProductData | ScrapeStats | undefined;
   error: boolean;
 }
 
@@ -19,7 +24,7 @@ export default async function getData<DataType, P extends object = Params>({
   params,
   apiFunc,
   unpackName,
-}: GetDataProps<P>): Promise<GetDataReturnType<DataType, ScrapeStats>> {
+}: GetDataProps<P>): Promise<GetDataReturnType> {
   if (apiFunc === undefined || ("query" in params && params.query === "")) {
     return { data: undefined, error: true };
   }
@@ -40,10 +45,17 @@ export default async function getData<DataType, P extends object = Params>({
     }
 
     const jsonRes = await res.json();
-    const dataRes = jsonRes.data as { [unpackName: string]: DataType };
-    const data = dataRes[unpackName];
 
-    return { data, error: false };
+    const mappedData: ProductData = {
+      results: jsonRes[unpackName].results,
+      metadata: {
+        currentPage: jsonRes[unpackName].page,
+        totalPages: jsonRes.total_pages,
+        keyword: jsonRes[unpackName].query,
+      },
+    };
+
+    return { data: mappedData, error: false };
   } catch (error) {
     console.error("There was an error with the API call:", error);
     // Handle or re-throw the error based on your requirements
