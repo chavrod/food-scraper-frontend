@@ -12,21 +12,32 @@ from shop_wiz.settings import RESULTS_PER_PAGE
 import core.models as core_modes
 from core.serializers import CachedProductsPageSerializer
 
-# from playwright.async_api import async_playwright
-from playwright.sync_api import sync_playwright
 import argparse
 import requests
 import re
 from typing import List, Dict
 import math
 
+from celery import shared_task
+from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 
-from celery import shared_task
+import time
 
 
 @shared_task
-def cache_data(query: str, page: str, is_relevant_only: bool):
+def cache_data(query: str, is_relevant_only: bool):
+    duration = 10
+    end_time = time.time() + duration
+
+    counter = 1
+    while time.time() < end_time:
+        print("CELERY: ", counter)
+        counter += 1
+        time.sleep(1)
+
+    return None
+
     scraped_data = scrape_data(query, page, is_relevant_only)
 
     # TODO: If cunt is zero, do something else!
@@ -45,9 +56,11 @@ def cache_data(query: str, page: str, is_relevant_only: bool):
         sorted_and_paginated_data=sorted_and_paginated_data,
         is_relevant_only=is_relevant_only,
     )
+    print("RESULTS SAVED!")
 
 
 def save_results_to_db(query, sorted_and_paginated_data, is_relevant_only):
+    print(f"SAVING  RESULTS FOR {query} TO THE DB")
     with transaction.atomic():
         for index, page_data in enumerate(sorted_and_paginated_data, start=1):
             serializer = CachedProductsPageSerializer(
@@ -58,7 +71,7 @@ def save_results_to_db(query, sorted_and_paginated_data, is_relevant_only):
                     "is_relevant_only": is_relevant_only,
                 }
             )
-
+        print(f"SAVING PAGE {index}")
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
