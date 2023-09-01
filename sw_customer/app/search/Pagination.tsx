@@ -18,6 +18,7 @@ export default function PaginationForm({
     searchMetaData?.currentPage || undefined
   );
 
+  // TODO: get rif of this effect
   useEffect(() => {
     setPage(searchMetaData.currentPage);
   }, [searchMetaData]);
@@ -37,7 +38,7 @@ export default function PaginationForm({
 
   return (
     <>
-      {searchMetaData?.totalPages && searchMetaData.totalPages > 0 && (
+      {searchMetaData?.totalPages && searchMetaData.totalPages > 0 ? (
         <Pagination
           mb={30}
           py="xl"
@@ -49,7 +50,7 @@ export default function PaginationForm({
           }}
           total={searchMetaData.totalPages}
         />
-      )}
+      ) : null}
     </>
   );
 }

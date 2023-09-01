@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ReactElement, useState, useEffect } from "react";
 // External Styling
 import { useForm } from "@mantine/form";
@@ -39,8 +39,12 @@ export default function SearchResults({
   averageScrapingTime,
 }: SearchResultsProps): ReactElement {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(false);
+  const [currentProducts, setCurrentProducts] = useState<Product[]>(
+    products || []
+  );
 
   useEffect(() => {
     console.log(averageScrapingTime);
@@ -63,6 +67,10 @@ export default function SearchResults({
       socket.onmessage = (event) => {
         console.log("MESSAGE RECEIVED");
         const responseData = JSON.parse(event.data);
+
+        if (responseData) {
+          setCurrentProducts(responseData);
+        }
         console.log(responseData); // Process the received data as required
         socket.close();
       };
@@ -110,6 +118,9 @@ export default function SearchResults({
     if (!averageScrapingTime && products) setLoading(false);
   }, [products, averageScrapingTime, form.values.query]);
 
+  const queryParam = searchParams.get("query");
+  console.log(queryParam);
+
   return (
     <>
       <form onSubmit={form.onSubmit(handleFormSubmit)}>
@@ -144,7 +155,7 @@ export default function SearchResults({
         </Stack>
       )}
 
-      {!loading && products && products.length > 0 && (
+      {!loading && currentProducts && currentProducts.length > 0 && (
         <Stack>
           <Stack>
             <Text>Results summary</Text>
@@ -160,7 +171,7 @@ export default function SearchResults({
             </Group>
           </Stack>
           <Grid gutter="md" justify="center">
-            {products.map((product, index) => (
+            {currentProducts.map((product, index) => (
               <Grid.Col key={index} span={12} md={6} lg={4}>
                 <Paper
                   p="sm"
@@ -199,9 +210,10 @@ export default function SearchResults({
         </Stack>
       )}
 
-      {!loading && products && products.length === 0 && (
-        <>Sorry, there was nothing found!</>
-      )}
+      {queryParam &&
+        !loading &&
+        currentProducts &&
+        currentProducts.length === 0 && <>Sorry, there was nothing found!</>}
     </>
   );
 }
