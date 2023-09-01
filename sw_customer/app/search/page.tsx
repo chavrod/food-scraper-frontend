@@ -25,11 +25,6 @@ export default async function Home(params: SearchProps) {
   const searchPage = params.searchParams?.page;
   const isRelevantOnly = params.searchParams?.is_relevant_only;
 
-  // <
-  //   Product[],
-  //   { query: string; page: string; isRelevantOnly: string }
-  // >
-
   const { data, error } = await getData({
     params: {
       query: searchText || "",

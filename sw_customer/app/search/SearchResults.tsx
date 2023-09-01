@@ -40,14 +40,20 @@ export default function SearchResults({
 }: SearchResultsProps): ReactElement {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryParam = searchParams.get("query");
 
   const [loading, setLoading] = useState(false);
-  const [currentProducts, setCurrentProducts] = useState<Product[]>(
-    products || []
+  const [currentProducts, setCurrentProducts] = useState<Product[] | null>(
+    products || null
   );
 
+  // TODO: Clean up the effect?
   useEffect(() => {
-    console.log(averageScrapingTime);
+    if (products) setCurrentProducts(products);
+  }, [products]);
+
+  useEffect(() => {
+    console.log("AVERAGE SCRAPING TIME: ", averageScrapingTime);
     if (averageScrapingTime) {
       const socket = new WebSocket("ws://localhost:8000/ws/scraped_result/");
 
@@ -117,9 +123,6 @@ export default function SearchResults({
   useEffect(() => {
     if (!averageScrapingTime && products) setLoading(false);
   }, [products, averageScrapingTime, form.values.query]);
-
-  const queryParam = searchParams.get("query");
-  console.log(queryParam);
 
   return (
     <>

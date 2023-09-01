@@ -52,8 +52,7 @@ export default async function getData<DataType, P extends object = Params>({
         currentPage: jsonRes[unpackName].page,
         totalPages: jsonRes.total_pages,
         keyword: jsonRes[unpackName].query,
-        isRelevantOnly:
-          jsonRes[unpackName].is_relevant_only === "true" ? true : false,
+        isRelevantOnly: jsonRes[unpackName].is_relevant_only,
       },
     };
 

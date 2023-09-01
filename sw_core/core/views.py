@@ -28,6 +28,7 @@ class CachedProductsPageViewSet(
 
         query_param = serializer.validated_data["query"]
         page_param = serializer.validated_data["page"]
+        print("PAGE PARAM: ", page_param)
         is_relevant_only = serializer.validated_data["is_relevant_only"]
 
         # Check if we have cached data for this query
@@ -52,6 +53,6 @@ class CachedProductsPageViewSet(
         total_pages = cached_pages.count()
 
         # Append the current page and total pages to the response data
-        data.update({"current_page": page_param, "total_pages": total_pages})
+        data.update({"total_pages": total_pages})
 
         return Response(data)

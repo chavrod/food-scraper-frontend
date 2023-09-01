@@ -5,6 +5,7 @@ async function request(
 ) {
   const options: any = {
     method,
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
     },
