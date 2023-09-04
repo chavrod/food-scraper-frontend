@@ -8,31 +8,20 @@ import {
   Product,
   ScrapeSummary,
   ScrapeStats,
-  ShopName,
+  SearchParams,
   SearchMetaData,
 } from "@/utils/types";
 
-type SearchProps = {
-  searchParams?: {
-    query?: string | undefined;
-    page?: string | undefined;
-    is_relevant_only?: string | undefined;
+export default async function Home(params: SearchParams) {
+  let searchParams: SearchParams = {
+    query: params?.query || "",
+    page: params?.page || "1",
+    is_relevant_only: params?.is_relevant_only || true,
   };
-};
-
-export default async function Home(params: SearchProps) {
-  const searchText = params.searchParams?.query;
-  const searchPage = params.searchParams?.page;
-  const isRelevantOnly = params.searchParams?.is_relevant_only;
 
   const { data, error } = await getData({
-    params: {
-      query: searchText || "",
-      page: searchPage || "1",
-      isRelevantOnly: isRelevantOnly || "true",
-    },
+    params: searchParams,
     apiFunc: customerApi.getProducts,
-    unpackName: "cached_products_page",
   });
 
   let products: Product[] | undefined;
@@ -61,7 +50,7 @@ export default async function Home(params: SearchProps) {
     <>
       {/* <SearchForm searchText={searchText || ""} /> */}
       <SearchResults
-        searchText={searchText || ""}
+        searchText={searchParams.query}
         products={products}
         summaryPerShop={summaryPerShop}
         searchMetaData={searchMetaData}

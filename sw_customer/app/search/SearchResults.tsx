@@ -124,6 +124,10 @@ export default function SearchResults({
     if (!averageScrapingTime && products) setLoading(false);
   }, [products, averageScrapingTime, form.values.query]);
 
+  console.log(`CURRENT STATE: 
+  Number of products - ${products?.length || 0};
+  Av. scraping time - ${averageScrapingTime || 0}`);
+
   return (
     <>
       <form onSubmit={form.onSubmit(handleFormSubmit)}>
@@ -145,7 +149,7 @@ export default function SearchResults({
           {averageScrapingTime ? (
             <>
               Results were NOT cached....Wait a bit... So far is has taken{" "}
-              {averageScrapingTime} seconds on average
+              {averageScrapingTime} seconds on average to scrape the data.
             </>
           ) : (
             <>Processing request!!</>

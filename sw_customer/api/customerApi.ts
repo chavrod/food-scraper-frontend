@@ -1,13 +1,10 @@
 import apiClient from "./apiClient";
+import { SearchParams } from "@/utils/types";
 
-const getProducts = (params: {
-  query: string;
-  page: string;
-  isRelevantOnly: string;
-}) => {
+const getProducts = (params: SearchParams) => {
   const encodedQuery = encodeURIComponent(params.query);
   const encodedPage = encodeURIComponent(params.page);
-  const encodedisRelevantOnly = encodeURIComponent(params.isRelevantOnly);
+  const encodedisRelevantOnly = encodeURIComponent(params.is_relevant_only);
 
   return apiClient.get(
     `cached_products_page/${encodedQuery}/${encodedPage}/${encodedisRelevantOnly}`

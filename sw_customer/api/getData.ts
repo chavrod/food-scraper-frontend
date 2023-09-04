@@ -1,13 +1,15 @@
-import { ScrapeStats, Product, SearchMetaData } from "@/utils/types";
+import {
+  ScrapeStats,
+  Product,
+  SearchParams,
+  SearchMetaData,
+} from "@/utils/types";
 
-type Params = { [name: string]: any };
+type ApiFunction = (params: SearchParams) => Promise<Response>;
 
-type ApiFunction<P> = (params: P) => Promise<Response>;
-
-interface GetDataProps<P = Params> {
-  params: P;
-  apiFunc: ApiFunction<P>;
-  unpackName: string;
+interface GetDataProps {
+  params: SearchParams;
+  apiFunc: ApiFunction;
 }
 
 interface ProductData {
@@ -17,16 +19,15 @@ interface ProductData {
 
 interface GetDataReturnType {
   data: ProductData | ScrapeStats | undefined;
-  error: boolean;
+  error: boolean | undefined;
 }
 
-export default async function getData<DataType, P extends object = Params>({
+export default async function getData({
   params,
   apiFunc,
-  unpackName,
-}: GetDataProps<P>): Promise<GetDataReturnType> {
-  if (apiFunc === undefined || ("query" in params && params.query === "")) {
-    return { data: undefined, error: true };
+}: GetDataProps): Promise<GetDataReturnType> {
+  if (apiFunc === undefined || params.query === "") {
+    return { data: undefined, error: undefined };
   }
 
   try {
@@ -47,12 +48,12 @@ export default async function getData<DataType, P extends object = Params>({
     const jsonRes = await res.json();
 
     const mappedData: ProductData = {
-      results: jsonRes[unpackName].results,
+      results: jsonRes["cached_products_page"].results,
       metadata: {
-        currentPage: jsonRes[unpackName].page,
+        currentPage: jsonRes["cached_products_page"].page,
         totalPages: jsonRes.total_pages,
-        keyword: jsonRes[unpackName].query,
-        isRelevantOnly: jsonRes[unpackName].is_relevant_only,
+        keyword: jsonRes["cached_products_page"].query,
+        isRelevantOnly: jsonRes["cached_products_page"].is_relevant_only,
       },
     };
 

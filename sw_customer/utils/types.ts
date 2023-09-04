@@ -23,6 +23,12 @@ export interface ScrapeSummary {
   shopName: ShopName;
 }
 
+export interface SearchParams {
+  query: string;
+  page: string;
+  is_relevant_only: boolean;
+}
+
 export interface SearchMetaData {
   currentPage?: number;
   totalPages?: number;
