@@ -12,11 +12,14 @@ import {
   SearchMetaData,
 } from "@/utils/types";
 
-export default async function Home(params: SearchParams) {
+export default async function Home(outerParams: {
+  params: any;
+  searchParams: SearchParams;
+}) {
   let searchParams: SearchParams = {
-    query: params?.query || "",
-    page: params?.page || "1",
-    is_relevant_only: params?.is_relevant_only || true,
+    query: outerParams.searchParams?.query || "",
+    page: outerParams.searchParams?.page || "1",
+    is_relevant_only: outerParams.searchParams?.is_relevant_only || true,
   };
 
   const { data, error } = await getData({

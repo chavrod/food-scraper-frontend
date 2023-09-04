@@ -43,6 +43,9 @@ export default function SearchResults({
   const queryParam = searchParams.get("query");
 
   const [loading, setLoading] = useState(false);
+  const [currentAverageScrapingTime, setCurrentAverageScrapingTime] = useState<
+    number | null
+  >(averageScrapingTime || null);
   const [currentProducts, setCurrentProducts] = useState<Product[] | null>(
     products || null
   );
@@ -50,11 +53,12 @@ export default function SearchResults({
   // TODO: Clean up the effect?
   useEffect(() => {
     if (products) setCurrentProducts(products);
-  }, [products]);
+    if (averageScrapingTime) setCurrentAverageScrapingTime(averageScrapingTime);
+  }, [averageScrapingTime, products]);
 
   useEffect(() => {
     console.log("AVERAGE SCRAPING TIME: ", averageScrapingTime);
-    if (averageScrapingTime) {
+    if (currentAverageScrapingTime) {
       const socket = new WebSocket("ws://localhost:8000/ws/scraped_result/");
 
       socket.onopen = () => {
@@ -75,9 +79,12 @@ export default function SearchResults({
         const responseData = JSON.parse(event.data);
 
         if (responseData) {
-          setCurrentProducts(responseData);
+          setCurrentProducts(responseData.results);
+          setCurrentAverageScrapingTime(null);
+          console.log(responseData);
+        } else {
+          // TODO: Throw an error?
         }
-        console.log(responseData); // Process the received data as required
         socket.close();
       };
 
@@ -90,7 +97,7 @@ export default function SearchResults({
         socket.close();
       };
     }
-  }, [averageScrapingTime]);
+  }, [currentAverageScrapingTime]);
 
   const form = useForm({
     initialValues: {
@@ -121,12 +128,8 @@ export default function SearchResults({
 
   // TODO: Make sure we do not end up in an infinite loop
   useEffect(() => {
-    if (!averageScrapingTime && products) setLoading(false);
-  }, [products, averageScrapingTime, form.values.query]);
-
-  console.log(`CURRENT STATE: 
-  Number of products - ${products?.length || 0};
-  Av. scraping time - ${averageScrapingTime || 0}`);
+    if (!currentAverageScrapingTime && currentProducts) setLoading(false);
+  }, [currentProducts, currentAverageScrapingTime]);
 
   return (
     <>
@@ -144,12 +147,13 @@ export default function SearchResults({
           </Button>
         </Group>
       </form>
-      {loading && (
+      {loading && searchText !== "" && (
         <Stack>
-          {averageScrapingTime ? (
+          {currentAverageScrapingTime ? (
             <>
               Results were NOT cached....Wait a bit... So far is has taken{" "}
-              {averageScrapingTime} seconds on average to scrape the data.
+              {currentAverageScrapingTime} seconds on average to scrape the
+              data.
             </>
           ) : (
             <>Processing request!!</>
