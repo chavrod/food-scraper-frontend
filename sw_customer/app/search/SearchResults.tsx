@@ -205,21 +205,23 @@ export default function SearchResults({
                         style={{ maxWidth: "5rem" }}
                       />
                     </Container>
-                    <Stack spacing={0}>
-                      <Text fz="sm" align="left">
-                        {product.name}
-                      </Text>
-                      <Text fz="sm" align="left">
-                        Shop: {product.shopName}
-                      </Text>
-                    </Stack>
-                    <Container>
+
+                    <Text fz="sm" align="left">
+                      {product.name}
+                    </Text>
+
+                    <Stack>
                       <Text align="center">
                         {product.price
                           ? `€${product.price.toFixed(2)}`
                           : "Price not available"}
                       </Text>
-                    </Container>
+                      <img
+                        src={`/brand-logos/${product.shopName}.jpeg`}
+                        alt={product.shopName}
+                        style={{ maxWidth: "3rem" }}
+                      />
+                    </Stack>
                   </Group>
                 </Paper>
               </Grid.Col>
