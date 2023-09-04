@@ -6,7 +6,6 @@ import getData from "@/api/getData";
 import customerApi from "@/api/customerApi";
 import {
   Product,
-  ScrapeSummary,
   ScrapeStats,
   SearchParams,
   SearchMetaData,
@@ -34,7 +33,6 @@ export default async function Home(outerParams: {
     keyword: "",
     isRelevantOnly: true,
   };
-  let summaryPerShop: ScrapeSummary[] = [];
   let scrapeStats: ScrapeStats = { averageTimeSeconds: null };
 
   if (data && "results" in data && "metadata" in data) {
@@ -55,7 +53,6 @@ export default async function Home(outerParams: {
       <SearchResults
         searchText={searchParams.query}
         products={products}
-        summaryPerShop={summaryPerShop}
         searchMetaData={searchMetaData}
         averageScrapingTime={scrapeStats.averageTimeSeconds}
       />

@@ -15,18 +15,12 @@ import {
   Button,
 } from "@mantine/core";
 // Intenral Utils
-import {
-  Product,
-  ScrapeSummary,
-  SearchMetaData,
-  ScrapeStats,
-} from "@/utils/types";
+import { Product, SearchMetaData, ScrapeStats } from "@/utils/types";
 // Intenral Components
 
 interface SearchResultsProps {
   searchText?: string;
   products?: Product[] | undefined;
-  summaryPerShop: ScrapeSummary[];
   searchMetaData: SearchMetaData | {};
   averageScrapingTime: number | null;
 }
@@ -34,7 +28,6 @@ interface SearchResultsProps {
 export default function SearchResults({
   searchText,
   products,
-  summaryPerShop,
   searchMetaData,
   averageScrapingTime,
 }: SearchResultsProps): ReactElement {
@@ -167,58 +160,43 @@ export default function SearchResults({
       )}
 
       {!loading && currentProducts && currentProducts.length > 0 && (
-        <Stack>
-          <Stack>
-            <Text>Results summary</Text>
-            <Group>
-              {summaryPerShop.map((item, index) => (
-                <Paper key={index}>
-                  <Stack>
-                    <Text>{item.shopName}</Text>
-                    <Text>{item.count}</Text>
+        <Grid gutter="md" justify="center">
+          {currentProducts.map((product, index) => (
+            <Grid.Col key={index} span={12} md={6} lg={4}>
+              <Paper
+                p="sm"
+                shadow="sm"
+                radius="md"
+                style={{ textAlign: "center" }}
+              >
+                <Group noWrap>
+                  <Container>
+                    <img
+                      src={product.imgSrc}
+                      alt={product.name}
+                      style={{ maxWidth: "5rem" }}
+                    />
+                  </Container>
+                  <Stack spacing={0}>
+                    <Text fz="sm" align="left">
+                      {product.name}
+                    </Text>
+                    <Text fz="sm" align="left">
+                      Shop: {product.shopName}
+                    </Text>
                   </Stack>
-                </Paper>
-              ))}
-            </Group>
-          </Stack>
-          <Grid gutter="md" justify="center">
-            {currentProducts.map((product, index) => (
-              <Grid.Col key={index} span={12} md={6} lg={4}>
-                <Paper
-                  p="sm"
-                  shadow="sm"
-                  radius="md"
-                  style={{ textAlign: "center" }}
-                >
-                  <Group noWrap>
-                    <Container>
-                      <img
-                        src={product.imgSrc}
-                        alt={product.name}
-                        style={{ maxWidth: "5rem" }}
-                      />
-                    </Container>
-                    <Stack spacing={0}>
-                      <Text fz="sm" align="left">
-                        {product.name}
-                      </Text>
-                      <Text fz="sm" align="left">
-                        Shop: {product.shopName}
-                      </Text>
-                    </Stack>
-                    <Container>
-                      <Text align="center">
-                        {product.price
-                          ? `€${product.price.toFixed(2)}`
-                          : "Price not available"}
-                      </Text>
-                    </Container>
-                  </Group>
-                </Paper>
-              </Grid.Col>
-            ))}
-          </Grid>
-        </Stack>
+                  <Container>
+                    <Text align="center">
+                      {product.price
+                        ? `€${product.price.toFixed(2)}`
+                        : "Price not available"}
+                    </Text>
+                  </Container>
+                </Group>
+              </Paper>
+            </Grid.Col>
+          ))}
+        </Grid>
       )}
 
       {queryParam &&

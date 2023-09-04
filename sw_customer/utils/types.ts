@@ -18,11 +18,6 @@ export interface Product {
   shopName: ShopName;
 }
 
-export interface ScrapeSummary {
-  count: number;
-  shopName: ShopName;
-}
-
 export interface SearchParams {
   query: string;
   page: string;
