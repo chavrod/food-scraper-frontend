@@ -56,7 +56,6 @@ export default async function Home(outerParams: {
         searchMetaData={searchMetaData}
         averageScrapingTime={scrapeStats.averageTimeSeconds}
       />
-      <Pagination searchMetaData={searchMetaData} />
     </>
   );
 }

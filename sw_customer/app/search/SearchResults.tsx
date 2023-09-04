@@ -13,6 +13,7 @@ import {
   Stack,
   TextInput,
   Button,
+  Pagination,
 } from "@mantine/core";
 // Intenral Utils
 import { Product, SearchMetaData, ScrapeStats } from "@/utils/types";
@@ -21,7 +22,7 @@ import { Product, SearchMetaData, ScrapeStats } from "@/utils/types";
 interface SearchResultsProps {
   searchText?: string;
   products?: Product[] | undefined;
-  searchMetaData: SearchMetaData | {};
+  searchMetaData: SearchMetaData;
   averageScrapingTime: number | null;
 }
 
@@ -34,6 +35,7 @@ export default function SearchResults({
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("query");
+  const isRelevantOnlyParam = searchParams.get("is_relevant_only");
 
   const [loading, setLoading] = useState(false);
   const [currentAverageScrapingTime, setCurrentAverageScrapingTime] = useState<
@@ -42,12 +44,23 @@ export default function SearchResults({
   const [currentProducts, setCurrentProducts] = useState<Product[] | null>(
     products || null
   );
+  const [pages, setPages] = useState<{
+    activePage: number | undefined;
+    totalPages: number | undefined;
+  }>({
+    activePage: searchMetaData?.currentPage || undefined,
+    totalPages: searchMetaData?.totalPages || undefined,
+  });
 
-  // TODO: Clean up the effect?
   useEffect(() => {
     if (products) setCurrentProducts(products);
     if (averageScrapingTime) setCurrentAverageScrapingTime(averageScrapingTime);
-  }, [averageScrapingTime, products]);
+    if (searchMetaData.currentPage !== 0 && searchMetaData.totalPages !== 0)
+      setPages({
+        activePage: searchMetaData.currentPage,
+        totalPages: searchMetaData.totalPages,
+      });
+  }, [averageScrapingTime, products, searchMetaData]);
 
   useEffect(() => {
     console.log("AVERAGE SCRAPING TIME: ", averageScrapingTime);
@@ -71,9 +84,13 @@ export default function SearchResults({
         console.log("MESSAGE RECEIVED");
         const responseData = JSON.parse(event.data);
 
-        if (responseData) {
+        if (responseData.results) {
           setCurrentProducts(responseData.results);
           setCurrentAverageScrapingTime(null);
+          setPages({
+            activePage: 1,
+            totalPages: responseData.total_pages,
+          });
           console.log(responseData);
         } else {
           // TODO: Throw an error?
@@ -115,11 +132,21 @@ export default function SearchResults({
 
     setLoading(true);
   };
-  // TODO: Set loading on refresh
 
-  // TODO: Make sure even if nothing is found, we still populate the
+  const handlePageChange = (page: number) => {
+    setPages((prev) => ({ ...prev, activePage: page }));
 
-  // TODO: Make sure we do not end up in an infinite loop
+    // Scroll smoothly to the top of the page
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Wait for the scroll to complete (you can adjust the timeout as needed)
+    setTimeout(() => {
+      router.push(
+        `?query=${queryParam}&page=${page}&is_relevant_only=${isRelevantOnlyParam}`
+      );
+    }, 500); // Adjust this time based on your scrolling speed
+  };
+
   useEffect(() => {
     if (!currentAverageScrapingTime && currentProducts) setLoading(false);
   }, [currentProducts, currentAverageScrapingTime]);
@@ -160,43 +187,55 @@ export default function SearchResults({
       )}
 
       {!loading && currentProducts && currentProducts.length > 0 && (
-        <Grid gutter="md" justify="center">
-          {currentProducts.map((product, index) => (
-            <Grid.Col key={index} span={12} md={6} lg={4}>
-              <Paper
-                p="sm"
-                shadow="sm"
-                radius="md"
-                style={{ textAlign: "center" }}
-              >
-                <Group noWrap>
-                  <Container>
-                    <img
-                      src={product.imgSrc}
-                      alt={product.name}
-                      style={{ maxWidth: "5rem" }}
-                    />
-                  </Container>
-                  <Stack spacing={0}>
-                    <Text fz="sm" align="left">
-                      {product.name}
-                    </Text>
-                    <Text fz="sm" align="left">
-                      Shop: {product.shopName}
-                    </Text>
-                  </Stack>
-                  <Container>
-                    <Text align="center">
-                      {product.price
-                        ? `€${product.price.toFixed(2)}`
-                        : "Price not available"}
-                    </Text>
-                  </Container>
-                </Group>
-              </Paper>
-            </Grid.Col>
-          ))}
-        </Grid>
+        <Stack align="center" spacing={0}>
+          <Grid gutter="md" justify="center">
+            {currentProducts.map((product, index) => (
+              <Grid.Col key={index} span={12} md={6} lg={4}>
+                <Paper
+                  p="sm"
+                  shadow="sm"
+                  radius="md"
+                  style={{ textAlign: "center" }}
+                >
+                  <Group noWrap>
+                    <Container>
+                      <img
+                        src={product.imgSrc}
+                        alt={product.name}
+                        style={{ maxWidth: "5rem" }}
+                      />
+                    </Container>
+                    <Stack spacing={0}>
+                      <Text fz="sm" align="left">
+                        {product.name}
+                      </Text>
+                      <Text fz="sm" align="left">
+                        Shop: {product.shopName}
+                      </Text>
+                    </Stack>
+                    <Container>
+                      <Text align="center">
+                        {product.price
+                          ? `€${product.price.toFixed(2)}`
+                          : "Price not available"}
+                      </Text>
+                    </Container>
+                  </Group>
+                </Paper>
+              </Grid.Col>
+            ))}
+          </Grid>
+          {pages.totalPages && pages.totalPages > 0 ? (
+            <Pagination
+              mb={30}
+              py="xl"
+              spacing={5}
+              value={pages.activePage}
+              onChange={(p) => handlePageChange(p)}
+              total={pages.totalPages}
+            />
+          ) : null}
+        </Stack>
       )}
 
       {queryParam &&
