@@ -402,8 +402,14 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                     )
 
                     product["name"] = (
-                        name_element.text_content() if name_element else ""
+                        page.eval_on_selector(
+                            'span[class^="ProductCardTitle"] > div',
+                            "div => div.firstChild.textContent.trim()",
+                        )
+                        if name_element
+                        else ""
                     )
+
                     price_text = price_element.text_content() if price_element else None
 
                     # Extracting the float value from the price text
