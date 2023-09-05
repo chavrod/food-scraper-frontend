@@ -53,10 +53,11 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
         await self.close()  # Close the connection
 
     async def check_for_entry(self, query, is_relevant_only):
+        retry_gap_seconds = 10
         # Set for 3 minutes for now
         start_time = time.time()
         duration = 60 * 3
-        end_time = time.time() + duration
+        end_time = start_time + duration
         while time.time() < end_time:
             time_passed = time.time() - start_time
             print(f"{time_passed} seconds passed, CHECKING RESULTS FOR {query}...")
@@ -67,8 +68,12 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
                 print("FOUND CACHED PAGE: ", cached_page["page_instance"])
                 return cached_page
             else:
-                print(f"NOTHING FOUND FOR {query}, SLEEPING FOR 20 SECONDS....")
-                await asyncio.sleep(20)  # Wait for 20 seconds before checking again
+                print(
+                    f"NOTHING FOUND FOR {query}, SLEEPING FOR {retry_gap_seconds} SECONDS...."
+                )
+                await asyncio.sleep(
+                    retry_gap_seconds
+                )  # Wait for XX seconds before checking again
 
     @staticmethod
     def entry_exists(query, is_relevant_only):
