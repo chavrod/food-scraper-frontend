@@ -42,7 +42,7 @@ class CachedProductsPage(models.Model):
     query = models.CharField(max_length=30)
     page = models.IntegerField(validators=[MinValueValidator(1)])
     results = models.JSONField(default=list)
-    is_relevant_only = models.BooleanField(default=True)
+    is_relevant_only = models.BooleanField()
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -52,7 +52,19 @@ class CachedProductsPage(models.Model):
         return f"{self.query}: {self.page} page"
 
 
-class ScrapeSummary(models.Model):
+class ScrapeSummaryTotal(models.Model):
     query = models.CharField(max_length=30)
-    shop = models.CharField(max_length=30, choices=ShopName.choices)
+    is_relevant_only = models.BooleanField()
+    total_results_count = models.IntegerField(validators=[MinValueValidator(0)])
+    total_execution_time = models.DecimalField(max_digits=10, decimal_places=2)
     created = models.DateTimeField(auto_now_add=True)
+
+
+class ScrapeSummaryPerShop(models.Model):
+    shop = models.CharField(max_length=30, choices=ShopName.choices)
+    results_count = models.IntegerField(validators=[MinValueValidator(0)])
+    execution_time = models.DecimalField(max_digits=10, decimal_places=2)
+    created = models.DateTimeField(auto_now_add=True)
+    summary_total = models.ForeignKey(
+        ScrapeSummaryTotal, on_delete=models.CASCADE, related_name="shop_summaries"
+    )

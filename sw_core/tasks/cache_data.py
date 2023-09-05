@@ -17,6 +17,7 @@ import requests
 import re
 from typing import List, Dict
 import math
+import time
 
 from celery import shared_task
 from playwright.sync_api import sync_playwright
@@ -30,7 +31,7 @@ def cache_data(query: str, is_relevant_only: bool):
     )
     scraped_data = scrape_data(query, is_relevant_only)
 
-    # TODO: If cunt is zero, do something else!
+    # TODO: If count is zero, do something else!
     unsorted_results = scraped_data["products"]
 
     sorted_and_paginated_data = sort_and_paginate(unsorted_results)
@@ -47,6 +48,79 @@ def cache_data(query: str, is_relevant_only: bool):
         is_relevant_only=is_relevant_only,
     )
     print("RESULTS SAVED!")
+
+
+def scrape_data(query: str, is_relevant_only: bool) -> Dict:
+    results = {
+        "products": [],
+        "summaryPerShop": [],
+    }
+
+    # Dictionary of scraping methods with their corresponding shop names
+    scrape_methods = {
+        core_models.ShopName.TESCO: scrape_tesco,
+        core_models.ShopName.ALDI: scrape_aldi,
+        core_models.ShopName.SUPERVALU: scrape_supervalu,
+    }
+
+    # TODO: Move to the higher up function
+    total_results_count = 0
+    total_execution_time = 0.0
+
+    for shop_name, method in scrape_methods.items():
+        scrape_result = method(query=query, is_relevant_only=is_relevant_only)
+
+        # Append products and summary per shop to the results
+        results["products"].extend(scrape_result["products"])
+        results["summaryPerShop"].append(scrape_result["summaryPerShop"])
+
+        # Aggregating the results and time for ScrapeSummaryTotal
+        total_results_count += scrape_result["summaryPerShop"]["count"]
+        total_execution_time += scrape_result["summaryPerShop"]["exec_time"]
+
+    # TODO: Move to the higher up function
+    # Create ScrapeSummaryTotal instance
+    total_summary = core_models.ScrapeSummaryTotal.objects.create(
+        query=query,
+        is_relevant_only=is_relevant_only,
+        total_results_count=total_results_count,
+        total_execution_time=total_execution_time,
+    )
+
+    for shop in results["summaryPerShop"]:
+        summarise_scraping(
+            shop=shop["shopName"],
+            results_count=shop["count"],
+            execution_time=shop["exec_time"],
+            total_summary=total_summary,
+        )
+
+    return results
+
+
+def summarise_scraping(shop, results_count, execution_time, total_summary):
+    if results_count == 0:
+        return
+    summary = core_models.ScrapeSummaryPerShop.objects.create(
+        shop=shop,
+        results_count=results_count,
+        execution_time=execution_time,
+        summary_total=total_summary,
+    )
+    print(
+        f"SCRAPPED SUMMARY FOR {summary.summary_total.query} in {summary.shop}: {summary.execution_time} seconds"
+    )
+
+
+def sort_and_paginate(data):
+    sorted_results = sorted(data, key=lambda x: x["price"])
+
+    sorted_results_paginated = [
+        sorted_results[i : i + RESULTS_PER_PAGE]
+        for i in range(0, len(sorted_results), RESULTS_PER_PAGE)
+    ]
+
+    return sorted_results_paginated
 
 
 def save_results_to_db(query, sorted_and_paginated_data, is_relevant_only):
@@ -66,43 +140,9 @@ def save_results_to_db(query, sorted_and_paginated_data, is_relevant_only):
             serializer.save()
 
 
-def sort_and_paginate(data):
-    sorted_results = sorted(data, key=lambda x: x["price"])
-
-    sorted_results_paginated = [
-        sorted_results[i : i + RESULTS_PER_PAGE]
-        for i in range(0, len(sorted_results), RESULTS_PER_PAGE)
-    ]
-
-    return sorted_results_paginated
-
-
-def scrape_data(query: str, is_relevant_only: bool) -> Dict:
-    results = {
-        "products": [],
-        "summaryPerShop": [],
-    }
-
-    tesco_results = scrape_tesco(query=query, is_relevant_only=is_relevant_only)
-    aldi_results = scrape_aldi(query=query, is_relevant_only=is_relevant_only)
-    supervalu_results = scrape_supervalu(query=query, is_relevant_only=is_relevant_only)
-
-    results["products"] = (
-        tesco_results["products"]
-        + aldi_results["products"]
-        + supervalu_results["products"]
-    )
-
-    results["summaryPerShop"] = [
-        tesco_results["summaryPerShop"],
-        aldi_results["summaryPerShop"],
-        supervalu_results["summaryPerShop"],
-    ]
-
-    return results
-
-
 def scrape_tesco(query: str, is_relevant_only: bool):
+    start_time = time.time()
+
     headers = {
         "authority": "www.tesco.ie",
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -219,10 +259,14 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                     if product["name"] and product["price"]:
                         products.append(product)
 
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+
         return {
             "products": products,
             "summaryPerShop": {
                 "count": len(products),
+                "exec_time": elapsed_time,
                 "shopName": core_models.ShopName.TESCO,
             },
         }
@@ -232,12 +276,15 @@ def scrape_tesco(query: str, is_relevant_only: bool):
             "products": [],
             "summaryPerShop": {
                 "count": 0,
+                "exec_time": 0,
                 "shopName": core_models.ShopName.TESCO,
             },
         }
 
 
 def scrape_aldi(query: str, is_relevant_only: bool):
+    start_time = time.time()
+
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
@@ -314,10 +361,14 @@ def scrape_aldi(query: str, is_relevant_only: bool):
 
             browser.close()
 
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+
             return {
                 "products": products,
                 "summaryPerShop": {
                     "count": len(products),
+                    "exec_time": elapsed_time,
                     "shopName": core_models.ShopName.ALDI,
                 },
             }
@@ -325,7 +376,11 @@ def scrape_aldi(query: str, is_relevant_only: bool):
         print(f"Error fetching and parsing data from {core_models.ShopName.ALDI}: {e}")
         return {
             "products": [],
-            "summaryPerShop": {"count": 0, "shopName": core_models.ShopName.ALDI},
+            "summaryPerShop": {
+                "count": 0,
+                "exec_time": 0,
+                "shopName": core_models.ShopName.ALDI,
+            },
         }
 
 
@@ -333,6 +388,8 @@ from playwright.sync_api import sync_playwright
 
 
 def scrape_supervalu(query: str, is_relevant_only: bool):
+    start_time = time.time()
+
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
@@ -431,10 +488,14 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
 
             browser.close()
 
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+
             return {
                 "products": products,
                 "summaryPerShop": {
                     "count": len(products),
+                    "exec_time": elapsed_time,
                     "shopName": core_models.ShopName.SUPERVALU,
                 },
             }
@@ -444,7 +505,11 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
         )
         return {
             "products": [],
-            "summaryPerShop": {"count": 0, "shopName": core_models.ShopName.SUPERVALU},
+            "summaryPerShop": {
+                "count": 0,
+                "exec_time": 0,
+                "shopName": core_models.ShopName.SUPERVALU,
+            },
         }
 
 

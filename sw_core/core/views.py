@@ -7,6 +7,7 @@ import core.serializers as core_serializers
 import core.models as core_models
 
 import time
+from django.db.models import Avg
 
 
 # Create your views here.
@@ -37,8 +38,19 @@ class CachedProductsPageViewSet(
             print("RESULTS WERE NOT CACHED. STARTING THE SCRAPING....")
             # Start the scraping process
             cache_data.delay(query_param, is_relevant_only)
+
+            # COUNT HERE
+            average_time = core_models.ScrapeSummaryTotal.objects.aggregate(
+                avg_time=Avg("total_execution_time")
+            )["avg_time"]
+            if (
+                average_time is None
+            ):  # This handles the case when there are no records in ScrapeSummary
+                average_time = 30  # Default to 30 if no data exists
+
             return Response(
-                data={"averageTimeSeconds": 50}, status=status.HTTP_206_PARTIAL_CONTENT
+                data={"averageTimeSeconds": average_time},
+                status=status.HTTP_206_PARTIAL_CONTENT,
             )
         print("FOUND CACHED RESULTS!!! SENDING RESPONSE....")
         # If requested page is greater than the greatest cached page, return the latest available page
