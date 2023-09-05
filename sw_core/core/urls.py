@@ -11,7 +11,7 @@ router = DynamicRouter()
 
 urlpatterns = [
     path(
-        "cached_products_page/<str:query>/<int:page>/<str:is_relevant_only>/",
+        "cached_products_page/",
         core_views.CachedProductsPageViewSet.as_view({"get": "retrieve"}),
     ),
 ]

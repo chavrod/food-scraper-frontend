@@ -20,24 +20,19 @@ class CachedProductsPageViewSet(
     queryset = core_models.CachedProductsPage.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
-        print("HITTING THE VIEW")
-        is_relevant_only_str = kwargs.get("is_relevant_only", "").lower()
-        kwargs["is_relevant_only"] = is_relevant_only_str != "false"
-
-        serializer = self.get_serializer(data=kwargs)
+        serializer = self.get_serializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
         query_param = serializer.validated_data["query"]
         page_param = serializer.validated_data["page"]
-        print("PAGE PARAM: ", page_param)
-        is_relevant_only = serializer.validated_data["is_relevant_only"]
+        is_relevant_only_param = serializer.validated_data["is_relevant_only"]
 
         # Check if we have cached data for this query
         cached_pages = self.queryset.filter(query=query_param).order_by("-page")
         if not cached_pages.exists():
             print("RESULTS WERE NOT CACHED. STARTING THE SCRAPING....")
             # Start the scraping process
-            cache_data.delay(query_param, is_relevant_only)
+            cache_data.delay(query_param, is_relevant_only_param)
 
             # COUNT HERE
             average_time = core_models.ScrapeSummaryTotal.objects.aggregate(
