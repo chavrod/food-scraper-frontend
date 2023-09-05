@@ -153,6 +153,8 @@ CELERY_BROKER_URL = "redis://localhost:6379"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
 CELERY_BEAT_SCHEDULE = {
     "delete_old_cached_products_every_day": {
         "task": "shop_wiz.tasks.delete_old_cached_products",
