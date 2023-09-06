@@ -10,6 +10,7 @@ router = DynamicRouter()
 # urlpatterns = router.urls
 
 urlpatterns = [
+    path("register/", core_views.RegisterViewSet.as_view()),
     path(
         "cached_products_page/",
         core_views.CachedProductsPageViewSet.as_view({"get": "retrieve"}),

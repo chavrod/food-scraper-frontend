@@ -1,7 +1,10 @@
 from django.shortcuts import render
+
 from rest_framework import status, viewsets, mixins
-from dynamic_rest.viewsets import DynamicModelViewSet, WithDynamicViewSetMixin
+from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from dynamic_rest.viewsets import DynamicModelViewSet, WithDynamicViewSetMixin
 from tasks.cache_data import cache_data
 import core.serializers as core_serializers
 import core.models as core_models
@@ -10,7 +13,14 @@ import time
 from django.db.models import Avg
 
 
-# Create your views here.
+class RegisterViewSet(APIView):
+    def post(self, request):
+        serializer = core_serializers.UserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
 class CachedProductsPageViewSet(
     WithDynamicViewSetMixin,
     mixins.RetrieveModelMixin,
