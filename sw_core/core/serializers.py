@@ -2,6 +2,14 @@ from rest_framework import serializers
 from dynamic_rest.serializers import DynamicModelSerializer
 import core.models as core_models
 
+from rest_framework import serializers
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = core_models.User
+        fields = ["id", "name", "email", "password"]
+
 
 class CachedProductsPageSerializer(DynamicModelSerializer):
     query = serializers.CharField(max_length=30, required=True)

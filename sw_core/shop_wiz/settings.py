@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_celery_beat",
+    "rest_framework",
     "shop_wiz",
     "core",
 ]
@@ -161,3 +162,5 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": timedelta(days=1),
     },
 }
+
+AUTH_USER_MODEL = "core.User"
