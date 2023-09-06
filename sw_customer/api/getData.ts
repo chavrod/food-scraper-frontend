@@ -26,7 +26,6 @@ export default async function getData({
   params,
   apiFunc,
 }: GetDataProps): Promise<GetDataReturnType> {
-  console.log(params);
   if (apiFunc === undefined || params.query === "") {
     return { data: undefined, error: undefined };
   }
