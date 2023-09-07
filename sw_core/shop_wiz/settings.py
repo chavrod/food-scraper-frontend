@@ -50,6 +50,8 @@ CHANNEL_LAYERS = {
     }
 }
 
+APPEND_SLASH = True
+
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -121,6 +123,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Internationalization
