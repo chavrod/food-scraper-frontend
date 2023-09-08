@@ -1,7 +1,7 @@
 import RootStyleRegistry from "./emotion";
 import MainAppShell from "./MainAppShell";
 
-import Link from "next/link";
+import Provider from "./Components/Provider";
 
 export default function RootLayout({
   children,
@@ -13,7 +13,9 @@ export default function RootLayout({
       <body>
         <main>
           <RootStyleRegistry>
+            {/* <Provider> */}
             <MainAppShell>{children}</MainAppShell>
+            {/* </Provider> */}
           </RootStyleRegistry>
         </main>
       </body>

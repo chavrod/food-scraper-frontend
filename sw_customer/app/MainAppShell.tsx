@@ -15,6 +15,7 @@ import {
   NavLink,
   ActionIcon,
   Container,
+  Button,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import {
@@ -24,8 +25,6 @@ import {
   IconCalculator,
   IconChartHistogram,
 } from "@tabler/icons-react";
-// Internal
-import ThemeToggle from "./ThemeToggle";
 
 interface Route {
   link: string;
@@ -63,14 +62,7 @@ export default function MainAppShell({
 
   return (
     <AppShell
-      styles={(theme) => ({
-        main: {
-          backgroundColor:
-            theme.colorScheme === "dark"
-              ? theme.colors.dark[8]
-              : theme.colors.gray[0],
-        },
-      })}
+      styles={(theme) => ({})}
       navbar={
         isClient && isLargerThanSm ? (
           <Navbar width={{ base: 300 }} p="xs">
@@ -94,8 +86,18 @@ export default function MainAppShell({
       header={
         <Header height={60} p="xs">
           <Group position="apart">
-            <Text>Food Saver</Text>
-            <ThemeToggle />
+            <Group>
+              <img
+                src="/shopping_wiz_logo.png"
+                alt="Shopping Wiz logo"
+                style={{ maxWidth: "10rem" }}
+              />
+            </Group>
+            <Group>
+              <Link href="/login">
+                <Button>Sign in</Button>
+              </Link>
+            </Group>
           </Group>
         </Header>
       }
