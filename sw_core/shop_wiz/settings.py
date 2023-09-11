@@ -9,13 +9,21 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import os
 from datetime import timedelta
 
 from pathlib import Path
 
+from dotenv import load_dotenv, find_dotenv
+
+load_dotenv(find_dotenv())
+
+SIGNING_KEY = os.environ["SIGNING_KEY"]
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SITE_ID = 1
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -29,6 +37,7 @@ DEBUG = True
 # Application definition
 
 INSTALLED_APPS = [
+    "django_extensions",
     "channels",
     "corsheaders",
     "django.contrib.admin",
@@ -37,10 +46,17 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "django_celery_beat",
     "rest_framework",
+    "rest_framework.authtoken",
+    "rest_framework_simplejwt",
     "shop_wiz",
     "core",
+    "authentication.apps.AuthenticationConfig",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
 ]
 
 CHANNEL_LAYERS = {
@@ -61,9 +77,16 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "shop_wiz.urls"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ]
+}
 
 TEMPLATES = [
     {
@@ -166,4 +189,17 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-AUTH_USER_MODEL = "core.User"
+# AUTH_USER_MODEL = "core.User"
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": True,
+    "SIGNING_KEY": SIGNING_KEY,
+    "ALGORITHM": "HS512",
+}
+
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = "none"
