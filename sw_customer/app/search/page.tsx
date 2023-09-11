@@ -2,8 +2,8 @@
 import Pagination from "./Pagination";
 import SearchResults from "./SearchResults";
 // Intenral Utils
-import getData from "@/api/getData";
-import customerApi from "@/api/customerApi";
+import getData from "@/app/api/getData";
+import customerApi from "@/app/api/customerApi";
 import {
   Product,
   ScrapeStats,
