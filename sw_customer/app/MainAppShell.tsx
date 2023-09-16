@@ -9,7 +9,7 @@ import {
   AppShell,
   Navbar,
   Header,
-  Text,
+  Modal,
   Group,
   Footer,
   NavLink,
@@ -17,7 +17,7 @@ import {
   Container,
   Button,
 } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import {
   Icon,
   IconHome2,
@@ -25,7 +25,10 @@ import {
   IconCalculator,
   IconChartHistogram,
 } from "@tabler/icons-react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, useSession, signOut } from "next-auth/react";
+// Internal
+import LoginForm from "./Components/Login";
+import RegisterForm from "./Components/Register";
 
 interface Route {
   link: string;
@@ -39,11 +42,16 @@ export default function MainAppShell({
 }: {
   children: React.ReactNode;
 }) {
+  const [opened, { open, close }] = useDisclosure(false);
+  const [isRegister, setIsRegister] = useState(false);
+
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
 
   const router = useRouter();
   const { data: session, status } = useSession();
+
+  console.log(session, status);
 
   const routes: Route[] = [
     { link: "/", label: "Home", icon: IconHome2, footer: true },
@@ -99,17 +107,25 @@ export default function MainAppShell({
             </Group>
             <Group>
               {session ? (
-                <Link href="/login">
-                  <Button>Sign out</Button>
-                </Link>
+                <Button onClick={() => signOut()}>Log out</Button>
               ) : (
                 <Group>
-                  <Link href="/login">
-                    <Button>Register</Button>
-                  </Link>
-                  <Link href="/login">
-                    <Button>Sign in</Button>
-                  </Link>
+                  <Button
+                    onClick={() => {
+                      open();
+                      setIsRegister(true);
+                    }}
+                  >
+                    Register
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      open();
+                      setIsRegister(false);
+                    }}
+                  >
+                    Log in
+                  </Button>
                 </Group>
               )}
             </Group>
@@ -145,6 +161,9 @@ export default function MainAppShell({
         )
       }
     >
+      <Modal opened={opened} onClose={close} title="Log in or sign up" centered>
+        {isRegister ? <RegisterForm /> : <LoginForm />}
+      </Modal>
       {children}
     </AppShell>
   );

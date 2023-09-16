@@ -1,20 +1,18 @@
 import RootStyleRegistry from "./emotion";
 import MainAppShell from "./MainAppShell";
-
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider } from "./Components/Provider";
 
 interface RootLayoutProps {
   children: React.ReactNode;
-  session: any; // Define a more specific type for session if needed
 }
 
-export default function RootLayout({ children, session }: RootLayoutProps) {
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html>
       <body>
         <main>
           <RootStyleRegistry>
-            <SessionProvider session={session}>
+            <SessionProvider>
               <MainAppShell>{children}</MainAppShell>
             </SessionProvider>
           </RootStyleRegistry>
