@@ -2,7 +2,7 @@
 
 // React / Next
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 // External
 import {
@@ -25,6 +25,7 @@ import {
   IconCalculator,
   IconChartHistogram,
 } from "@tabler/icons-react";
+import { signIn, useSession } from "next-auth/react";
 
 interface Route {
   link: string;
@@ -40,6 +41,9 @@ export default function MainAppShell({
 }) {
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
+
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
   const routes: Route[] = [
     { link: "/", label: "Home", icon: IconHome2, footer: true },
@@ -94,9 +98,20 @@ export default function MainAppShell({
               />
             </Group>
             <Group>
-              <Link href="/login">
-                <Button>Sign in</Button>
-              </Link>
+              {session ? (
+                <Link href="/login">
+                  <Button>Sign out</Button>
+                </Link>
+              ) : (
+                <Group>
+                  <Link href="/login">
+                    <Button>Register</Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button>Sign in</Button>
+                  </Link>
+                </Group>
+              )}
             </Group>
           </Group>
         </Header>
