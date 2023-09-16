@@ -8,6 +8,7 @@ const RegisterForm: React.FC = () => {
   const form = useForm({
     initialValues: {
       email: "",
+      username: "",
       password1: "",
       password2: "", // repeat password
     },
@@ -27,6 +28,8 @@ const RegisterForm: React.FC = () => {
     try {
       const { email, password1, password2 } = form.values;
 
+      const username = email;
+
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "auth/register/",
         {
@@ -36,13 +39,16 @@ const RegisterForm: React.FC = () => {
           },
           body: JSON.stringify({
             email,
+            username,
             password1,
             password2,
           }),
         }
       );
-
       const data = await response.json();
+
+      console.log(response);
+      console.log(data);
 
       if (!response.ok) {
         form.setErrors(data);
