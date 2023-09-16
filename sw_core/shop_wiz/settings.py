@@ -184,6 +184,22 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 RESULTS_PER_PAGE = 24
 
 
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# For production, you would typically use SMTP:
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'your-smtp-server.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your@email.com'
+# EMAIL_HOST_PASSWORD = 'your-email-password'
+
+# Replace the placeholders with your actual SMTP server details.
+# Many hosting providers offer SMTP services, or you can use services
+# like SendGrid, Mailgun, etc.
+
+
 # REDIS config
 CELERY_BROKER_URL = "redis://localhost:6379"
 CELERY_ACCEPT_CONTENT = ["json"]
@@ -198,7 +214,14 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-# AUTH_USER_MODEL = "core.User"
+# Use email for authentication instead of usernames.
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+
+# Optional: Use this if you want the user to confirm their email before they can login.
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
@@ -214,9 +237,6 @@ REST_AUTH = {
     "USE_JWT": True,
     "JWT_AUTH_HTTPONLY": False,
 }
-
-ACCOUNT_EMAIL_REQUIRED = False
-ACCOUNT_EMAIL_VERIFICATION = "none"
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
