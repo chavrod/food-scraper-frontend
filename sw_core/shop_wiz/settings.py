@@ -214,6 +214,11 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
+
 # Use email for authentication instead of usernames.
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_UNIQUE_EMAIL = True

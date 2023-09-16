@@ -44,13 +44,13 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        username: { label: "Username", type: "text" },
+        email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
       // The data returned from this function is passed forward as the
       // `user` variable to the signIn() and jwt() callback
       async authorize(
-        credentials: { username: string; password: string } | undefined,
+        credentials: { email: string; password: string } | undefined,
         req: any
       ) {
         try {
