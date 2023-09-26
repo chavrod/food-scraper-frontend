@@ -76,6 +76,7 @@ export default function MainAppShell({
     close();
   };
 
+
   return (
     <AppShell
       styles={(theme) => ({})}
@@ -167,7 +168,7 @@ export default function MainAppShell({
     >
       <Modal opened={opened} onClose={close} title="Log in or sign up" centered>
         {isRegister ? (
-          <RegisterForm />
+          <RegisterForm handleMoveToLogin={() => setIsRegister(false)} />
         ) : (
           <LoginForm handleLoginSucess={handleLoginSucess} />
         )}

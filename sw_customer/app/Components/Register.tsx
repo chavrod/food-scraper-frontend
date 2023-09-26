@@ -17,7 +17,11 @@ import { useForm } from "@mantine/form";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 import { useInterval } from "@mantine/hooks";
 
-const RegisterForm: React.FC = () => {
+interface RegisterFormProps {
+  handleMoveToLogin: () => void;
+}
+
+const RegisterForm: React.FC<RegisterFormProps> = ({ handleMoveToLogin }) => {
   const form = useForm({
     initialValues: {
       email: "",
@@ -159,25 +163,29 @@ const RegisterForm: React.FC = () => {
               {countdown > 0 && (
                 <Group>
                   <Text align="center">
-                    {
-                      " If you didn't get the email, you can send another one in "
-                    }
-                    <strong>{countdown}</strong>
+                    {"If you didn't get the email, you can "}
+                    <span
+                      style={{
+                        color: "blue",
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        // Logic to resend email goes here...
+                        setCountdown(60); // reset countdown after sending email
+                      }}
+                    >
+                      send another one
+                    </span>{" "}
+                    in
+                    <strong> {countdown}</strong>
                     {" seconds."}
                   </Text>
-
-                  <Button
-                    disabled={countdown > 0}
-                    onClick={() => {
-                      // Logic to resend email goes here...
-                      setCountdown(60); // reset countdown after sending email
-                    }}
-                    fullWidth
-                  >
-                    Resend Email
-                  </Button>
                 </Group>
               )}
+              <Button variant="outline" onClick={handleMoveToLogin} fullWidth>
+                Go to Login
+              </Button>
             </Stack>
           </Center>
         )}
