@@ -72,6 +72,10 @@ export default function MainAppShell({
 
   const isLargerThanSm = useMediaQuery("(min-width: 768px)");
 
+  const handleLoginSucess = () => {
+    close();
+  };
+
   return (
     <AppShell
       styles={(theme) => ({})}
@@ -97,12 +101,12 @@ export default function MainAppShell({
       }
       header={
         <Header height={60} p="xs">
-          <Group position="apart">
+          <Group position="apart" spacing="xs" noWrap>
             <Group>
               <img
                 src="/shopping_wiz_logo.png"
                 alt="Shopping Wiz logo"
-                style={{ maxWidth: "10rem" }}
+                style={{ maxWidth: "9rem" }}
               />
             </Group>
             <Group>
@@ -162,7 +166,11 @@ export default function MainAppShell({
       }
     >
       <Modal opened={opened} onClose={close} title="Log in or sign up" centered>
-        {isRegister ? <RegisterForm /> : <LoginForm />}
+        {isRegister ? (
+          <RegisterForm />
+        ) : (
+          <LoginForm handleLoginSucess={handleLoginSucess} />
+        )}
       </Modal>
       {children}
     </AppShell>
