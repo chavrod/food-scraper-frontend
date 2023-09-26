@@ -65,9 +65,17 @@ export const authOptions: NextAuthOptions = {
             }
           );
 
-          if (!response.ok) throw new Error("Network response was not ok.");
-
           const data = await response.json();
+
+          console.log(!response.ok);
+
+          if (!response.ok) {
+            const errorMessage = data.non_field_errors
+              ? data.non_field_errors[0]
+              : "Unknown error occurred.";
+            return { error: errorMessage };
+          }
+
           if (data) return data;
         } catch (error) {
           console.error(error);
@@ -78,6 +86,9 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
+      if (user?.error) {
+        throw new Error(user?.error);
+      }
       if (!account?.provider || !SIGN_IN_PROVIDERS.includes(account.provider)) {
         return false;
       }
