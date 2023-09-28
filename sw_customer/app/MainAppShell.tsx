@@ -16,6 +16,8 @@ import {
   ActionIcon,
   Container,
   Button,
+  Text,
+  Stack,
 } from "@mantine/core";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import {
@@ -24,8 +26,9 @@ import {
   IconSearch,
   IconCalculator,
   IconChartHistogram,
+  IconUserCircle,
 } from "@tabler/icons-react";
-import { signIn, useSession, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 // Internal
 import LoginForm from "./Components/Login";
 import RegisterForm from "./Components/Register";
@@ -35,6 +38,10 @@ interface Route {
   label: string;
   icon: Icon;
   footer: boolean;
+  navbar: boolean;
+  isLoggedInVisible: boolean;
+  isLoggedOutVisible: boolean;
+  onClick: boolean | (() => void);
 }
 
 export default function MainAppShell({
@@ -54,15 +61,60 @@ export default function MainAppShell({
   console.log(session, status);
 
   const routes: Route[] = [
-    { link: "/", label: "Home", icon: IconHome2, footer: true },
-    { link: "/search", label: "Search", icon: IconSearch, footer: true },
+    {
+      link: "/",
+      label: "Home",
+      icon: IconHome2,
+      footer: true,
+      navbar: true,
+      isLoggedInVisible: true,
+      isLoggedOutVisible: false,
+      onClick: false,
+    },
+    {
+      link: "/search",
+      label: "Explore",
+      icon: IconSearch,
+      footer: true,
+      navbar: true,
+      isLoggedInVisible: true,
+      isLoggedOutVisible: true,
+      onClick: false,
+    },
+
     {
       link: "/estimate",
       label: "Estimate",
       icon: IconCalculator,
       footer: true,
+      navbar: true,
+      isLoggedInVisible: true,
+      isLoggedOutVisible: true,
+      onClick: false,
     },
-    { link: "/track", label: "Track", icon: IconChartHistogram, footer: true },
+    {
+      link: "/login",
+      label: "Log in",
+      icon: IconUserCircle,
+      footer: true,
+      navbar: false,
+      isLoggedInVisible: false,
+      isLoggedOutVisible: true,
+      onClick: () => {
+        open();
+        setIsRegister(false);
+      },
+    },
+    {
+      link: "/track",
+      label: "Track",
+      icon: IconChartHistogram,
+      footer: true,
+      navbar: true,
+      isLoggedInVisible: true,
+      isLoggedOutVisible: false,
+      onClick: false,
+    },
   ];
 
   useEffect(() => {
@@ -76,25 +128,26 @@ export default function MainAppShell({
     close();
   };
 
-
   return (
     <AppShell
       styles={(theme) => ({})}
       navbar={
         isClient && isLargerThanSm ? (
           <Navbar width={{ base: 300 }} p="xs">
-            {routes.map((r, i) => (
-              <Link key={i} href={r.link} style={{ textDecoration: "none" }}>
-                <NavLink
-                  my={4}
-                  key={i}
-                  label={r.label}
-                  icon={<r.icon size="1.5rem" stroke={1.5} />}
-                  active={r.link === pathname}
-                  variant="filled"
-                ></NavLink>
-              </Link>
-            ))}
+            {routes
+              .filter((r) => r.navbar)
+              .map((r, i) => (
+                <Link key={i} href={r.link} style={{ textDecoration: "none" }}>
+                  <NavLink
+                    my={4}
+                    key={i}
+                    label={r.label}
+                    icon={<r.icon size="1.5rem" stroke={1.5} />}
+                    active={r.link === pathname}
+                    variant="filled"
+                  ></NavLink>
+                </Link>
+              ))}
           </Navbar>
         ) : (
           <></>
@@ -139,22 +192,33 @@ export default function MainAppShell({
       }
       footer={
         isClient && !isLargerThanSm ? (
-          <Footer height={60} p="md">
-            <Group position="apart">
+          <Footer height={70} p="md">
+            <Group
+              position={session ? "apart" : "center"}
+              spacing={!session ? "xl" : ""}
+            >
               {routes
                 .filter((r) => r.footer)
+                .filter((r) =>
+                  session ? r.isLoggedInVisible : r.isLoggedOutVisible
+                )
                 .map((r, i) => (
                   <Link
                     key={i}
                     href={r.link}
                     style={{ textDecoration: "none" }}
                   >
-                    <ActionIcon
-                      variant="subtle"
-                      color={r.link === pathname ? "primary" : "gray"}
-                    >
-                      <r.icon />
-                    </ActionIcon>
+                    <Stack align="center" spacing={0}>
+                      <ActionIcon
+                        variant="subtle"
+                        color={r.link === pathname ? "primary" : "gray"}
+                      >
+                        <r.icon />
+                      </ActionIcon>
+                      <Text color="dimmed" fz="xs">
+                        {r.label}
+                      </Text>
+                    </Stack>
                   </Link>
                 ))}
             </Group>
