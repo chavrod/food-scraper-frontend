@@ -15,9 +15,11 @@ import {
   NavLink,
   ActionIcon,
   Container,
+  Stack,
+  Menu,
   Button,
   Text,
-  Stack,
+  Avatar,
 } from "@mantine/core";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import {
@@ -27,6 +29,10 @@ import {
   IconCalculator,
   IconChartHistogram,
   IconUserCircle,
+  IconLifebuoy,
+  IconLogout,
+  IconSettings,
+  IconUser,
 } from "@tabler/icons-react";
 import { useSession, signOut } from "next-auth/react";
 // Internal
@@ -164,28 +170,61 @@ export default function MainAppShell({
               />
             </Group>
             <Group>
-              {session ? (
-                <Button onClick={() => signOut()}>Log out</Button>
-              ) : (
-                <Group>
-                  <Button
-                    onClick={() => {
-                      open();
-                      setIsRegister(true);
-                    }}
+              {isClient &&
+                (session ? (
+                  <Menu
+                    shadow="md"
+                    width={200}
+                    position="bottom-end"
+                    offset={3}
                   >
-                    Register
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      open();
-                      setIsRegister(false);
-                    }}
-                  >
-                    Log in
-                  </Button>
-                </Group>
-              )}
+                    <Menu.Target>
+                      <ActionIcon
+                        color="blue"
+                        size="xl"
+                        radius="xl"
+                        variant="light"
+                      >
+                        <IconUser size="1.8rem" />
+                      </ActionIcon>
+                    </Menu.Target>
+
+                    <Menu.Dropdown>
+                      <Menu.Label>{session.user.email}</Menu.Label>
+                      <Menu.Item icon={<IconLifebuoy size={14} />}>
+                        Help
+                      </Menu.Item>
+                      <Menu.Item icon={<IconSettings size={14} />}>
+                        Account Settings
+                      </Menu.Item>
+                      <Menu.Item
+                        onClick={() => signOut()}
+                        icon={<IconLogout size={14} />}
+                      >
+                        Log Out
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                ) : (
+                  <Group>
+                    <Button
+                      onClick={() => {
+                        open();
+                        setIsRegister(true);
+                      }}
+                    >
+                      Register
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        open();
+                        setIsRegister(false);
+                      }}
+                    >
+                      Log in
+                    </Button>
+                  </Group>
+                ))}
             </Group>
           </Group>
         </Header>
@@ -202,14 +241,13 @@ export default function MainAppShell({
                 .filter((r) =>
                   session ? r.isLoggedInVisible : r.isLoggedOutVisible
                 )
-                .map((r, i) => (
-                  <Link
-                    key={i}
-                    href={r.link}
-                    style={{ textDecoration: "none" }}
-                  >
-                    <Stack align="center" spacing={0}>
+                .map((r, i) =>
+                  typeof r.onClick === "function" ? (
+                    // When onClick is a function
+                    <Stack key={i} align="center" spacing={0}>
                       <ActionIcon
+                        onClick={r.onClick}
+                        style={{ cursor: "pointer" }}
                         variant="subtle"
                         color={r.link === pathname ? "primary" : "gray"}
                       >
@@ -219,8 +257,27 @@ export default function MainAppShell({
                         {r.label}
                       </Text>
                     </Stack>
-                  </Link>
-                ))}
+                  ) : (
+                    // When onClick is not a function (i.e., is false)
+                    <Link
+                      key={i}
+                      href={r.link}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <Stack align="center" spacing={0}>
+                        <ActionIcon
+                          variant="subtle"
+                          color={r.link === pathname ? "primary" : "gray"}
+                        >
+                          <r.icon />
+                        </ActionIcon>
+                        <Text color="dimmed" fz="xs">
+                          {r.label}
+                        </Text>
+                      </Stack>
+                    </Link>
+                  )
+                )}
             </Group>
           </Footer>
         ) : (
