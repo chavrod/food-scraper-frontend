@@ -3,29 +3,21 @@ import { useState } from "react";
 
 import { signIn } from "next-auth/react";
 
-import {
-  TextInput,
-  Text,
-  Button,
-  LoadingOverlay,
-  Box,
-  Paper,
-  Stack,
-  Center,
-  Title,
-} from "@mantine/core";
+import { TextInput, Text, Button, Stack, Center, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 
 interface LoginFormProps {
   handleLoginSucess: () => void;
+  isLoginSuccess: boolean;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ handleLoginSucess }) => {
+const LoginForm: React.FC<LoginFormProps> = ({
+  handleLoginSucess,
+  isLoginSuccess,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const [isLoginSuccess, setIsLoginSuccess] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -59,12 +51,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ handleLoginSucess }) => {
       if (result && result.error) {
         setError(result.error);
       } else {
-        setIsLoginSuccess(true);
-
-        // Wait for 3 seconds before executing handleLoginSuccess
-        setTimeout(() => {
-          handleLoginSucess();
-        }, 1100);
+        handleLoginSucess();
       }
     } catch (error) {
       console.error(error);
@@ -72,10 +59,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ handleLoginSucess }) => {
   };
 
   return (
-    <Box maw={400} pos="relative">
-      <LoadingOverlay visible={isLoading} overlayBlur={2} />
-      <Paper p="md" style={{ maxWidth: 400, margin: "0 auto" }}>
-        {!isLoginSuccess ? (
+    <>
+      {!isLoginSuccess ? (
+        <div>
           <form onSubmit={form.onSubmit(handleFormSubmit)}>
             <TextInput
               id="login_email"
@@ -83,6 +69,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ handleLoginSucess }) => {
               placeholder="Your email address"
               required
               {...form.getInputProps("email")}
+              disabled={isLoading}
             />
             <TextInput
               id="login_password"
@@ -92,6 +79,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ handleLoginSucess }) => {
               required
               style={{ marginTop: 15 }}
               {...form.getInputProps("password")}
+              disabled={isLoading}
             />
             {error && (
               <Text size="sm" color="red" mt="md">
@@ -101,31 +89,32 @@ const LoginForm: React.FC<LoginFormProps> = ({ handleLoginSucess }) => {
             <Button
               type="submit"
               disabled={isLoading}
+              loading={isLoading}
               style={{ marginTop: 20 }}
               fullWidth
             >
               Login
             </Button>
           </form>
-        ) : (
-          <Center>
-            <Stack
-              justify="center"
-              style={{ textAlign: "center" }}
-              align="center"
-            >
-              <IconCircleCheckFilled
-                size={80}
-                style={{ color: "green", marginBottom: "10px" }}
-              />
-              <Title align="center" order={2}>
-                You're Logged in!
-              </Title>
-            </Stack>
-          </Center>
-        )}
-      </Paper>
-    </Box>
+        </div>
+      ) : (
+        <Center>
+          <Stack
+            justify="center"
+            style={{ textAlign: "center" }}
+            align="center"
+          >
+            <IconCircleCheckFilled
+              size={80}
+              style={{ color: "green", marginBottom: "10px" }}
+            />
+            <Title align="center" order={2}>
+              You're Logged in!
+            </Title>
+          </Stack>
+        </Center>
+      )}
+    </>
   );
 };
 

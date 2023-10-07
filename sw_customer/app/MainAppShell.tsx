@@ -36,8 +36,8 @@ import {
 } from "@tabler/icons-react";
 import { useSession, signOut } from "next-auth/react";
 // Internal
-import LoginForm from "./Components/Login";
-import RegisterForm from "./Components/Register";
+import UserAccess from "./Components/UserAccess";
+import RegisterForm from "./Components/RegisterForm";
 
 interface Route {
   link: string;
@@ -56,7 +56,6 @@ export default function MainAppShell({
   children: React.ReactNode;
 }) {
   const [opened, { open, close }] = useDisclosure(false);
-  const [isRegister, setIsRegister] = useState(false);
 
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
@@ -108,7 +107,6 @@ export default function MainAppShell({
       isLoggedOutVisible: true,
       onClick: () => {
         open();
-        setIsRegister(false);
       },
     },
     {
@@ -170,61 +168,36 @@ export default function MainAppShell({
               />
             </Group>
             <Group>
-              {isClient &&
-                (session ? (
-                  <Menu
-                    shadow="md"
-                    width={200}
-                    position="bottom-end"
-                    offset={3}
-                  >
-                    <Menu.Target>
-                      <ActionIcon
-                        color="blue"
-                        size="xl"
-                        radius="xl"
-                        variant="light"
-                      >
-                        <IconUser size="1.8rem" />
-                      </ActionIcon>
-                    </Menu.Target>
+              {isClient && session && (
+                <Menu shadow="md" width={200} position="bottom-end" offset={3}>
+                  <Menu.Target>
+                    <ActionIcon
+                      color="blue"
+                      size="xl"
+                      radius="xl"
+                      variant="light"
+                    >
+                      <IconUser size="1.8rem" />
+                    </ActionIcon>
+                  </Menu.Target>
 
-                    <Menu.Dropdown>
-                      <Menu.Label>{session.user.email}</Menu.Label>
-                      <Menu.Item icon={<IconLifebuoy size={14} />}>
-                        Help
-                      </Menu.Item>
-                      <Menu.Item icon={<IconSettings size={14} />}>
-                        Account Settings
-                      </Menu.Item>
-                      <Menu.Item
-                        onClick={() => signOut()}
-                        icon={<IconLogout size={14} />}
-                      >
-                        Log Out
-                      </Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
-                ) : (
-                  <Group>
-                    <Button
-                      onClick={() => {
-                        open();
-                        setIsRegister(true);
-                      }}
+                  <Menu.Dropdown>
+                    <Menu.Label>{session.user.email}</Menu.Label>
+                    <Menu.Item icon={<IconLifebuoy size={14} />}>
+                      Help
+                    </Menu.Item>
+                    <Menu.Item icon={<IconSettings size={14} />}>
+                      Account Settings
+                    </Menu.Item>
+                    <Menu.Item
+                      onClick={() => signOut()}
+                      icon={<IconLogout size={14} />}
                     >
-                      Register
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        open();
-                        setIsRegister(false);
-                      }}
-                    >
-                      Log in
-                    </Button>
-                  </Group>
-                ))}
+                      Log Out
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              )}
             </Group>
           </Group>
         </Header>
@@ -288,11 +261,7 @@ export default function MainAppShell({
       }
     >
       <Modal opened={opened} onClose={close} title="Log in or sign up" centered>
-        {isRegister ? (
-          <RegisterForm handleMoveToLogin={() => setIsRegister(false)} />
-        ) : (
-          <LoginForm handleLoginSucess={handleLoginSucess} />
-        )}
+        <UserAccess handleLoginSucess={handleLoginSucess} />
       </Modal>
       {children}
     </AppShell>
