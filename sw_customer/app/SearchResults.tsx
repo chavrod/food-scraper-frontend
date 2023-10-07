@@ -152,7 +152,7 @@ export default function SearchResults({
   }, [currentProducts, currentAverageScrapingTime]);
 
   return (
-    <>
+    <Stack align="center">
       <form onSubmit={form.onSubmit(handleFormSubmit)}>
         <Group mb="md">
           <TextInput
@@ -244,6 +244,6 @@ export default function SearchResults({
         !loading &&
         currentProducts &&
         currentProducts.length === 0 && <>Sorry, there was nothing found!</>}
-    </>
+    </Stack>
   );
 }
