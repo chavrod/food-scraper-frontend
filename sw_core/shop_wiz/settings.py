@@ -219,6 +219,9 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 
+# Enforce good password practices
+ACCOUNT_ADAPTER = "authentication.adapters.MyAccountAdapter"
+
 # Use email for authentication instead of usernames.
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_UNIQUE_EMAIL = True
