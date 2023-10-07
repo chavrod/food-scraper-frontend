@@ -32,13 +32,11 @@ import {
   IconLifebuoy,
   IconLogout,
   IconSettings,
-  IconUser,
   IconLogin,
 } from "@tabler/icons-react";
 import { useSession, signOut } from "next-auth/react";
-// Internal
+// Internal: Components
 import UserAccess from "./Components/UserAccess";
-import RegisterForm from "./Components/RegisterForm";
 
 interface Route {
   link: string;
@@ -171,14 +169,13 @@ export default function MainAppShell({
             <Group>
               <Menu shadow="md" width={200} position="bottom-end" offset={3}>
                 <Menu.Target>
-                  <ActionIcon
-                    color="blue"
-                    size="xl"
-                    radius="xl"
-                    variant="light"
-                  >
-                    <IconUser size="1.8rem" />
-                  </ActionIcon>
+                  <Avatar color={session ? "cyan" : "gray"} radius="xl">
+                    {session && session.user.username.length > 2 ? (
+                      session.user.username.slice(0, 2).toUpperCase()
+                    ) : (
+                      <IconUserCircle size="1.8rem" stroke="0.09rem" />
+                    )}
+                  </Avatar>
                 </Menu.Target>
 
                 <Menu.Dropdown>
