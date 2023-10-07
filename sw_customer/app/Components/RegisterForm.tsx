@@ -9,10 +9,11 @@ import {
   Text,
   Title,
   Group,
+  PasswordInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
-import { useInterval } from "@mantine/hooks";
+import { useInterval, useDisclosure } from "@mantine/hooks";
 
 interface RegisterFormProps {
   isRegistrationSubmitted: boolean;
@@ -43,6 +44,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         value !== values.password1 ? "Passwords must match." : null,
     },
   });
+  const [visible, { toggle }] = useDisclosure(false);
+
   const [isLoading, setIsLoading] = useState(false);
 
   const [countdown, setCountdown] = useState<number>(60);
@@ -113,25 +116,27 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             {...form.getInputProps("email")}
             disabled={isLoading}
           />
-          <TextInput
+          <PasswordInput
             id="p1"
             label="Password"
-            type="password"
             placeholder="Your password"
             required
             style={{ marginTop: 15 }}
             {...form.getInputProps("password1")}
             disabled={isLoading}
+            visible={visible}
+            onVisibilityChange={toggle}
           />
-          <TextInput
+          <PasswordInput
             id="p2"
             label="Repeat Password"
-            type="password"
             placeholder="Repeat your password"
             required
             style={{ marginTop: 15 }}
             {...form.getInputProps("password2")}
             disabled={isLoading}
+            visible={visible}
+            onVisibilityChange={toggle}
           />
           <Button
             type="submit"

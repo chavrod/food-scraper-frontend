@@ -3,7 +3,15 @@ import { useState } from "react";
 
 import { signIn } from "next-auth/react";
 
-import { TextInput, Text, Button, Stack, Center, Title } from "@mantine/core";
+import {
+  TextInput,
+  Text,
+  Button,
+  Stack,
+  Center,
+  Title,
+  PasswordInput,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 
@@ -71,10 +79,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
               {...form.getInputProps("email")}
               disabled={isLoading}
             />
-            <TextInput
+            <PasswordInput
               id="login_password"
               label="Password"
-              type="password"
               placeholder="Your password"
               required
               style={{ marginTop: 15 }}
