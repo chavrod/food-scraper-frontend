@@ -3,13 +3,15 @@ import { useState } from "react";
 // Internal: Components
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
-// External:
+// External: Style
 import { Button, Box, Paper, Stack, Divider, Group } from "@mantine/core";
 import {
   IconBrandGoogle,
   IconMailPlus,
   IconMailForward,
 } from "@tabler/icons-react";
+// External: Logic
+import { signIn } from "next-auth/react";
 
 interface LoginFormProps {
   handleLoginSucess: () => void;
@@ -18,6 +20,8 @@ interface LoginFormProps {
 const UserAccess: React.FC<LoginFormProps> = ({ handleLoginSucess }) => {
   const [isLoginFormVisible, setIsLoginFormVisible] = useState(true);
   const [isAuthSuccess, setIsAuthSuccess] = useState(false);
+
+  const [isRedirecting, setIsRedirecting] = useState("");
 
   const handleAuthSuccess = () => {
     setIsAuthSuccess(true);
@@ -55,22 +59,28 @@ const UserAccess: React.FC<LoginFormProps> = ({ handleLoginSucess }) => {
             {" "}
             <Divider my="md" label="or" labelPosition="center" />
             <Stack>
-              <Button variant="outline" fullWidth>
-                <Group>
-                  <IconBrandGoogle size="1.5rem" stroke={2.2} />
-                  Continue with Google
-                </Group>
+              <Button
+                variant="outline"
+                leftIcon={<IconBrandGoogle size="1.5rem" stroke={2.2} />}
+                loading={isRedirecting === "google"}
+                onClick={() => {
+                  setIsRedirecting("google");
+                  signIn("google");
+                }}
+                fullWidth
+              >
+                {isRedirecting == "google"
+                  ? "Redirecting to Google..."
+                  : "Continue with Google"}
               </Button>
               {isLoginFormVisible ? (
                 <Button
                   variant="outline"
+                  leftIcon={<IconMailPlus size="1.5rem" stroke={2.2} />}
                   onClick={() => setIsLoginFormVisible(false)}
                   fullWidth
                 >
-                  <Group>
-                    <IconMailPlus size="1.5rem" stroke={2.2} />
-                    Register with email
-                  </Group>
+                  Register with email
                 </Button>
               ) : (
                 <Button

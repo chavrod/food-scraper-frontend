@@ -61,7 +61,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       setIsLoading(true);
 
       const { email, password1, password2 } = form.values;
-      const username = email;
+      const username = email.includes("@") ? email.split("@")[0] : email;
 
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "auth/register/",

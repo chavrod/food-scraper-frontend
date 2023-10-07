@@ -62,8 +62,6 @@ export default function MainAppShell({
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  console.log(session, status);
-
   const routes: Route[] = [
     {
       link: "/",
@@ -157,53 +155,61 @@ export default function MainAppShell({
               />
             </Group>
             <Group>
-              <Menu shadow="md" width={200} position="bottom-end" offset={3}>
-                <Menu.Target>
-                  <Avatar color={session ? "cyan" : "gray"} radius="xl">
-                    {session && session.user.username.length > 2 ? (
-                      session.user.username.slice(0, 2).toUpperCase()
-                    ) : (
-                      <IconUserCircle size="1.8rem" stroke="0.09rem" />
-                    )}
-                  </Avatar>
-                </Menu.Target>
+              {isClient ? (
+                <Menu shadow="md" width={200} position="bottom-end" offset={3}>
+                  <Menu.Target>
+                    <Avatar color={session ? "cyan" : "gray"} radius="xl">
+                      {session && session.user.username.length > 2 ? (
+                        session.user.username.slice(0, 2).toUpperCase()
+                      ) : (
+                        <IconUserCircle size="1.8rem" stroke="0.09rem" />
+                      )}
+                    </Avatar>
+                  </Menu.Target>
 
-                <Menu.Dropdown>
-                  {session ? (
-                    <>
-                      {" "}
-                      <Menu.Label>{session.user.email}</Menu.Label>
-                      <Menu.Item icon={<IconLifebuoy size={14} />}>
-                        Help
-                      </Menu.Item>
-                      <Menu.Item icon={<IconSettings size={14} />}>
-                        Account Settings
-                      </Menu.Item>
-                      <Menu.Divider />
-                      <Menu.Item
-                        onClick={() => signOut()}
-                        icon={<IconLogout size={14} />}
-                      >
-                        Log Out
-                      </Menu.Item>
-                    </>
-                  ) : (
-                    <>
-                      {" "}
-                      <Menu.Item
-                        onClick={() => open()}
-                        icon={<IconLogin size={14} />}
-                      >
-                        Log in
-                      </Menu.Item>
-                      <Menu.Divider />
-                      <Menu.Item icon={<IconLifebuoy size={14} />}>
-                        Help
-                      </Menu.Item>
-                    </>
-                  )}
-                </Menu.Dropdown>
-              </Menu>
+                  <Menu.Dropdown>
+                    {session ? (
+                      <>
+                        {" "}
+                        <Menu.Label>{session.user.email}</Menu.Label>
+                        <Menu.Item icon={<IconLifebuoy size={14} />}>
+                          Help
+                        </Menu.Item>
+                        <Menu.Item icon={<IconSettings size={14} />}>
+                          Account Settings
+                        </Menu.Item>
+                        <Menu.Divider />
+                        <Menu.Item
+                          onClick={() => signOut()}
+                          icon={<IconLogout size={14} />}
+                        >
+                          Log Out
+                        </Menu.Item>
+                      </>
+                    ) : (
+                      <>
+                        {" "}
+                        <Menu.Item
+                          onClick={() => open()}
+                          icon={<IconLogin size={14} />}
+                        >
+                          Log in
+                        </Menu.Item>
+                        <Menu.Divider />
+                        <Menu.Item icon={<IconLifebuoy size={14} />}>
+                          Help
+                        </Menu.Item>
+                      </>
+                    )}
+                  </Menu.Dropdown>
+                </Menu>
+              ) : (
+                <>
+                  <Avatar color={"gray"} radius="xl">
+                    <IconUserCircle size="1.8rem" stroke="0.09rem" />
+                  </Avatar>
+                </>
+              )}
             </Group>
           </Group>
         </Header>

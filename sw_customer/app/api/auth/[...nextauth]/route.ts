@@ -1,12 +1,15 @@
 import NextAuth from "next-auth";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
 // Define types for the environment variables and any other variables
 declare let process: {
   env: {
     NEXTAUTH_BACKEND_URL: string;
     NEXTAUTH_SECRET: string;
+    GOOGLE_CLIENT_ID: string;
+    GOOGLE_CLIENT_SECRET: string;
   };
 };
 
@@ -30,6 +33,33 @@ const SIGN_IN_HANDLERS: Record<
 > = {
   credentials: async (user, account, profile, email, credentials) => {
     return true;
+  },
+  google: async (user, account, profile, email, credentials) => {
+    try {
+      const response = await fetch(
+        process.env.NEXTAUTH_BACKEND_URL + "auth/google/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            access_token: account["id_token"],
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to authenticate with backend");
+      }
+
+      const data = await response.json();
+      account["meta"] = data;
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   },
 };
 const SIGN_IN_PROVIDERS = Object.keys(SIGN_IN_HANDLERS);
@@ -81,6 +111,17 @@ export const authOptions: NextAuthOptions = {
           console.error(error);
         }
         return null;
+      },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
       },
     }),
   ],
