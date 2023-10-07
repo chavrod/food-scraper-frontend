@@ -67,16 +67,6 @@ export default function MainAppShell({
   const routes: Route[] = [
     {
       link: "/",
-      label: "Home",
-      icon: IconHome2,
-      footer: true,
-      navbar: true,
-      isLoggedInVisible: true,
-      isLoggedOutVisible: false,
-      onClick: false,
-    },
-    {
-      link: "/search",
       label: "Explore",
       icon: IconSearch,
       footer: true,
