@@ -100,6 +100,30 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
     // Handle the response data as required (e.g., show a success message or error message)
   };
 
+  // TODO: Password strength Meter
+  // const [passwordStrength, setPasswordStrength] = useState<number>(0);
+
+  // const requirements = [
+  //   { re: /.{8,}/, label: 'At least 8 characters long' },
+  //   { re: /[A-Z]/, label: 'Includes uppercase letter' },
+  //   { re: /[a-z]/, label: 'Includes lowercase letter' },
+  //   { re: /[0-9]/, label: 'Includes a number' },
+  //   { re: /[!@#$%^&*]/, label: 'Includes special character (!@#$%^&*)' },
+  //   { re: /^(?!.*(.)\1{3,}).*$/, label: 'Does not contain repeated characters in sequence more than three times' },
+  // ];
+
+  // function getStrength(password: string) {
+  //   let multiplier = password.length > 5 ? 0 : 1;
+
+  //   requirements.forEach((requirement) => {
+  //     if (!requirement.re.test(password)) {
+  //       multiplier += 1;
+  //     }
+  //   });
+
+  //   return Math.max(100 - (100 / (requirements.length + 1)) * multiplier, 10);
+  // }
+
   const resendEmail = async () => {
     setCountdown(60);
   };

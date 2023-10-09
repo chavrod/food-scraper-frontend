@@ -24,7 +24,6 @@ import {
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import {
   Icon,
-  IconHome2,
   IconSearch,
   IconCalculator,
   IconChartHistogram,
@@ -37,6 +36,8 @@ import {
 import { useSession, signOut } from "next-auth/react";
 // Internal: Components
 import UserAccess from "./Components/UserAccess";
+// Internal: Utils
+import { logout } from "@/utils/auth";
 
 interface Route {
   link: string;
@@ -61,6 +62,8 @@ export default function MainAppShell({
 
   const router = useRouter();
   const { data: session, status } = useSession();
+
+  console.log(session);
 
   const routes: Route[] = [
     {
@@ -180,7 +183,8 @@ export default function MainAppShell({
                         </Menu.Item>
                         <Menu.Divider />
                         <Menu.Item
-                          onClick={() => signOut()}
+                          onClick={() => logout(session.refresh_token)}
+                          // onClick={() => signOut()}
                           icon={<IconLogout size={14} />}
                         >
                           Log Out
