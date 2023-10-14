@@ -1,12 +1,11 @@
-from django.urls import path, re_path
+from django.urls import path
 
 from dj_rest_auth.jwt_auth import get_refresh_view
-from dj_rest_auth.registration.views import RegisterView, VerifyEmailView
+from dj_rest_auth.registration.views import RegisterView
 from dj_rest_auth.views import LoginView, UserDetailsView
 
 from rest_framework_simplejwt.views import TokenVerifyView
 
-from allauth.socialaccount.views import signup
 from authentication.views import GoogleLogin, LogoutView
 
 urlpatterns = [
@@ -17,15 +16,4 @@ urlpatterns = [
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("token/refresh/", get_refresh_view().as_view(), name="token_refresh"),
     path("google/", GoogleLogin.as_view(), name="google_login"),
-    # Additional email verification URLs
-    re_path(
-        r"^account-confirm-email/$",
-        VerifyEmailView.as_view(),
-        name="account_email_verification_sent",
-    ),
-    re_path(
-        r"^account-confirm-email/(?P<key>[-:\w]+)/$",
-        VerifyEmailView.as_view(),
-        name="account_confirm_email",
-    ),
 ]
