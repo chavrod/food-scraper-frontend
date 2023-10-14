@@ -1,7 +1,7 @@
 Hello {{ user.username }}!
 
 Thank you for registering on shop-wiz.ie. 
-Please confirm your email address and activate your account by visiting the following link:
+To continue with your account setup, please click on the link below:
 
 {{ activate_url }}
 
