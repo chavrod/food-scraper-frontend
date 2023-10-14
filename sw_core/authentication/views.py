@@ -33,6 +33,6 @@ class CustomConfirmEmailView(ConfirmEmailView):
         # This is because, in case of errors or other conditions, the base class might not return a redirect.
         if isinstance(super_response, HttpResponseRedirect):
             # Replace the super response's redirect URL with 'example.com'
-            return redirect(f"{BASE_DOMAIN_NAME}")
+            return redirect(f"{BASE_DOMAIN_NAME}?login=successful-email-confirmation")
 
         return super_response

@@ -4,20 +4,34 @@ import { useState } from "react";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 // External: Style
-import { Button, Box, Paper, Stack, Divider, Group } from "@mantine/core";
+import {
+  Button,
+  Box,
+  Paper,
+  Stack,
+  Divider,
+  Group,
+  Text,
+  Notification,
+} from "@mantine/core";
 import {
   IconBrandGoogle,
   IconMailPlus,
   IconMailForward,
+  IconCheck,
 } from "@tabler/icons-react";
 // External: Logic
 import { signIn } from "next-auth/react";
 
 interface LoginFormProps {
+  isEmailConfirmed: boolean;
   handleLoginSucess: () => void;
 }
 
-const UserAccess: React.FC<LoginFormProps> = ({ handleLoginSucess }) => {
+const UserAccess: React.FC<LoginFormProps> = ({
+  isEmailConfirmed,
+  handleLoginSucess,
+}) => {
   const [isLoginFormVisible, setIsLoginFormVisible] = useState(true);
   const [isAuthSuccess, setIsAuthSuccess] = useState(false);
 
@@ -42,10 +56,26 @@ const UserAccess: React.FC<LoginFormProps> = ({ handleLoginSucess }) => {
     <Box maw={400} pos="relative">
       <Paper p="md" style={{ maxWidth: 400, margin: "0 auto" }}>
         {isLoginFormVisible ? (
-          <LoginForm
-            isLoginSuccess={isAuthSuccess}
-            handleLoginSucess={handleAuthSuccess}
-          ></LoginForm>
+          <>
+            {isEmailConfirmed && (
+              <Notification
+                icon={<IconCheck size="1.2rem" />}
+                withCloseButton={false}
+                color="teal"
+                title="Great! Your email is confirmed!"
+                mb="md"
+                withBorder
+                sx={{ boxShadow: "none" }}
+              >
+                Please login with the verified email
+              </Notification>
+            )}
+
+            <LoginForm
+              isLoginSuccess={isAuthSuccess}
+              handleLoginSucess={handleAuthSuccess}
+            ></LoginForm>
+          </>
         ) : (
           <RegisterForm
             isRegistrationSubmitted={isAuthSuccess}

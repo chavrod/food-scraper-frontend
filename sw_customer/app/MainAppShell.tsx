@@ -2,7 +2,7 @@
 
 // React / Next
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 // External
 import {
@@ -55,12 +55,18 @@ export default function MainAppShell({
 }: {
   children: React.ReactNode;
 }) {
+  const loginParams = useSearchParams();
+  const [isEmailConfirmed, setIsEmailConfirmed] = useState(
+    loginParams.get("login") === "successful-email-confirmation"
+  );
+
   const [opened, { open, close }] = useDisclosure(false);
 
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
 
   const router = useRouter();
+
   const { data: session, status } = useSession();
 
   console.log(session);
@@ -276,8 +282,20 @@ export default function MainAppShell({
         )
       }
     >
-      <Modal opened={opened} onClose={close} title="Log in or sign up" centered>
-        <UserAccess handleLoginSucess={handleLoginSucess} />
+      <Modal
+        opened={opened || isEmailConfirmed}
+        onClose={() => {
+          setIsEmailConfirmed(false);
+          window.history.replaceState(null, "", "/");
+          close();
+        }}
+        title="Log in or sign up"
+        centered
+      >
+        <UserAccess
+          isEmailConfirmed={isEmailConfirmed}
+          handleLoginSucess={handleLoginSucess}
+        />
       </Modal>
       {children}
     </AppShell>
