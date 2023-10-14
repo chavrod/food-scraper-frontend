@@ -21,6 +21,15 @@ load_dotenv(find_dotenv())
 SIGNING_KEY = os.environ["SIGNING_KEY"]
 GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
 GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
+ENV = os.environ["ENV"]
+
+if ENV == "DEV":
+    BASE_DOMAIN_NAME = "http://localhost:3000"
+    ALLOWED_HOSTS = ["*"]
+else:
+    BASE_DOMAIN_NAME = "https://shop-wiz.ie"
+    ALLOWED_HOSTS = ["shop-wiz.ie", "www.shop-wiz.ie"]
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -111,6 +120,7 @@ TEMPLATES = [
     },
 ]
 
+
 # WSGI_APPLICATION = "shop_wiz.wsgi.application"
 ASGI_APPLICATION = "shop_wiz.asgi.application"
 
@@ -147,8 +157,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-ALLOWED_HOSTS = ["*"]
-# ALLOWED_HOSTS = ['mydomain.com', 'www.mydomain.com']
+
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
@@ -184,22 +193,18 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 RESULTS_PER_PAGE = 24
 
-
+# Testing email
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-# For production, you would typically use SMTP:
+# For production, use SMTP:
 
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'your-smtp-server.com'
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.sendgrid.net"
+# EMAIL_HOST_USER = "apikey"
+# EMAIL_HOST_PASSWORD = os.environ["SENDGRID_API_KEY"]
 # EMAIL_PORT = 587
 # EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your@email.com'
-# EMAIL_HOST_PASSWORD = 'your-email-password'
-
-# Replace the placeholders with your actual SMTP server details.
-# Many hosting providers offer SMTP services, or you can use services
-# like SendGrid, Mailgun, etc.
-
+# DEFAULT_FROM_EMAIL = "dmitry@bookiebase.ie"
 
 # REDIS config
 CELERY_BROKER_URL = "redis://localhost:6379"
