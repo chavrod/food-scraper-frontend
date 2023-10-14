@@ -233,6 +233,7 @@ ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "\u200B"
 
 # Optional: Use this if you want the user to confirm their email before they can login.
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
