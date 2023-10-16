@@ -218,6 +218,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "shop_wiz.tasks.delete_old_cached_products",
         "schedule": timedelta(days=1),
     },
+    "delete_unverified_emails_every_day": {
+        "task": "shop_wiz.tasks.delete_unverified_emails",
+        "schedule": timedelta(days=1),
+    },
 }
 
 AUTHENTICATION_BACKENDS = (
