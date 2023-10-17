@@ -6,7 +6,7 @@ from dj_rest_auth.views import LoginView, UserDetailsView
 
 from rest_framework_simplejwt.views import TokenVerifyView
 
-from authentication.views import GoogleLogin, LogoutView
+from authentication.views import GoogleLogin, LogoutView, SendValidationEmailView
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="rest_register"),
@@ -16,4 +16,9 @@ urlpatterns = [
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("token/refresh/", get_refresh_view().as_view(), name="token_refresh"),
     path("google/", GoogleLogin.as_view(), name="google_login"),
+    path(
+        "send-validation-email/",
+        SendValidationEmailView.as_view(),
+        name="send_validation_email",
+    ),
 ]

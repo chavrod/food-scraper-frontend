@@ -274,3 +274,6 @@ SOCIALACCOUNT_PROVIDERS = {
         "VERIFIED_EMAIL": True,
     },
 }
+
+# Security configs
+EMAIL_VERIFICATION_RESEND_LIMIT = 5
