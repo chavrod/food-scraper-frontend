@@ -8,12 +8,14 @@ import {
   Stack,
   Text,
   Title,
-  Group,
+  Anchor,
   PasswordInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 import { useInterval, useDisclosure } from "@mantine/hooks";
+// Internal: Utils
+import { getCSRF } from "@/utils/getCSRF";
 
 interface RegisterFormProps {
   isRegistrationSubmitted: boolean;
@@ -48,16 +50,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const [countdown, setCountdown] = useState<number>(60);
-
-  const intervalToResendEmail = useInterval(
-    () => {
-      if (countdown > 0) {
-        setCountdown((prev) => prev - 1);
-      }
-    },
-    countdown > 0 ? 1000 : 0
-  );
+  const [emailVerificationToResend, setEmailVerificationToResend] =
+    useState("");
 
   const handleFormSubmit = async () => {
     try {
@@ -89,7 +83,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         form.setErrors(data);
       } else {
         handleRegistrationSubmission();
-        intervalToResendEmail.start;
+        setEmailVerificationToResend(email);
       }
       setIsLoading(false);
     } catch (error) {
@@ -124,8 +118,35 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
   //   return Math.max(100 - (100 / (requirements.length + 1)) * multiplier, 10);
   // }
 
+  const [isEmailResend, setIsEmailResend] = useState(false);
+
   const resendEmail = async () => {
-    setCountdown(60);
+    try {
+      if (!emailVerificationToResend) return;
+
+      const csrfToken = await getCSRF();
+      if (!csrfToken) return;
+
+      console.log("csrfToken: ", csrfToken);
+
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_API_URL + "auth/send-validation-email/",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify({
+            email: emailVerificationToResend,
+          }),
+        }
+      );
+
+      if (response.ok) setIsEmailResend(true);
+    } catch (err: any) {
+      console.error("An error occurred:", err.message);
+    }
   };
 
   return (
@@ -190,31 +211,23 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             <Text align="center">
               We've sent a confirmation email to{" "}
               <strong>{form.values.email}</strong>. Please head to your inbox to
-              verify your email.
+              verify.
             </Text>
-            {countdown > 0 && (
-              <Group>
-                <Text align="center">
-                  {"If you didn't get the email, you can "}
-                  <span
-                    style={{
-                      color: "blue",
-                      textDecoration: "underline",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => {
-                      // Logic to resend email goes here...
-                      setCountdown(60); // reset countdown after sending email
-                    }}
-                  >
-                    send another one
-                  </span>{" "}
-                  in
-                  <strong> {countdown}</strong>
-                  {" seconds."}
-                </Text>
-              </Group>
+
+            {!isEmailResend ? (
+              <Text align="center">
+                Didn't get the email?{" "}
+                <Anchor component="button" onClick={resendEmail} type="button">
+                  Resend Activation Email
+                </Anchor>
+              </Text>
+            ) : (
+              <Text align="center">
+                We've just sent you another email. If you still didn't receive
+                it, please contact us at <strong>help@shop-wiz.ie</strong>.
+              </Text>
             )}
+
             <Button variant="outline" onClick={handleMoveToLogin} fullWidth>
               Go to Login
             </Button>

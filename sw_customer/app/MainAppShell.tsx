@@ -17,7 +17,6 @@ import {
   Container,
   Stack,
   Menu,
-  Button,
   Text,
   Avatar,
 } from "@mantine/core";

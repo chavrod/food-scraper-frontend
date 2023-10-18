@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 
 from authentication.views import CustomConfirmEmailView
+from core.views import ping
 
 urlpatterns = [
     path("api/admin/", admin.site.urls),
@@ -32,4 +33,5 @@ urlpatterns = [
     ),
     path("accounts/", include("allauth.urls")),
     path("api/", include(("core.urls", "core"), namespace="core")),
+    path("api/ping/", ping, name="ping"),
 ]

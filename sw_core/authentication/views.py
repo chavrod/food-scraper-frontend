@@ -16,12 +16,10 @@ from dj_rest_auth.registration.views import SocialLoginView
 from dj_rest_auth.views import LogoutView as DefaultLogoutView
 
 import authentication.models as authentication_models
-from shop_wiz.settings import EMAIL_VERIFICATION_RESEND_LIMIT
-
 
 User = get_user_model()
 
-from shop_wiz.settings import BASE_DOMAIN_NAME
+from shop_wiz.settings import BASE_DOMAIN_NAME, EMAIL_VERIFICATION_RESEND_LIMIT
 
 
 class GoogleLogin(SocialLoginView):
@@ -63,6 +61,17 @@ def is_user_email_verified(user, email):
     return result
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(",")[0]
+        return ip
+    ip = request.META.get("REMOTE_ADDR")
+    if ip:
+        return ip
+    return None
+
+
 class SendValidationEmailView(View):
     """
     Implement requests to manually send confirmation email in case it hasn't been received
@@ -77,10 +86,7 @@ class SendValidationEmailView(View):
         if email is None:
             return HttpResponseBadRequest("No email provided")
 
-        client_ip = self.get_client_ip(request)
-
-        print("EMAIL: ", email)
-        print("IP: ", client_ip)
+        client_ip = get_client_ip(request)
 
         # Check if the email or IP is blacklisted
         (
@@ -89,9 +95,13 @@ class SendValidationEmailView(View):
         ) = authentication_models.EmailRequestBlacklist.objects.get_or_create(
             email=email
         )
-        ip_entry, _ = authentication_models.IPRequestBlacklist.objects.get_or_create(
-            ip_address=client_ip
-        )
+        if client_ip:
+            (
+                ip_entry,
+                _,
+            ) = authentication_models.IPRequestBlacklist.objects.get_or_create(
+                ip_address=client_ip
+            )
 
         if (
             email_entry.request_count >= EMAIL_VERIFICATION_RESEND_LIMIT
