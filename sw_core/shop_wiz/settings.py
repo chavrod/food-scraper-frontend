@@ -24,11 +24,28 @@ GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
 ENV = os.environ["ENV"]
 
 if ENV == "DEV":
-    BASE_DOMAIN_NAME = "http://localhost:3000"
+    BASE_DOMAIN_NAME = "http://127.0.0.1:3000"
     ALLOWED_HOSTS = ["*"]
+    CSRF_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_DOMAIN = "127.0.0.1"
+    CSRF_TRUSTED_ORIGINS = ["*"]
 else:
     BASE_DOMAIN_NAME = "https://shop-wiz.ie"
     ALLOWED_HOSTS = ["shop-wiz.ie", "www.shop-wiz.ie"]
+    # CSRF_COOKIE_SECURE = True
+    # CSRF_TRUSTED_ORIGINS = [] is the default 'django/conf/global_settings.py'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000/",
+        "http://127.0.0.1:3000/",
+    ]
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -42,8 +59,6 @@ SITE_ID = 1
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-t93ipdy)sdc_)x)qjqv=*djc37)9@epx@9e06_u9a)$&&n#gqj"
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 # Application definition
 
@@ -156,16 +171,6 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-
-
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000/",
-        "http://127.0.0.1:3000/",
-    ]
-CORS_ALLOW_CREDENTIALS = True
 
 
 # Internationalization

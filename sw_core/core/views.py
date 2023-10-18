@@ -1,4 +1,9 @@
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_protect
+from django.middleware.csrf import get_token
+
+from django.db.models import Avg
+from django.http import JsonResponse
 
 from rest_framework import status, viewsets, mixins
 from rest_framework.views import APIView
@@ -10,10 +15,17 @@ from tasks.cache_data import cache_data
 import core.serializers as core_serializers
 import core.models as core_models
 
-import time
-from django.db.models import Avg
 
-import jwt, datetime
+@csrf_protect
+def ping(request):
+    csrf_token = get_token(request)
+    response = JsonResponse({"status": "OK", "csrfToken": csrf_token})
+    response.set_cookie("csrftoken", csrf_token)
+    return response
+
+
+# def ping(request):
+#     return JsonResponse({"status": "OK"})
 
 
 # class RegisterView(APIView):
