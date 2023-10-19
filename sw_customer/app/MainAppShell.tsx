@@ -124,6 +124,8 @@ export default function MainAppShell({
   const isLargerThanSm = useMediaQuery("(min-width: 768px)");
 
   const handleLoginSucess = () => {
+    setIsEmailConfirmed(false);
+    window.history.replaceState(null, "", "/");
     close();
   };
 
