@@ -9,6 +9,7 @@ import {
   ColorScheme,
 } from "@mantine/core";
 import { useServerInsertedHTML } from "next/navigation";
+import { Notifications } from "@mantine/notifications";
 
 export default function RootStyleRegistry({
   children,
@@ -60,6 +61,7 @@ export default function RootStyleRegistry({
             },
           }}
         >
+          <Notifications />
           {children}
         </MantineProvider>
       </ColorSchemeProvider>
