@@ -186,7 +186,12 @@ export default function MainAppShell({
                           Help
                         </Menu.Item>
                         <Menu.Item icon={<IconSettings size={14} />}>
-                          Account Settings
+                          <Link
+                            href="/account_settings"
+                            style={{ textDecoration: "none", color: "black" }}
+                          >
+                            Account Settings
+                          </Link>
                         </Menu.Item>
                         <Menu.Divider />
                         <Menu.Item
