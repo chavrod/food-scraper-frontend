@@ -12,8 +12,9 @@ import {
   PasswordInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { notifications } from "@mantine/notifications";
+import { useDisclosure } from "@mantine/hooks";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
-import { useInterval, useDisclosure } from "@mantine/hooks";
 // Internal: Utils
 import { getCSRF } from "@/utils/getCSRF";
 
@@ -86,9 +87,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         setEmailVerificationToResend(email);
       }
       setIsLoading(false);
-    } catch (error) {
-      console.log("helooo");
+    } catch (error: any) {
       setIsLoading(false);
+      notifications.show({
+        title: "Server Error!",
+        message: error?.message || "Unknown error. Please try again later.",
+        color: "red",
+      });
     }
 
     // Handle the response data as required (e.g., show a success message or error message)
@@ -144,8 +149,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       );
 
       if (response.ok) setIsEmailResend(true);
-    } catch (err: any) {
-      console.error("An error occurred:", err.message);
+    } catch (error: any) {
+      notifications.show({
+        title: "Server Error!",
+        message: error?.message || "Unknown error. Please try again later.",
+        color: "red",
+      });
     }
   };
 

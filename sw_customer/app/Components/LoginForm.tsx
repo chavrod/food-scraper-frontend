@@ -13,6 +13,7 @@ import {
   PasswordInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { notifications } from "@mantine/notifications";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 
 interface LoginFormProps {
@@ -61,8 +62,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
       } else {
         handleLoginSucess();
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      notifications.show({
+        title: "Server Error!",
+        message: error?.message || "Unknown error. Please try again later.",
+        color: "red",
+      });
     }
   };
 
