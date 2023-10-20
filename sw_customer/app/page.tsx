@@ -10,6 +10,8 @@ import {
   SearchMetaData,
 } from "@/utils/types";
 
+import "../styles/global.css";
+
 export default async function Home(outerParams: {
   params: any;
   searchParams: SearchParams;
