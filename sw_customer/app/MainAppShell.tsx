@@ -68,8 +68,6 @@ export default function MainAppShell({
 
   const { data: session, status } = useSession();
 
-  console.log(session);
-
   const routes: Route[] = [
     {
       link: "/",
@@ -187,7 +185,7 @@ export default function MainAppShell({
                         </Menu.Item>
                         <Menu.Item icon={<IconSettings size={14} />}>
                           <Link
-                            href="/account_settings"
+                            href="/account-settings"
                             style={{ textDecoration: "none", color: "black" }}
                           >
                             Account Settings

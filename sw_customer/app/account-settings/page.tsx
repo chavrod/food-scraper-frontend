@@ -80,7 +80,7 @@ export default function EstimatePage() {
             </AccountSettingsMainMenuCard>
           </Grid.Col>
           <Grid.Col span={12} md={6} xl={4}>
-            <AccountSettingsMainMenuCard href="/">
+            <AccountSettingsMainMenuCard href="/account-settings/login-and-security">
               <Stack spacing="xl" align="flex-start" justify="space-between">
                 <IconShield size={35} />
                 <Stack spacing={0} align="flex-start" justify="flex-end">
