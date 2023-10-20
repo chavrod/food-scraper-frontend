@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "dj_rest_auth",
     "dj_rest_auth.registration",
+    "dj_rest_auth.password_reset",
 ]
 
 CHANNEL_LAYERS = {

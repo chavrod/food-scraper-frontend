@@ -2,7 +2,12 @@ from django.urls import path
 
 from dj_rest_auth.jwt_auth import get_refresh_view
 from dj_rest_auth.registration.views import RegisterView
-from dj_rest_auth.views import LoginView, UserDetailsView
+from dj_rest_auth.views import (
+    LoginView,
+    UserDetailsView,
+    PasswordResetView,
+    PasswordResetConfirmView,
+)
 
 from rest_framework_simplejwt.views import TokenVerifyView
 
@@ -20,5 +25,11 @@ urlpatterns = [
         "send-validation-email/",
         SendValidationEmailView.as_view(),
         name="send_validation_email",
+    ),
+    path("password/reset/", PasswordResetView.as_view(), name="rest_password_reset"),
+    path(
+        "password/reset/confirm/",
+        PasswordResetConfirmView.as_view(),
+        name="rest_password_reset_confirm",
     ),
 ]
