@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-
+import { useSession } from "next-auth/react";
 import {
   Stack,
   Title,
@@ -21,6 +21,8 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+// Internal: Utils
+import { getCSRF } from "@/utils/getCSRF";
 
 export default function SecurityPage() {
   const items = [
@@ -32,80 +34,94 @@ export default function SecurityPage() {
     </Link>
   ));
 
+  const { data: session } = useSession();
+  const userEmail = session?.user.email;
+
   const [visible, { toggle }] = useDisclosure(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isLoadingPasswordReset, setIsLoadingPasswordReset] = useState(false);
 
+  const [modalMode, setModalMode] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
 
-  // const form = useForm({
-  //   initialValues: {
-  //     oldPassword: "",
-  //     password1: "",
-  //     password2: "", // repeat password
-  //   },
-  //   validate: {
-  //     oldPassword: (value) =>
-  //       value.trim().length === 0 ? "Password is required." : null,
-  //     password1: (value) =>
-  //       value.trim().length === 0 ? "Password is required." : null,
-  //     password2: (value, values) =>
-  //       value !== values.password1 ? "Passwords must match." : null,
-  //   },
-  // });
+  const [loading, setLoading] = useState(false);
 
-  // const handleFormSubmit = async () => {
-  //   try {
-  //     setIsLoadingPasswordReset(true);
-  //     const { oldPassword, password1, password2 } = form.values;
-  //     // const username = email.includes("@") ? email.split("@")[0] : email;
-  //     // const response = await fetch(
-  //     //   process.env.NEXT_PUBLIC_API_URL + "auth/register/",
-  //     //   {
-  //     //     method: "POST",
-  //     //     headers: {
-  //     //       "Content-Type": "application/json",
-  //     //     },
-  //     //     body: JSON.stringify({
-  //     //       email,
-  //     //       username,
-  //     //       password1,
-  //     //       password2,
-  //     //     }),
-  //     //   }
-  //     // );
-  //     // const data = await response.json();
-  //     // // TODO: Handle non-field errors
-  //     // if (!response.ok) {
-  //     //   form.setErrors(data);
-  //     // } else {
-  //     // }
-  //     setIsLoadingPasswordReset(false);
-  //   } catch (error: any) {
-  //     setIsLoadingPasswordReset(false);
-  //     notifications.show({
-  //       title: "Server Error!",
-  //       message: error?.message || "Unknown error. Please try again later.",
-  //       color: "red",
-  //     });
-  //   }
-  // };
+  const sendPasswordResetEmail = async () => {
+    try {
+      if (!userEmail) return;
+
+      const csrfToken = await getCSRF();
+      if (!csrfToken) return;
+
+      setLoading(true);
+
+      console.log("csrfToken: ", csrfToken);
+
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_API_URL + "auth/password-reset/",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "X-CSRFToken": csrfToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: userEmail,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setLoading(false);
+      } else {
+        console.log("OTHER ERROR! ");
+      }
+    } catch (error: any) {
+      setLoading(false);
+      notifications.show({
+        title: "Server Error!",
+        message: error?.message || "Unknown error. Please try again later.",
+        color: "red",
+      });
+    }
+  };
 
   return (
     <Box maw="600px">
-      <Modal opened={opened} onClose={close} title="Authentication">
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={modalMode === "password_reset" ? "Reset Password" : ""}
+        centered
+      >
         <Stack>
-          <Text>Are you sure you want to remove this payment method?</Text>
+          <Text>
+            Are you sure you want to{" "}
+            {modalMode === "password_reset" ? "reset password" : ""}?
+          </Text>
           <Group grow>
             <Button
               variant="light"
+              disabled={loading}
               onClick={() => {
-                close;
+                close();
               }}
             >
               Cancel
             </Button>
-            <Button onClick={() => {}}>Send Email</Button>
+            <Button
+              loading={loading}
+              onClick={() => {
+                if (modalMode === "password_reset") {
+                  sendPasswordResetEmail();
+                } else {
+                  return;
+                }
+              }}
+            >
+              {modalMode === "password_reset" ? "Send Email" : ""}
+            </Button>
           </Group>
         </Stack>
       </Modal>
@@ -135,7 +151,10 @@ export default function SecurityPage() {
               textDecoration: "underline",
             },
           }}
-          onClick={open}
+          onClick={() => {
+            setModalMode("password_reset");
+            open();
+          }}
         >
           Update
         </Text>

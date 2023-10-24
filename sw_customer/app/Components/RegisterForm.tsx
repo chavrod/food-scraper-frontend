@@ -141,6 +141,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
           credentials: "include",
           headers: {
             "X-CSRFToken": csrfToken,
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             email: emailVerificationToResend,
