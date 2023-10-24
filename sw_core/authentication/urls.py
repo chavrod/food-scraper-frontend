@@ -13,6 +13,8 @@ from rest_framework_simplejwt.views import TokenVerifyView
 
 from authentication.views import GoogleLogin, LogoutView, SendValidationEmailView
 
+app_name = "accounts"
+
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="rest_register"),
     path("login/", LoginView.as_view(), name="rest_login"),
@@ -26,10 +28,10 @@ urlpatterns = [
         SendValidationEmailView.as_view(),
         name="send_validation_email",
     ),
-    path("password/reset/", PasswordResetView.as_view(), name="rest_password_reset"),
+    path("password-reset/", PasswordResetView.as_view(), name="password_reset"),
     path(
-        "password/reset/confirm/",
+        "password-reset-confirm/<uidb64>/<token>/",
         PasswordResetConfirmView.as_view(),
-        name="rest_password_reset_confirm",
+        name="password_reset_confirm",
     ),
 ]
