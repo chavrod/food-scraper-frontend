@@ -209,7 +209,7 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # EMAIL_HOST_PASSWORD = os.environ["SENDGRID_API_KEY"]
 # EMAIL_PORT = 587
 # EMAIL_USE_TLS = True
-# DEFAULT_FROM_EMAIL = "dmitry@bookiebase.ie"
+# DEFAULT_FROM_EMAIL = "Shop Wiz <shop-wiz@shop-wiz.ie>"
 
 # REDIS config
 CELERY_BROKER_URL = "redis://localhost:6379"
@@ -261,6 +261,7 @@ REST_AUTH = {
     "USE_JWT": True,
     "JWT_AUTH_HTTPONLY": False,
 }
+
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {

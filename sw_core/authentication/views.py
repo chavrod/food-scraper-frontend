@@ -13,9 +13,10 @@ from allauth.account.utils import send_email_confirmation
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
-from dj_rest_auth.views import LogoutView as DefaultLogoutView
+from dj_rest_auth.views import LogoutView as DefaultLogoutView, PasswordResetConfirmView
 
 import authentication.models as authentication_models
+from authentication.serializers import CustomPasswordResetConfirmSerializer
 
 User = get_user_model()
 
@@ -124,3 +125,52 @@ class SendValidationEmailView(View):
             ip_entry.save()
 
         return HttpResponse(status=200)
+
+
+from dj_rest_auth.views import (
+    PasswordResetConfirmView as OriginalPasswordResetConfirmView,
+)
+from django.shortcuts import render
+from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
+
+
+class CustomPasswordResetConfirmView(OriginalPasswordResetConfirmView):
+    serializer_class = CustomPasswordResetConfirmSerializer
+
+    def get(self, request, *args, **kwargs):
+        context = {"uid": kwargs.get("uidb64"), "token": kwargs.get("token")}
+        return render(request, "account/password_reset_confirm.html", context)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            response = super().post(request, *args, **kwargs)
+
+            # If the reset was successful, redirect to a success page or login page.
+            if response.status_code == 200:
+                return redirect(
+                    f"{BASE_DOMAIN_NAME}?password-reset=successful-password-reset"
+                )
+            else:
+                raise ValueError("Unexpected response status.")
+        except Exception as e:
+            print("Exception occurred.")
+
+            # Capture all errors from the exception
+            if hasattr(e, "detail"):
+                errors = e.detail
+            elif isinstance(e, dict):
+                errors = "; ".join(
+                    [f"{key}: {' '.join(val)}" for key, val in e.items()]
+                )
+            else:
+                errors = str(e)
+
+            print(f"Errors: {errors}")
+
+            context = {
+                "uid": request.POST.get("uid"),
+                "token": request.POST.get("token"),
+                "errors": errors,
+            }
+            return render(request, "account/password_reset_confirm.html", context)
