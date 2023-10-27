@@ -17,7 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 
-from authentication.views import CustomConfirmEmailView
+from authentication.views import CustomConfirmEmailView, CustomPasswordResetConfirmView
+from dj_rest_auth.views import (
+    PasswordResetConfirmView,
+)
 from core.views import ping
 
 urlpatterns = [
@@ -25,6 +28,11 @@ urlpatterns = [
     path(
         "api/auth/",
         include(("authentication.urls", "authentication"), namespace="authentication"),
+    ),
+    path(
+        "password-reset-confirm/<uidb64>/<token>/",
+        CustomPasswordResetConfirmView.as_view(),
+        name="password_reset_confirm",
     ),
     re_path(
         r"^accounts/confirm-email/(?P<key>[-:\w]+)/$",
