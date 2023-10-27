@@ -19,6 +19,10 @@ import {
   Menu,
   Text,
   Avatar,
+  Paper,
+  Box,
+  Notification,
+  Title,
 } from "@mantine/core";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import {
@@ -31,6 +35,7 @@ import {
   IconLogout,
   IconSettings,
   IconLogin,
+  IconCircleCheckFilled,
 } from "@tabler/icons-react";
 import { useSession, signOut } from "next-auth/react";
 // Internal: Components
@@ -57,6 +62,9 @@ export default function MainAppShell({
   const loginParams = useSearchParams();
   const [isEmailConfirmed, setIsEmailConfirmed] = useState(
     loginParams.get("login") === "successful-email-confirmation"
+  );
+  const [isPasswordReset, setIsPasswordReset] = useState(
+    loginParams.get("password-reset") === "successful-password-reset"
   );
 
   const [opened, { open, close }] = useDisclosure(false);
@@ -287,19 +295,47 @@ export default function MainAppShell({
       }
     >
       <Modal
-        opened={opened || isEmailConfirmed}
+        opened={opened || isEmailConfirmed || isPasswordReset}
         onClose={() => {
-          setIsEmailConfirmed(false);
-          window.history.replaceState(null, "", "/");
+          if (isEmailConfirmed) setIsEmailConfirmed(false);
+          if (isPasswordReset) setIsPasswordReset(false);
+          if (isEmailConfirmed || isPasswordReset)
+            window.history.replaceState(null, "", "/");
           close();
         }}
-        title="Log in or sign up"
+        title={isPasswordReset ? "" : "Log in or sign up"}
         centered
       >
-        <UserAccess
-          isEmailConfirmed={isEmailConfirmed}
-          handleLoginSucess={handleLoginSucess}
-        />
+        {isPasswordReset ? (
+          <Box maw={400} pos="relative">
+            <Paper p="md" style={{ maxWidth: 400, margin: "0 auto" }}>
+              <Stack
+                justify="center"
+                style={{ textAlign: "center" }}
+                align="center"
+              >
+                <IconCircleCheckFilled
+                  size={80}
+                  style={{ color: "green", marginBottom: "10px" }}
+                />
+                <Title align="center" order={2}>
+                  Great success!
+                  <Title align="center" order={2}>
+                    Password has been reset.
+                  </Title>
+                </Title>
+                <Text align="center" size="lg">
+                  The next time you log in, please use your new password.
+                </Text>
+              </Stack>
+            </Paper>
+          </Box>
+        ) : (
+          <UserAccess
+            isEmailConfirmed={isEmailConfirmed}
+            handleLoginSucess={handleLoginSucess}
+          />
+        )}
       </Modal>
       {children}
     </AppShell>
