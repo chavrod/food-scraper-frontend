@@ -18,11 +18,18 @@ import {
   PasswordInput,
   Button,
   Modal,
+  Space,
+  List,
+  ThemeIcon,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-// Internal: Utils
-import { getCSRF } from "@/utils/getCSRF";
+import {
+  IconCircleCheck,
+  IconAlertTriangleFilled,
+  IconHelpHexagonFilled,
+  IconCircleCheckFilled,
+} from "@tabler/icons-react";
 
 export default function SecurityPage() {
   const items = [
@@ -46,16 +53,16 @@ export default function SecurityPage() {
 
   const [loading, setLoading] = useState(false);
 
+  const [
+    showPasswordResetEmailConfirmation,
+    setShowPasswordResetEmailConfirmation,
+  ] = useState(false);
+
   const sendPasswordResetEmail = async () => {
     try {
       if (!userEmail) return;
 
-      const csrfToken = await getCSRF();
-      if (!csrfToken) return;
-
       setLoading(true);
-
-      console.log("csrfToken: ", csrfToken);
 
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "auth/password-reset/",
@@ -63,7 +70,6 @@ export default function SecurityPage() {
           method: "POST",
           credentials: "include",
           headers: {
-            "X-CSRFToken": csrfToken,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -74,14 +80,20 @@ export default function SecurityPage() {
 
       if (response.ok) {
         setLoading(false);
+        setShowPasswordResetEmailConfirmation(true);
       } else {
-        console.log("OTHER ERROR! ");
+        setLoading(false);
+        notifications.show({
+          title: "Server Error!",
+          message: "Please try again later or contact support.",
+          color: "red",
+        });
       }
     } catch (error: any) {
       setLoading(false);
       notifications.show({
         title: "Server Error!",
-        message: error?.message || "Unknown error. Please try again later.",
+        message: error?.message || "Please try again later or contact support.",
         color: "red",
       });
     }
@@ -91,38 +103,107 @@ export default function SecurityPage() {
     <Box maw="600px">
       <Modal
         opened={opened}
-        onClose={close}
+        onClose={() => {
+          close();
+          if (showPasswordResetEmailConfirmation)
+            setShowPasswordResetEmailConfirmation(false);
+        }}
         title={modalMode === "password_reset" ? "Reset Password" : ""}
         centered
       >
         <Stack>
           <Text>
-            Are you sure you want to{" "}
-            {modalMode === "password_reset" ? "reset password" : ""}?
+            {modalMode === "password_reset" ? (
+              <Paper
+                p="md"
+                radius="sm"
+                style={{ maxWidth: "400px", margin: "0 auto" }}
+              >
+                {showPasswordResetEmailConfirmation ? (
+                  <Stack
+                    justify="center"
+                    style={{ textAlign: "center" }}
+                    align="center"
+                  >
+                    <IconCircleCheckFilled
+                      size={80}
+                      style={{ color: "green", marginBottom: "10px" }}
+                    />
+                    <Text align="center">
+                      We've sent a password reset email to{" "}
+                      <strong>{userEmail}</strong>. Please head to your inbox.
+                    </Text>
+                  </Stack>
+                ) : (
+                  <>
+                    <Text>Please note the following:</Text>
+                    <Space h="md" />
+                    <List spacing="md" size="sm" center>
+                      <List.Item
+                        icon={
+                          <ThemeIcon color="teal" size={24} radius="xl">
+                            <IconCircleCheck size="1rem" />
+                          </ThemeIcon>
+                        }
+                      >
+                        After successfully changing your password, you will
+                        remain logged in.
+                      </List.Item>
+                      <List.Item
+                        icon={
+                          <ThemeIcon color="yellow" size={24} radius="xl">
+                            <IconAlertTriangleFilled size="1rem" />
+                          </ThemeIcon>
+                        }
+                      >
+                        You can only send X password change emails per day. Your
+                        current usage is X/X.
+                      </List.Item>
+                      <List.Item
+                        icon={
+                          <ThemeIcon color="blue" size={24} radius="xl">
+                            <IconHelpHexagonFilled size="1rem" />
+                          </ThemeIcon>
+                        }
+                      >
+                        If you encounter any issues, please contact support.
+                      </List.Item>
+                    </List>
+                    <Space h="md" />
+                    <Text ta="center">
+                      Confirm you want to send a password reset email to{" "}
+                      <strong>{userEmail}</strong>.
+                    </Text>
+                  </>
+                )}
+              </Paper>
+            ) : null}
           </Text>
-          <Group grow>
-            <Button
-              variant="light"
-              disabled={loading}
-              onClick={() => {
-                close();
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              loading={loading}
-              onClick={() => {
-                if (modalMode === "password_reset") {
-                  sendPasswordResetEmail();
-                } else {
-                  return;
-                }
-              }}
-            >
-              {modalMode === "password_reset" ? "Send Email" : ""}
-            </Button>
-          </Group>
+          {!showPasswordResetEmailConfirmation && (
+            <Group grow>
+              <Button
+                variant="light"
+                disabled={loading}
+                onClick={() => {
+                  close();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                loading={loading}
+                onClick={() => {
+                  if (modalMode === "password_reset") {
+                    sendPasswordResetEmail();
+                  } else {
+                    return;
+                  }
+                }}
+              >
+                {modalMode === "password_reset" ? "Send Email" : ""}
+              </Button>
+            </Group>
+          )}
         </Stack>
       </Modal>
 
@@ -177,38 +258,3 @@ export default function SecurityPage() {
     </Box>
   );
 }
-
-// const ResetPassword = () => {
-//   const [email, setEmail] = useState("");
-
-//   const handleSubmit = async (event) => {
-//     event.preventDefault();
-//     const response = await fetch("/password_reset/", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({ email }),
-//     });
-//     if (response.ok) {
-//       // Handle success - maybe navigate user to a success page or show a message.
-//     } else {
-//       // Handle error
-//     }
-//   };
-
-//   return (
-//     <form onSubmit={handleSubmit}>
-//       <input
-//         type="email"
-//         value={email}
-//         onChange={(e) => setEmail(e.target.value)}
-//         placeholder="Enter your email"
-//         required
-//       />
-//       <button type="submit">Reset Password</button>
-//     </form>
-//   );
-// };
-
-// export default ResetPassword;
