@@ -3,24 +3,40 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponseRedirect
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import render
 from django.views import View
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
 from allauth.account.views import ConfirmEmailView, EmailAddress
 from allauth.account.utils import send_email_confirmation
+from dj_rest_auth.registration.views import RegisterView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
-from dj_rest_auth.views import LogoutView as DefaultLogoutView, PasswordResetConfirmView
+from dj_rest_auth.views import (
+    LogoutView as DefaultLogoutView,
+    PasswordResetConfirmView,
+    PasswordResetView,
+    PasswordResetConfirmView,
+)
 
-import authentication.models as authentication_models
 from authentication.serializers import CustomPasswordResetConfirmSerializer
+from core.models import Customer
+from shop_wiz.settings import BASE_DOMAIN_NAME, EMAIL_RESEND_LIMIT
+import utils.abuse_detection as abuse_detection
+
 
 User = get_user_model()
 
-from shop_wiz.settings import BASE_DOMAIN_NAME, EMAIL_VERIFICATION_RESEND_LIMIT
+
+class CustomRegisterView(RegisterView):
+    def perform_create(self, serializer):
+        user = super().perform_create(serializer)
+        Customer.objects.create(user=user)
+        return user
 
 
 class GoogleLogin(SocialLoginView):
@@ -62,17 +78,6 @@ def is_user_email_verified(user, email):
     return result
 
 
-def get_client_ip(request):
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(",")[0]
-        return ip
-    ip = request.META.get("REMOTE_ADDR")
-    if ip:
-        return ip
-    return None
-
-
 class SendValidationEmailView(View):
     """
     Implement requests to manually send confirmation email in case it hasn't been received
@@ -87,28 +92,35 @@ class SendValidationEmailView(View):
         if email is None:
             return HttpResponseBadRequest("No email provided")
 
-        client_ip = get_client_ip(request)
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # avoid leaking information about user existence
+            return HttpResponse(status=200)
 
-        # Check if the email or IP is blacklisted
-        (
-            email_entry,
-            _,
-        ) = authentication_models.EmailRequestBlacklist.objects.get_or_create(
-            email=email
+        is_rate_limited, customer_entry, ip_entry = abuse_detection.check_rate_limit(
+            request=request, customer=user.customer
         )
-        if client_ip:
-            (
-                ip_entry,
-                _,
-            ) = authentication_models.IPRequestBlacklist.objects.get_or_create(
-                ip_address=client_ip
-            )
-
-        if (
-            email_entry.request_count >= EMAIL_VERIFICATION_RESEND_LIMIT
-            or ip_entry.request_count >= EMAIL_VERIFICATION_RESEND_LIMIT
-        ):
+        if is_rate_limited:
             return HttpResponse(status=429)  # 429 Too Many Requests
+
+        if is_user_email_verified(user, email):
+            raise ValidationError("Email is already verified.")
+
+        send_email_confirmation(request, user, email)
+        abuse_detection.add_to_rate_limit(
+            ip_entry=ip_entry, customer_entry=customer_entry
+        )
+
+        return HttpResponse(status=200)
+
+
+class CustomPasswordResetView(PasswordResetView):
+    def post(self, request, *args, **kwargs):
+        payload = json.loads(request.body)
+        email = payload.get("email")
+        if email is None:
+            return HttpResponseBadRequest("No email provided")
 
         try:
             user = User.objects.get(email=email)
@@ -116,26 +128,23 @@ class SendValidationEmailView(View):
             # avoid leaking information about user existence
             return HttpResponse(status=200)
 
-        if not is_user_email_verified(user, email):
-            send_email_confirmation(request, user, email)
-            # Increment the count for email and IP
-            email_entry.request_count += 1
-            email_entry.save()
-            ip_entry.request_count += 1
-            ip_entry.save()
+        is_rate_limited, customer_entry, ip_entry = abuse_detection.check_rate_limit(
+            request=request, customer=user.customer
+        )
+        if is_rate_limited:
+            return HttpResponse(status=429)  # 429 Too Many Requests
 
-        return HttpResponse(status=200)
+        # Call the post method of the original PasswordResetView
+        response = super().post(request, *args, **kwargs)
 
+        abuse_detection.add_to_rate_limit(
+            ip_entry=ip_entry, customer_entry=customer_entry
+        )
 
-from dj_rest_auth.views import (
-    PasswordResetConfirmView as OriginalPasswordResetConfirmView,
-)
-from django.shortcuts import render
-from django.urls import reverse_lazy
-from django.http import HttpResponseRedirect
+        return response
 
 
-class CustomPasswordResetConfirmView(OriginalPasswordResetConfirmView):
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     serializer_class = CustomPasswordResetConfirmSerializer
 
     def get(self, request, *args, **kwargs):
