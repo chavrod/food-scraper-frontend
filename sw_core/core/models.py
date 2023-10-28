@@ -1,17 +1,14 @@
 from django.db import models, transaction
 from django.core.validators import MinValueValidator
+from django.conf import settings
 
-from django.contrib.auth.models import AbstractUser
 
+class Customer(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
 
-# class User(AbstractUser):
-#     name = models.CharField(max_length=255)
-#     email = models.CharField(max_length=255, unique=True)
-#     password = models.CharField(max_length=255)
-#     username = None
-
-#     USERNAME_FIELD = "email"
-#     REQUIRED_FIELDS = []
+    def __str__(self):
+        return self.user.username
 
 
 class ShopName(models.TextChoices):
