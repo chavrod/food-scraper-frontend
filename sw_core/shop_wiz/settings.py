@@ -260,8 +260,8 @@ SIMPLE_JWT = {
 REST_AUTH = {
     "USE_JWT": True,
     "JWT_AUTH_HTTPONLY": False,
+    "USER_DETAILS_SERIALIZER": "authentication.serializers.CustomUserDetailsSerializer",
 }
-
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -282,4 +282,4 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # Security configs
-EMAIL_VERIFICATION_RESEND_LIMIT = 5
+EMAIL_RESEND_LIMIT = 60
