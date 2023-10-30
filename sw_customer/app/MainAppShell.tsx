@@ -72,9 +72,7 @@ export default function MainAppShell({
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
 
-  const router = useRouter();
-
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const routes: Route[] = [
     {

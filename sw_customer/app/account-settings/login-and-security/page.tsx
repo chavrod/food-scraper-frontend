@@ -41,7 +41,9 @@ export default function SecurityPage() {
     </Link>
   ));
 
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
+  console.log(session);
+  const user = session?.user;
   const userEmail = session?.user.email;
 
   const [visible, { toggle }] = useDisclosure(false);
@@ -80,6 +82,7 @@ export default function SecurityPage() {
 
       if (response.ok) {
         setLoading(false);
+        update();
         setShowPasswordResetEmailConfirmation(true);
       } else {
         setLoading(false);
@@ -100,161 +103,169 @@ export default function SecurityPage() {
   };
 
   return (
-    <Box maw="600px">
-      <Modal
-        opened={opened}
-        onClose={() => {
-          close();
-          if (showPasswordResetEmailConfirmation)
-            setShowPasswordResetEmailConfirmation(false);
-        }}
-        title={modalMode === "password_reset" ? "Reset Password" : ""}
-        centered
-      >
-        <Stack>
-          <Text>
-            {modalMode === "password_reset" ? (
-              <Paper
-                p="md"
-                radius="sm"
-                style={{ maxWidth: "400px", margin: "0 auto" }}
-              >
-                {showPasswordResetEmailConfirmation ? (
-                  <Stack
-                    justify="center"
-                    style={{ textAlign: "center" }}
-                    align="center"
+    <>
+      {user?.customer ? (
+        <Box maw="600px">
+          <Modal
+            opened={opened}
+            onClose={() => {
+              close();
+              if (showPasswordResetEmailConfirmation)
+                setShowPasswordResetEmailConfirmation(false);
+            }}
+            title={modalMode === "password_reset" ? "Reset Password" : ""}
+            centered
+          >
+            <Stack>
+              <Text>
+                {modalMode === "password_reset" ? (
+                  <Paper
+                    p="md"
+                    radius="sm"
+                    style={{ maxWidth: "400px", margin: "0 auto" }}
                   >
-                    <IconCircleCheckFilled
-                      size={80}
-                      style={{ color: "green", marginBottom: "10px" }}
-                    />
-                    <Text align="center">
-                      We've sent a password reset email to{" "}
-                      <strong>{userEmail}</strong>. Please head to your inbox.
-                    </Text>
-                  </Stack>
-                ) : (
-                  <>
-                    <Text>Please note the following:</Text>
-                    <Space h="md" />
-                    <List spacing="md" size="sm" center>
-                      <List.Item
-                        icon={
-                          <ThemeIcon color="teal" size={24} radius="xl">
-                            <IconCircleCheck size="1rem" />
-                          </ThemeIcon>
-                        }
+                    {showPasswordResetEmailConfirmation ? (
+                      <Stack
+                        justify="center"
+                        style={{ textAlign: "center" }}
+                        align="center"
                       >
-                        After successfully changing your password, you will
-                        remain logged in.
-                      </List.Item>
-                      <List.Item
-                        icon={
-                          <ThemeIcon color="yellow" size={24} radius="xl">
-                            <IconAlertTriangleFilled size="1rem" />
-                          </ThemeIcon>
-                        }
-                      >
-                        You can only send X password change emails per day. Your
-                        current usage is X/X.
-                      </List.Item>
-                      <List.Item
-                        icon={
-                          <ThemeIcon color="blue" size={24} radius="xl">
-                            <IconHelpHexagonFilled size="1rem" />
-                          </ThemeIcon>
-                        }
-                      >
-                        If you encounter any issues, please contact support.
-                      </List.Item>
-                    </List>
-                    <Space h="md" />
-                    <Text ta="center">
-                      Confirm you want to send a password reset email to{" "}
-                      <strong>{userEmail}</strong>.
-                    </Text>
-                  </>
-                )}
-              </Paper>
-            ) : null}
+                        <IconCircleCheckFilled
+                          size={80}
+                          style={{ color: "green", marginBottom: "10px" }}
+                        />
+                        <Text align="center">
+                          We've sent a password reset email to{" "}
+                          <strong>{userEmail}</strong>. Please head to your
+                          inbox.
+                        </Text>
+                      </Stack>
+                    ) : (
+                      <>
+                        <Text>Please note the following:</Text>
+                        <Space h="md" />
+                        <List spacing="md" size="sm" center>
+                          <List.Item
+                            icon={
+                              <ThemeIcon color="teal" size={24} radius="xl">
+                                <IconCircleCheck size="1rem" />
+                              </ThemeIcon>
+                            }
+                          >
+                            After successfully changing your password, you will
+                            remain logged in.
+                          </List.Item>
+                          <List.Item
+                            icon={
+                              <ThemeIcon color="yellow" size={24} radius="xl">
+                                <IconAlertTriangleFilled size="1rem" />
+                              </ThemeIcon>
+                            }
+                          >
+                            You can only send{" "}
+                            {process.env.NEXT_PUBLIC_EMAIL_RESEND_LIMIT}{" "}
+                            password change emails per day. Your current usage
+                            is {user.customer.password_reset_attempts || 0}/
+                            {process.env.NEXT_PUBLIC_EMAIL_RESEND_LIMIT}.
+                          </List.Item>
+                          <List.Item
+                            icon={
+                              <ThemeIcon color="blue" size={24} radius="xl">
+                                <IconHelpHexagonFilled size="1rem" />
+                              </ThemeIcon>
+                            }
+                          >
+                            If you encounter any issues, please contact support.
+                          </List.Item>
+                        </List>
+                        <Space h="md" />
+                        <Text ta="center">
+                          Confirm you want to send a password reset email to{" "}
+                          <strong>{userEmail}</strong>.
+                        </Text>
+                      </>
+                    )}
+                  </Paper>
+                ) : null}
+              </Text>
+              {!showPasswordResetEmailConfirmation && (
+                <Group grow>
+                  <Button
+                    variant="light"
+                    disabled={loading}
+                    onClick={() => {
+                      close();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    loading={loading}
+                    onClick={() => {
+                      if (modalMode === "password_reset") {
+                        sendPasswordResetEmail();
+                      } else {
+                        return;
+                      }
+                    }}
+                  >
+                    {modalMode === "password_reset" ? "Send Email" : ""}
+                  </Button>
+                </Group>
+              )}
+            </Stack>
+          </Modal>
+
+          <Stack spacing={0} mb="lg">
+            <Breadcrumbs separator="→" mt="xs">
+              {items}
+            </Breadcrumbs>
+            <Title order={2}>Login & Security</Title>
+          </Stack>
+          <Divider size="sm" />
+
+          <Title my="lg" order={4}>
+            Login
+          </Title>
+          <Group position="apart" align="start" mt="lg">
+            <Text>
+              <Text mb={0}>Password</Text>
+            </Text>
+            <Text
+              fz="lg"
+              c="cyan.7"
+              fw={700}
+              sx={{
+                cursor: "pointer",
+                "&:hover": {
+                  textDecoration: "underline",
+                },
+              }}
+              onClick={() => {
+                setModalMode("password_reset");
+                open();
+              }}
+            >
+              Update
+            </Text>
+          </Group>
+
+          <Text c="dimmed" mb="lg">
+            Last updated:{" "}
           </Text>
-          {!showPasswordResetEmailConfirmation && (
-            <Group grow>
-              <Button
-                variant="light"
-                disabled={loading}
-                onClick={() => {
-                  close();
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                loading={loading}
-                onClick={() => {
-                  if (modalMode === "password_reset") {
-                    sendPasswordResetEmail();
-                  } else {
-                    return;
-                  }
-                }}
-              >
-                {modalMode === "password_reset" ? "Send Email" : ""}
-              </Button>
-            </Group>
-          )}
-        </Stack>
-      </Modal>
 
-      <Stack spacing={0} mb="lg">
-        <Breadcrumbs separator="→" mt="xs">
-          {items}
-        </Breadcrumbs>
-        <Title order={2}>Login & Security</Title>
-      </Stack>
-      <Divider size="sm" />
-
-      <Title my="lg" order={4}>
-        Login
-      </Title>
-      <Group position="apart" align="start" mt="lg">
-        <Text>
-          <Text mb={0}>Password</Text>
-        </Text>
-        <Text
-          fz="lg"
-          c="cyan.7"
-          fw={700}
-          sx={{
-            cursor: "pointer",
-            "&:hover": {
-              textDecoration: "underline",
-            },
-          }}
-          onClick={() => {
-            setModalMode("password_reset");
-            open();
-          }}
-        >
-          Update
-        </Text>
-      </Group>
-
-      <Text c="dimmed" mb="lg">
-        Last updated:{" "}
-      </Text>
-
-      <Divider size="sm" />
-      <Stack>
-        <h1>Social accounts</h1>
-        <p>Show the connection to</p>
-      </Stack>
-      <Divider size="sm" />
-      <Stack>
-        <h1>Account</h1>
-        <p>Deactivate your account</p>
-      </Stack>
-    </Box>
+          <Divider size="sm" />
+          <Stack>
+            <h1>Social accounts</h1>
+            <p>Show the connection to</p>
+          </Stack>
+          <Divider size="sm" />
+          <Stack>
+            <h1>Account</h1>
+            <p>Deactivate your account</p>
+          </Stack>
+        </Box>
+      ) : null}
+    </>
   );
 }
