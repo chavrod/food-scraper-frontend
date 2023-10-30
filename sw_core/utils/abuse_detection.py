@@ -17,27 +17,31 @@ def _get_client_ip(request):
     return None
 
 
-def check_rate_limit(request, customer):
+def check_rate_limit(request, customer, action: authentication_models.BlacklistActions):
     """
-    Check if the email or IP is blacklisted and if they've exceeded the rate limit.
+    Check if the email or IP exceeded the rate limit.
     Returns a tuple: (is_rate_limited, email_entry, ip_entry)
     """
+    # Assert that the provided action is valid
+    assert (
+        action in authentication_models.BlacklistActions.values
+    ), f"Invalid action: {action}"
 
     client_ip = _get_client_ip(request)
 
-    # Check if the email or IP is blacklisted
+    # Get or create relevant records
     (
         customer_entry,
         _,
     ) = authentication_models.CustomerRequestBlacklist.objects.get_or_create(
-        customer=customer
+        customer=customer, action=action
     )
     if client_ip:
         (
             ip_entry,
             _,
         ) = authentication_models.IPRequestBlacklist.objects.get_or_create(
-            ip_address=client_ip
+            ip_address=client_ip, action=action
         )
 
     if customer_entry.request_count >= EMAIL_RESEND_LIMIT or (
@@ -53,7 +57,7 @@ def add_to_rate_limit(
     customer_entry: authentication_models.CustomerRequestBlacklist,
 ):
     """
-    Increment the count for email and IP
+    Increment the count for email and IP entries
     """
     if ip_entry is not None:
         ip_entry.request_count += 1

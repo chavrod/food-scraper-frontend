@@ -24,6 +24,7 @@ from dj_rest_auth.views import (
 )
 
 from authentication.serializers import CustomPasswordResetConfirmSerializer
+import authentication.models as authentication_models
 from core.models import Customer
 from shop_wiz.settings import BASE_DOMAIN_NAME, EMAIL_RESEND_LIMIT
 import utils.abuse_detection as abuse_detection
@@ -98,8 +99,14 @@ class SendValidationEmailView(View):
             # avoid leaking information about user existence
             return HttpResponse(status=200)
 
-        is_rate_limited, customer_entry, ip_entry = abuse_detection.check_rate_limit(
-            request=request, customer=user.customer
+        (
+            is_rate_limited,
+            customer_entry,
+            ip_entry,
+        ) = abuse_detection.check_rate_limit(
+            request=request,
+            customer=user.customer,
+            action=authentication_models.BlacklistActions.VALIDATE_EMAIL,
         )
         if is_rate_limited:
             return HttpResponse(status=429)  # 429 Too Many Requests
@@ -128,8 +135,14 @@ class CustomPasswordResetView(PasswordResetView):
             # avoid leaking information about user existence
             return HttpResponse(status=200)
 
-        is_rate_limited, customer_entry, ip_entry = abuse_detection.check_rate_limit(
-            request=request, customer=user.customer
+        (
+            is_rate_limited,
+            customer_entry,
+            ip_entry,
+        ) = abuse_detection.check_rate_limit(
+            request=request,
+            customer=user.customer,
+            action=authentication_models.BlacklistActions.VALIDATE_EMAIL,
         )
         if is_rate_limited:
             return HttpResponse(status=429)  # 429 Too Many Requests
