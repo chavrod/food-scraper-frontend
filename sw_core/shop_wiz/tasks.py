@@ -11,6 +11,8 @@ from core.models import CachedProductsPage
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 
+import authentication.models as authentication_models
+
 User = get_user_model()
 
 
@@ -37,3 +39,18 @@ def delete_unverified_emails():
 
     # Delete users
     users_to_delete.delete()
+
+
+@shared_task
+def reset_password_request_counts():
+    # Filter CustomerRequestBlacklist entries with action RESET_PASSWORD
+    customer_entries = authentication_models.CustomerRequestBlacklist.objects.filter(
+        action=authentication_models.BlacklistActions.RESET_PASSWORD
+    )
+    customer_entries.update(request_count=0)
+
+    # Filter IPRequestBlacklist entries with action RESET_PASSWORD
+    ip_entries = authentication_models.IPRequestBlacklist.objects.filter(
+        action=authentication_models.BlacklistActions.RESET_PASSWORD
+    )
+    ip_entries.update(request_count=0)

@@ -227,6 +227,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "shop_wiz.tasks.delete_unverified_emails",
         "schedule": timedelta(days=1),
     },
+    "reset_password_request_counts_every_day": {
+        "task": "shop_wiz.tasks.reset_password_request_counts",
+        "schedule": timedelta(days=1),
+    },
 }
 
 AUTHENTICATION_BACKENDS = (
