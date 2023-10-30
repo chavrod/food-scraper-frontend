@@ -141,7 +141,7 @@ export const authOptions: NextAuthOptions = {
         credentials
       );
     },
-    async jwt({ user, token, account }) {
+    async jwt({ user, token, account, trigger }) {
       // If `user` and `account` are set that means it is a login event
       if (user && account) {
         let backendResponse =
@@ -151,6 +151,22 @@ export const authOptions: NextAuthOptions = {
         token["refresh_token"] = backendResponse.refresh;
         token["ref"] = getCurrentEpochTime() + BACKEND_ACCESS_TOKEN_LIFETIME;
         return token;
+      }
+      if (trigger === "update") {
+        const response = await fetch(
+          process.env.NEXTAUTH_BACKEND_URL + "auth/user/",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token["access_token"]}`,
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error("Network response was not ok.");
+
+        const updatedUserInfo = await response.json();
+        token["user"] = updatedUserInfo; // Update the user data in the token
       }
       // Refresh the backend token if necessary
       if (

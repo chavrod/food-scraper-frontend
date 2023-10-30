@@ -15,6 +15,9 @@ declare module "next-auth" {
       pk: number;
       username: string;
       email: string | null;
+      customer?: {
+        password_reset_attempts: number;
+      };
     };
   }
 }
