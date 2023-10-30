@@ -12,6 +12,8 @@ import {
   Anchor,
   Group,
   Box,
+  Tooltip,
+  Popover,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 // Internal: Components
@@ -30,9 +32,13 @@ export default function SecurityPage() {
 
   const { data: session, update } = useSession();
   const user = session?.user;
+  console.log(user);
   const userEmail = user?.email;
   const userPasswordResetAttempts =
     user?.customer?.password_reset_attempts || 0;
+
+  const socialAccoiunts = user?.social_accounts;
+  const isSocialAccountConnected = socialAccoiunts?.[0];
 
   const [modalMode, setModalMode] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
@@ -57,32 +63,58 @@ export default function SecurityPage() {
         <Title my="lg" order={4}>
           Login
         </Title>
-        <Group position="apart" align="start" mt="lg">
+        <Group position="apart" align="start" my="lg">
           <Text>
             <Text mb={0}>Password</Text>
           </Text>
-          <Text
-            fz="lg"
-            c="cyan.7"
-            fw={700}
-            sx={{
-              cursor: "pointer",
-              "&:hover": {
-                textDecoration: "underline",
-              },
-            }}
-            onClick={() => {
-              setModalMode("password_reset");
-              open();
-            }}
-          >
-            Update
-          </Text>
+          {!isSocialAccountConnected ? (
+            <Text
+              fz="lg"
+              c={"cyan.7"}
+              fw={700}
+              sx={{
+                cursor: "pointer",
+                "&:hover": {
+                  textDecoration: "underline",
+                },
+              }}
+              onClick={() => {
+                setModalMode("password_reset");
+                open();
+              }}
+            >
+              Update
+            </Text>
+          ) : (
+            <Popover width={200} position="bottom" withArrow shadow="md">
+              <Popover.Target>
+                <Text
+                  fz="lg"
+                  c="grey"
+                  sx={{
+                    cursor: "pointer",
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                  fw={700}
+                >
+                  Update
+                </Text>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <Text size="sm">
+                  You've signed up using a social login, so there's no need to
+                  change your password.
+                </Text>
+              </Popover.Dropdown>
+            </Popover>
+          )}
         </Group>
 
-        <Text c="dimmed" mb="lg">
+        {/* <Text c="dimmed" mb="lg">
           Last updated:{" "}
-        </Text>
+        </Text> */}
 
         <Divider size="sm" />
         <Stack>
@@ -90,13 +122,9 @@ export default function SecurityPage() {
           <p>Show the connection to</p>
         </Stack>
         <Divider size="sm" />
-        <Title my="lg" order={4}>
-          Account
-        </Title>
-        <Group position="apart" align="start" mt="lg">
-          <Text>
-            <Text mb={0}>Password</Text>
-          </Text>
+
+        <Group my="lg" position="apart" align="start" mt="lg">
+          <Title order={4}>Account</Title>
           <Text
             fz="lg"
             c="red.7"
@@ -116,7 +144,7 @@ export default function SecurityPage() {
           </Text>
         </Group>
 
-        {modalMode === "password_reset" && (
+        {modalMode === "password_reset" && !isSocialAccountConnected && (
           <ResetPasswordModal
             isOpen={opened}
             onClose={handleModalClose}
