@@ -9,18 +9,16 @@ class BlacklistActions(models.TextChoices):
 
 
 class CustomerRequestBlacklist(models.Model):
-    customer = models.OneToOneField(core_models.Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(core_models.Customer, on_delete=models.CASCADE)
     action = models.CharField(max_length=50, choices=BlacklistActions.choices)
     request_count = models.IntegerField(default=0)
 
     def __str__(self) -> str:
-        return (
-            f"{self.customer.email}: {self.request_count} ({self.get_action_display()})"
-        )
+        return f"{self.customer.user.email}: {self.request_count} ({self.get_action_display()})"
 
 
 class IPRequestBlacklist(models.Model):
-    ip_address = models.GenericIPAddressField(unique=True)
+    ip_address = models.GenericIPAddressField()
     action = models.CharField(max_length=50, choices=BlacklistActions.choices)
     request_count = models.IntegerField(default=0)
 
