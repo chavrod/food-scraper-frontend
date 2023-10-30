@@ -16,8 +16,8 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 // Internal: Components
-import ResetPasswordModal from "@/app/Components/ResetPasswordModal";
-import DeleteAccountModal from "@/app/Components/DeleteAccountModal";
+import ResetPasswordModal from "@/Components/ResetPasswordModal";
+import DeleteAccountModal from "@/Components/DeleteAccountModal";
 
 export default function SecurityPage() {
   const items = [
@@ -155,7 +155,6 @@ export default function SecurityPage() {
           <ResetPasswordModal
             isOpen={opened}
             onClose={handleModalClose}
-            update={update}
             userEmail={userEmail}
             userPasswordResetAttempts={userPasswordResetAttempts}
           />

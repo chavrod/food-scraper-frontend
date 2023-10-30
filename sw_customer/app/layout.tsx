@@ -1,6 +1,6 @@
 import RootStyleRegistry from "./emotion";
 import MainAppShell from "./MainAppShell";
-import { SessionProvider } from "./Components/Provider";
+import { SessionProvider } from "../Components/Provider";
 
 interface RootLayoutProps {
   children: React.ReactNode;

@@ -39,7 +39,7 @@ import {
 } from "@tabler/icons-react";
 import { useSession, signOut } from "next-auth/react";
 // Internal: Components
-import UserAccess from "./Components/UserAccess";
+import UserAccess from "../Components/UserAccess";
 // Internal: Utils
 import { logout } from "@/utils/auth";
 

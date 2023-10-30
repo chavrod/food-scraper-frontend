@@ -21,7 +21,6 @@ import { notifications } from "@mantine/notifications";
 interface ResetPasswordModalProps {
   userEmail: string | null | undefined;
   userPasswordResetAttempts: number;
-  update: Function;
   isOpen: boolean;
   onClose: Function;
 }
@@ -29,7 +28,6 @@ interface ResetPasswordModalProps {
 const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
   userEmail,
   userPasswordResetAttempts,
-  update,
   isOpen,
   onClose,
 }) => {
@@ -64,7 +62,6 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
       if (response.ok) {
         setLoading(false);
         setShowPasswordResetEmailConfirmation(true);
-        // Wait for the scroll to complete (you can adjust the timeout as needed)
         setTimeout(() => {
           onClose();
         }, 2000);
