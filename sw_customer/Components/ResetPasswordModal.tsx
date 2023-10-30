@@ -171,7 +171,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
               Confirm you want to send a password reset email to{" "}
               <strong>{userEmail}</strong>.
             </Text>
-            <Group grow>
+            <Group mt="sm" grow>
               <Button
                 variant="light"
                 disabled={loading}

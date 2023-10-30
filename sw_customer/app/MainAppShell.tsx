@@ -2,7 +2,7 @@
 
 // React / Next
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 // External
 import {

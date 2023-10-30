@@ -16,6 +16,7 @@ from authentication.views import (
     SendValidationEmailView,
     CustomPasswordResetView,
     CustomRegisterView,
+    delete_account,
 )
 
 app_name = "accounts"
@@ -34,4 +35,5 @@ urlpatterns = [
         name="send_validation_email",
     ),
     path("password-reset/", CustomPasswordResetView.as_view(), name="password_reset"),
+    path("delete-account/", delete_account),
 ]

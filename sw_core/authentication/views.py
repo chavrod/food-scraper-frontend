@@ -7,8 +7,16 @@ from django.shortcuts import render
 from django.views import View
 
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+from rest_framework import status
 
 from allauth.account.views import ConfirmEmailView, EmailAddress
 from allauth.account.utils import send_email_confirmation
@@ -196,3 +204,15 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
                 "errors": errors,
             }
             return render(request, "account/password_reset_confirm.html", context)
+
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    user = request.user
+    if user.is_authenticated:
+        user.delete()
+        return Response({"message": "Account deleted successfully."})
+    else:
+        return Response({"error": "Unauthorized user."}, status=401)

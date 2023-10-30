@@ -30,8 +30,11 @@ export default function SecurityPage() {
   ));
 
   const { data: session, update } = useSession();
+
+  const accressToken = session?.access_token;
+  const refreshToken = session?.refresh_token;
+
   const user = session?.user;
-  console.log(user);
   const userEmail = user?.email;
   const userPasswordResetAttempts =
     user?.customer?.password_reset_attempts || 0;
@@ -43,9 +46,9 @@ export default function SecurityPage() {
   const [opened, { open, close }] = useDisclosure(false);
 
   const handleModalClose = () => {
+    if (modalMode !== "delete_account") update();
     setModalMode("");
     close();
-    update();
   };
 
   return (
@@ -163,7 +166,8 @@ export default function SecurityPage() {
         {modalMode === "delete_account" && (
           <DeleteAccountModal
             isOpen={opened}
-            onClose={handleModalClose} /*...otherProps*/
+            onClose={handleModalClose}
+            accressToken={accressToken}
           />
         )}
       </Box>
