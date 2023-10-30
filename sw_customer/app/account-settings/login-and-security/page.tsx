@@ -12,7 +12,6 @@ import {
   Anchor,
   Group,
   Box,
-  Tooltip,
   Popover,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -117,10 +116,18 @@ export default function SecurityPage() {
         </Text> */}
 
         <Divider size="sm" />
-        <Stack>
-          <h1>Social accounts</h1>
-          <p>Show the connection to</p>
-        </Stack>
+        <Title my="lg" order={4}>
+          Social accounts
+        </Title>
+        <Group my="lg" position="apart" align="start" mt="lg">
+          <Text mb={0}>Your account is connected to</Text>
+          <Text mb={0}>
+            {socialAccoiunts?.[0]
+              ? socialAccoiunts[0].provider.charAt(0).toUpperCase() +
+                socialAccoiunts[0].provider.slice(1)
+              : ""}
+          </Text>
+        </Group>
         <Divider size="sm" />
 
         <Group my="lg" position="apart" align="start" mt="lg">
