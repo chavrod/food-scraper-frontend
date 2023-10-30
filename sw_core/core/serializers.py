@@ -1,24 +1,26 @@
 from rest_framework import serializers
 from dynamic_rest.serializers import DynamicModelSerializer
 import core.models as core_models
-import authentication.models as auth_models
+import authentication.models as authentication_models
 
 from rest_framework import serializers
 
 
 class CustomerSerializer(serializers.ModelSerializer):
-    email_resend_attempts = serializers.SerializerMethodField()
+    password_reset_attempts = serializers.SerializerMethodField()
 
     class Meta:
         model = core_models.Customer
         fields = "__all__"
 
-    def get_email_resend_attempts(self, obj):
+    def get_password_reset_attempts(self, obj):
         try:
-            return auth_models.CustomerRequestBlacklist.objects.get(
-                customer=obj
+            # Specifically filter by the RESET_PASSWORD action
+            return authentication_models.CustomerRequestBlacklist.objects.get(
+                customer=obj,
+                action=authentication_models.BlacklistActions.RESET_PASSWORD,
             ).request_count
-        except auth_models.CustomerRequestBlacklist.DoesNotExist:
+        except authentication_models.CustomerRequestBlacklist.DoesNotExist:
             return 0
 
 
