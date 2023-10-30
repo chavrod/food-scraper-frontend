@@ -18,6 +18,11 @@ declare module "next-auth" {
       customer?: {
         password_reset_attempts: number;
       };
+      social_accounts: SocialAccount[];
     };
   }
+}
+
+interface SocialAccount {
+  provider: string;
 }
