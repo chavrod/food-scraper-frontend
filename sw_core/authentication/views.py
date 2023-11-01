@@ -130,6 +130,8 @@ class SendValidationEmailView(View):
         return HttpResponse(status=200)
 
 
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 class CustomPasswordResetView(PasswordResetView):
     def post(self, request, *args, **kwargs):
         payload = json.loads(request.body)

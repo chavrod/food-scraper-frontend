@@ -166,6 +166,7 @@ export default function SecurityPage() {
             onClose={handleModalClose}
             userEmail={userEmail}
             userPasswordResetAttempts={userPasswordResetAttempts}
+            accressToken={accressToken}
           />
         )}
 

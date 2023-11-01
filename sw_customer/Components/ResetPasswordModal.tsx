@@ -23,6 +23,7 @@ interface ResetPasswordModalProps {
   userPasswordResetAttempts: number;
   isOpen: boolean;
   onClose: Function;
+  accressToken: string | null;
 }
 
 const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
@@ -30,6 +31,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
   userPasswordResetAttempts,
   isOpen,
   onClose,
+  accressToken,
 }) => {
   const DAILY_LIMIT = process.env.NEXT_PUBLIC_EMAIL_RESEND_LIMIT;
 
@@ -52,6 +54,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${accressToken}`,
           },
           body: JSON.stringify({
             email: userEmail,
