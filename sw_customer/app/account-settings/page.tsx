@@ -67,7 +67,7 @@ export default function EstimatePage() {
           })}
         >
           <Grid.Col span={12} md={6} xl={4}>
-            <AccountSettingsMainMenuCard href="/">
+            <AccountSettingsMainMenuCard href="/account-settings/personal-info">
               <Stack spacing="xl" align="flex-start" justify="space-between">
                 <IconId size={35} />
                 <Stack spacing={0} align="flex-start" justify="flex-end">
@@ -93,7 +93,7 @@ export default function EstimatePage() {
             </AccountSettingsMainMenuCard>
           </Grid.Col>
           <Grid.Col span={12} md={6} xl={4}>
-            <AccountSettingsMainMenuCard href="/">
+            <AccountSettingsMainMenuCard href="/account-settings/privacy-and-sharing">
               <Stack spacing="xl" align="flex-start" justify="space-between">
                 <IconEye size={35} />
                 <Stack spacing={0} align="flex-start" justify="flex-end">
