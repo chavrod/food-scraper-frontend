@@ -39,8 +39,8 @@ export default function SecurityPage() {
   const userPasswordResetAttempts =
     user?.customer?.password_reset_attempts || 0;
 
-  const socialAccoiunts = user?.social_accounts;
-  const isSocialAccountConnected = socialAccoiunts?.[0];
+  const socialAccounts = user?.social_accounts;
+  const isSocialAccountConnected = socialAccounts?.[0];
 
   const [modalMode, setModalMode] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
@@ -123,13 +123,19 @@ export default function SecurityPage() {
           Social accounts
         </Title>
         <Group my="lg" position="apart" align="start" mt="lg">
-          <Text mb={0}>Your account is connected to</Text>
-          <Text mb={0}>
-            {socialAccoiunts?.[0]
-              ? socialAccoiunts[0].provider.charAt(0).toUpperCase() +
-                socialAccoiunts[0].provider.slice(1)
-              : ""}
-          </Text>
+          {socialAccounts?.[0] ? (
+            <>
+              <Text mb={0}>Your account is connected to</Text>
+              <Text mb={0}>
+                {socialAccounts[0].provider.charAt(0).toUpperCase() +
+                  socialAccounts[0].provider.slice(1)}
+              </Text>
+            </>
+          ) : (
+            <Text mb={0}>
+              Your account is not connected to a social account
+            </Text>
+          )}
         </Group>
         <Divider size="sm" />
 
