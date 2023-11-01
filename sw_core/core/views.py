@@ -6,11 +6,9 @@ from django.db.models import Avg
 from django.http import JsonResponse
 
 from rest_framework import status, viewsets, mixins
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.exceptions import AuthenticationFailed
 
-from dynamic_rest.viewsets import DynamicModelViewSet, WithDynamicViewSetMixin
+from dynamic_rest.viewsets import WithDynamicViewSetMixin
 from tasks.cache_data import cache_data
 import core.serializers as core_serializers
 import core.models as core_models
