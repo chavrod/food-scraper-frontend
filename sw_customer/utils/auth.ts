@@ -22,7 +22,7 @@ export const logout = async (refreshToken: string | null) => {
     }
 
     // Clear the frontend session
-    signOut();
+    signOut({ callbackUrl: "/" });
   } catch (error) {
     console.error("Error logging out:", error);
   }

@@ -31,8 +31,8 @@ export default function SecurityPage() {
 
   const { data: session, update } = useSession();
 
-  const accressToken = session?.access_token;
-  const refreshToken = session?.refresh_token;
+  const accressToken = session?.access_token || null;
+  const refreshToken = session?.refresh_token || null;
 
   const user = session?.user;
   const userEmail = user?.email;
@@ -174,6 +174,7 @@ export default function SecurityPage() {
             isOpen={opened}
             onClose={handleModalClose}
             accressToken={accressToken}
+            refreshToken={refreshToken}
           />
         )}
       </Box>

@@ -4,18 +4,20 @@ import { notifications } from "@mantine/notifications";
 import { Modal, Button, Text, Input, Stack, Group } from "@mantine/core";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 // Internal: Utils
-import { signOut } from "next-auth/react";
+import { logout } from "@/utils/auth";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
   onClose: Function;
-  accressToken: string | undefined;
+  accressToken: string | null;
+  refreshToken: string | null;
 }
 
 const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   isOpen,
   onClose,
   accressToken,
+  refreshToken,
 }) => {
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -45,10 +47,9 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       if (response.ok) {
         setLoading(false);
         setIsDeleted(true);
+
         setTimeout(() => {
-          onClose();
-          router.push("/");
-          signOut();
+          logout(refreshToken);
         }, 3000);
       } else {
         setLoading(false);
