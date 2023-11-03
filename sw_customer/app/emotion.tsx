@@ -43,10 +43,7 @@ export default function RootStyleRegistry({
           withNormalizeCSS
           theme={{
             colorScheme,
-            colors: {
-              // Add your color
-              deepBlue: ["#E9EDFC", "#C1CCF6", "#99ABF0" /* ... */],
-            },
+            primaryColor: "cyan",
 
             shadows: {
               md: "1px 1px 3px rgba(0, 0, 0, .25)",
