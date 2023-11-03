@@ -57,7 +57,7 @@ const UserAccess: React.FC<LoginFormProps> = ({
       <Paper p="md" style={{ maxWidth: 400, margin: "0 auto" }}>
         {isLoginFormVisible ? (
           <>
-            {isEmailConfirmed && (
+            {isEmailConfirmed && !isAuthSuccess && (
               <Notification
                 icon={<IconCheck size="1.2rem" />}
                 withCloseButton={false}
