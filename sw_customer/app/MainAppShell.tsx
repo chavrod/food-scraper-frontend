@@ -162,11 +162,13 @@ export default function MainAppShell({
         <Header height={60} p="xs">
           <Group position="apart" spacing="xs" noWrap>
             <Group>
-              <img
-                src="/shopping_wiz_logo.png"
-                alt="Shopping Wiz logo"
-                style={{ maxWidth: "9rem" }}
-              />
+              <Link href="/">
+                <img
+                  src="/shopping_wiz_logo.png"
+                  alt="Shopping Wiz logo"
+                  style={{ maxWidth: "9rem" }}
+                />
+              </Link>
             </Group>
             <Group>
               {isClient ? (
