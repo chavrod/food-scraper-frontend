@@ -11,10 +11,12 @@ import {
   Center,
   Title,
   PasswordInput,
+  Group,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
+import Link from "next/link";
 
 interface LoginFormProps {
   handleLoginSucess: () => void;
@@ -107,6 +109,22 @@ const LoginForm: React.FC<LoginFormProps> = ({
             >
               Login
             </Button>
+            <Link href="/forgot-password" legacyBehavior>
+              <Text
+                mt="xs"
+                align="right"
+                size="sm"
+                c={"cyan.9"}
+                sx={{
+                  cursor: "pointer",
+                  "&:hover": {
+                    textDecoration: "underline",
+                  },
+                }}
+              >
+                Forgot Password?
+              </Text>
+            </Link>
           </form>
         </div>
       ) : (

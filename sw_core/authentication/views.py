@@ -130,8 +130,6 @@ class SendValidationEmailView(View):
         return HttpResponse(status=200)
 
 
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
 class CustomPasswordResetView(PasswordResetView):
     def post(self, request, *args, **kwargs):
         payload = json.loads(request.body)
@@ -141,6 +139,7 @@ class CustomPasswordResetView(PasswordResetView):
 
         try:
             user = User.objects.get(email=email)
+            print("FOUND USER: ", user)
         except User.DoesNotExist:
             # avoid leaking information about user existence
             return HttpResponse(status=200)

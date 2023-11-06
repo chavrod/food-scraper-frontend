@@ -87,7 +87,7 @@ const UserAccess: React.FC<LoginFormProps> = ({
         {!isAuthSuccess && (
           <>
             {" "}
-            <Divider my="md" label="or" labelPosition="center" />
+            <Divider mb="md" mt="sm" label="or" labelPosition="center" />
             <Stack>
               <Button
                 variant="outline"
