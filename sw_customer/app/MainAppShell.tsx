@@ -2,7 +2,7 @@
 
 // React / Next
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 // External
 import {
@@ -66,6 +66,14 @@ export default function MainAppShell({
   const [isPasswordReset, setIsPasswordReset] = useState(
     loginParams.get("password-reset") === "successful-password-reset"
   );
+  const [isRedirectToLogin, setIsRedirectToLogin] = useState(
+    loginParams.get("login") === "open"
+  );
+  const [callBackUrl, setCallBackUrl] = useState(
+    loginParams.get("callbackUrl")
+  );
+
+  const router = useRouter();
 
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -128,9 +136,13 @@ export default function MainAppShell({
   const isLargerThanSm = useMediaQuery("(min-width: 768px)");
 
   const handleLoginSucess = () => {
-    setIsEmailConfirmed(false);
-    window.history.replaceState(null, "", "/");
     close();
+
+    if (callBackUrl) {
+      const decodedCallbackUrl = decodeURIComponent(callBackUrl);
+
+      router.push(decodedCallbackUrl);
+    }
   };
 
   return (
@@ -295,9 +307,12 @@ export default function MainAppShell({
       }
     >
       <Modal
-        opened={opened || isEmailConfirmed || isPasswordReset}
+        opened={
+          opened || isEmailConfirmed || isPasswordReset || isRedirectToLogin
+        }
         onClose={() => {
           if (isEmailConfirmed) setIsEmailConfirmed(false);
+          if (isRedirectToLogin) setIsRedirectToLogin(false);
           if (isPasswordReset) setIsPasswordReset(false);
           if (isEmailConfirmed || isPasswordReset)
             window.history.replaceState(null, "", "/");

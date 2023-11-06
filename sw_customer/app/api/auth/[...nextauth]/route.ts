@@ -70,6 +70,9 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: BACKEND_REFRESH_TOKEN_LIFETIME,
   },
+  pages: {
+    signIn: "/?login=open",
+  },
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -194,6 +197,9 @@ export const authOptions: NextAuthOptions = {
         token["ref"] = getCurrentEpochTime() + BACKEND_ACCESS_TOKEN_LIFETIME;
       }
       return token;
+    },
+    async redirect({ url }) {
+      return url;
     },
     // Since we're using Django as the backend we have to pass the JWT
     // token to the client instead of the `session`.
