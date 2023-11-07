@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from dynamic_rest.serializers import DynamicModelSerializer
 import core.models as core_models
 import authentication.models as authentication_models
 
@@ -24,7 +23,7 @@ class CustomerSerializer(serializers.ModelSerializer):
             return 0
 
 
-class CachedProductsPageSerializer(DynamicModelSerializer):
+class CachedProductsPageSerializer(serializers.ModelSerializer):
     query = serializers.CharField(max_length=30, required=True)
     page = serializers.IntegerField(default=1)
     is_relevant_only = serializers.BooleanField(required=True)

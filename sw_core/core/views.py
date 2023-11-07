@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
 
@@ -8,7 +7,6 @@ from django.http import JsonResponse
 from rest_framework import status, viewsets, mixins
 from rest_framework.response import Response
 
-from dynamic_rest.viewsets import WithDynamicViewSetMixin
 from tasks.cache_data import cache_data
 import core.serializers as core_serializers
 import core.models as core_models
@@ -23,7 +21,6 @@ def ping(request):
 
 
 class CachedProductsPageViewSet(
-    WithDynamicViewSetMixin,
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):

@@ -11,7 +11,6 @@ import {
   Stack,
   Divider,
   Group,
-  Text,
   Notification,
 } from "@mantine/core";
 import {
