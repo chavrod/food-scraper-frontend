@@ -4,7 +4,12 @@ import authentication.models as authentication_models
 
 from rest_framework import serializers
 
+from django_typomatic import ts_interface, generate_ts
 
+from shop_wiz.settings import ENV
+
+
+@ts_interface()
 class CustomerSerializer(serializers.ModelSerializer):
     password_reset_attempts = serializers.SerializerMethodField()
 
@@ -23,6 +28,7 @@ class CustomerSerializer(serializers.ModelSerializer):
             return 0
 
 
+@ts_interface()
 class CachedProductsPageSerializer(serializers.ModelSerializer):
     query = serializers.CharField(max_length=30, required=True)
     page = serializers.IntegerField(default=1)
@@ -45,3 +51,7 @@ class CachedProductsPageSerializer(serializers.ModelSerializer):
         internal_value = super().to_internal_value(data)
 
         return internal_value
+
+
+if ENV == "DEV":
+    generate_ts("../sw_customer/types/customer_types.ts")

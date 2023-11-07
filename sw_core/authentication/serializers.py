@@ -6,13 +6,19 @@ from allauth.socialaccount.models import SocialAccount
 
 from core.serializers import CustomerSerializer
 
+from django_typomatic import ts_interface, generate_ts
 
+from shop_wiz.settings import ENV
+
+
+@ts_interface()
 class SocialAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialAccount
-        fields = "provider"
+        fields = ("provider",)
 
 
+@ts_interface()
 class CustomUserDetailsSerializer(UserDetailsSerializer):
     customer = CustomerSerializer(read_only=True)
     social_accounts = SocialAccountSerializer(
@@ -35,3 +41,7 @@ class CustomPasswordResetConfirmSerializer(PasswordResetConfirmSerializer):
         # Add your password validations
         password = attrs.get("new_password1")
         get_adapter().clean_password(password)
+
+
+if ENV == "DEV":
+    generate_ts("../sw_customer/types/customer_types.ts")
