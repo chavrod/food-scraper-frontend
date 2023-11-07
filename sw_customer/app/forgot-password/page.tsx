@@ -3,23 +3,9 @@
 import { useState } from "react";
 
 import { useDisclosure } from "@mantine/hooks";
-import {
-  Modal,
-  Button,
-  Paper,
-  TextInput,
-  Center,
-  Stack,
-  Box,
-  Text,
-} from "@mantine/core";
+import { Modal, Button, Paper, TextInput, Stack, Text } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import {
-  IconCircleCheck,
-  IconAlertTriangleFilled,
-  IconHelpHexagonFilled,
-  IconCircleCheckFilled,
-} from "@tabler/icons-react";
+import { IconCircleCheckFilled } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 // Internal: Utils
 import { getCSRF } from "@/utils/getCSRF";

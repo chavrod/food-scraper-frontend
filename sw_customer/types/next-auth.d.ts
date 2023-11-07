@@ -1,5 +1,7 @@
 import NextAuth from "next-auth";
 
+import { CustomUserDetailsSerializer } from "./customer_types";
+
 // prevents IDEs from removing the unused `NextAuth` import
 NextAuth.name;
 
@@ -11,18 +13,6 @@ declare module "next-auth" {
   interface Session {
     access_token: string;
     refresh_token: string;
-    user: {
-      pk: number;
-      username: string;
-      email: string | null;
-      customer?: {
-        password_reset_attempts: number;
-      };
-      social_accounts: SocialAccount[];
-    };
+    user: CustomUserDetailsSerializer;
   }
-}
-
-interface SocialAccount {
-  provider: string;
 }
