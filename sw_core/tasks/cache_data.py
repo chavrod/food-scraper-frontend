@@ -143,95 +143,63 @@ def save_results_to_db(query, sorted_and_paginated_data, is_relevant_only):
 def scrape_tesco(query: str, is_relevant_only: bool):
     start_time = time.time()
 
-    headers = {
-        "authority": "www.tesco.ie",
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "accept-language": "en-GB,en;q=0.9",
-        "cache-control": "max-age=0",
-        "cookie": "consumer=default; trkid=536e8783-56dd-4760-942b-aae504a6a182; atrc=ff8c60a2-25ef-4cb7-8ca5-bafbf3d4ba82; DCO=sdc; _csrf=88g490P13QcYBNYmXNGG4IYf; ighs-sess=eyJhbmFseXRpY3NTZXNzaW9uSWQiOiIxN2RhYjQ4NmRiNDQ5NmIyZGQ1NTA2YTEyYzgzMGQ4ZSIsInN0b3JlSWQiOiI1NzkwIn0=; ighs-sess.sig=kHEnpovJkzgXtTCBzGEQPsnJVqY; bm_sz=5CB52AB3EAD74B0F8CEE7BACAA043392~YAAQ5ZrYFxL9l4eJAQAASialuxTrE+j0AId+MbToL134ba3ATSzxGmnBi5AsPK87oxKCZhkjW6M+Cz3O8D5HyrAihLBuq3uvGChSvsj57mxjJ0GqqEIkO2Hrz/xAI6gSQRPurF5Pi5Q+RqNio6U5U/fepbjIW5VSqru9CKCc20NujQgEsXq4W7t1eheoFLtBM0JmEqSuRxVXjqpziV6He6HHHYrvP04/ZVv9OQE/utL8ImUbg6ByzE831TomXdJJ8zQq/tiN/3alyL3dY4ECXOTvXTGun9r6694vg7nfgVNF~3749186~4273731; bm_mi=C7739D2F1676564964DEA3CFBD170351~YAAQ5ZrYF9/9l4eJAQAAviqluxSANs3CYenF/NOI/pCwUvun3slTi30wW7yZ/m+gow83S8lqer6d8y3ofgdJCk4Pa9M9XXrGJVvC7+varEEfiNIho1uVtK5ajXE9ksIbW4Apzzzx8rjDSDwBY/eAUmkopb0zObzn5+oSojvtg7gwrrFHbayUL+e2aZCrP1OwLqlONefycxJitMwQ7D9/mzkPPhupC6cButuOg1l7/6dLuoGEy3ZEPaR/M8yERMgWqjrCg1Q9+xefkswPTEkGWDpbL4jVHGxvY/cCNv7XU1qQf80mB+2oYD/H2RiRUId9e5igldUAlnkAJu6h0xtuWz6gtkgqETrKlS51ark=~1; akavpau_tesco_ie=1691070612~id=31aea7f1ae987e5e4777f1dda9ce4397; ak_bmsc=4BAEF27E93A04CA5906554F54C0A8790~000000000000000000000000000000~YAAQ5ZrYFyb/l4eJAQAAwzCluxRC6NutXLf3a6OOGIbxAGBG5Tmfbb6n14NB/iFFHTp4xD+hmzQJz+fNE2kFbH7ThPtCS0x1OMF0vewhi8dlbXgqz+225Wvj56iLTlpHCNkyK2w3FmB4YaUsGCmEle9fWBE+F4Q96LoplLvJbOhHcC3BI10Uy/jK6jMFnxhcE5LT9HjTT6DtMR/b72/CqJp/YqyXKVR3jQePCEz8bF+jRpNw1X2EGtkg4zh+D9b2ShcxsvAGwkcTXmnhIDma+SS3NsXz+X8UfdAehhpmbbzuE5HuClyv30Dm1+oR96sXoB7a2XTOxdYs+WTAC7W92vY4qUExCfLaIUrmQoP84b6OXoW+n+5bIYMzZyKqNAxg3nd+ARLdlBHBtoFi2TMxl4I5g7MDR1FT6DKxJ4IWwy2qn2zdeihvbUW75RbjCcgm4pDoqVBMvqRkHRjLPBST3g6NHO6m+fSVWGyQkZBTK1lfIHML2zB5935wJAvWSZbtf3ZmoI4wM32a4Zv0DG+9WioWIzC14YXjRMNbHmOtfX0VAKSo+My4KFEwoMxM5IabQBSgxyNjsJUv//o4KlUgUNOmm1hq9D8PFkIh3aU22Uzi9D8Yw/GV3G4t; _abck=2C723A35A7D02DA7CB7381C75E9CC2A4~0~YAAQ5ZrYF2D/l4eJAQAAsDGluwpcvzav4Tt+2LtrtZ3w4xeRJT+1pJSBGo9Taq72W/DS7RhHN4whjz7HX9ca6q+jYkE5JtmGJos7yKRoHNvocjQMf9xpnOhTrDLQI786MBWpQvXyzxga+Maio0cHdWgbnxr834v0WX9TQDSroq19W7hNwNpUKao4JYOMBtdZWmG3Vlj9mfx/IQPAvHlHE6EfEJIbex8KIrp6KBXsq1IR21jP6T36VnYFYDDqYBp35L/gGBJy/p4/s0f82kottoaTgpEtUcYBYxpNAlIek+skIqGhjIwAMQv6VmXM/VJR6f6jnhNXANmUB7NhvcvpL2vI+R1YYZ9IUehFZo5XDcMwMZ392HxmJ9boasjNs0cRC/IMYeJlwegH+GY3/eYw8GMm100sPw==~-1~-1~1691073875; akavpau_tesco_ie_groceries=1691070847~id=1f23f63c3dd33de9554fb0eaa1930609; bm_sv=C0D43BBD175466E5C3F12CA3E6C8CE63~YAAQbbATAuLD362JAQAACciouxR9Wqh0hHlML8yMqv5F/ul4DKGlfsr6gX8DyCM8Ldn/M96zR0lStyGmHmF4SFbfqgPpD4HM108z1FIJcOn+fR+2AlMjXgqoiTXguGOKJvwcaudIHNWNp0QS5/SfKzBsdTIB5Hg2XRE7qVinVZSFbyikd93LzuKLQYu+jO9Idfj9CqxL5I655Tar6PSjnbVC2Pvl/Qjx1jmO3o3dMJ8Ue9HPT9J9p4b4EySMhg==~1",
-        "sec-ch-ua": '"Not/A)Brand";v="99", "Google Chrome";v="115", "Chromium";v="115"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"macOS"',
-        "sec-fetch-dest": "document",
-        "sec-fetch-mode": "navigate",
-        "sec-fetch-site": "none",
-        "sec-fetch-user": "?1",
-        "upgrade-insecure-requests": "1",
-        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
-    }
     try:
-        products = []
-        if is_relevant_only:
-            url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}"
-            response = requests.get(url, headers=headers)
-            html = response.text
-            soup = BeautifulSoup(html, "html.parser")
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
 
-            for item in soup.select("li.product-list--list-item"):
-                product = {
-                    "name": "",
-                    "price": 0,
-                    "imgSrc": None,
-                    "shopName": core_models.ShopName.TESCO,
-                }
+            context = browser.new_context(
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
+            )
 
-                name_span = item.select_one("div.product-details--wrapper h3 span")
-                product["name"] = name_span.get_text() if name_span else ""
+            page = context.new_page()
 
-                price_tag = item.select_one("div.product-details--wrapper form p")
-                if price_tag:
-                    price_text = price_tag.get_text() or ""
-                    product["price"] = float(re.sub(r"[^0-9.-]+", "", price_text))
+            products = []
+            total_number_of_items = 0
+            total_number_of_pages = 0
+            items_per_page = core_models.ShopPageCount.TESCO_LONG
 
-                img_srcset = item.select_one("div.product-image__container img")[
-                    "srcset"
-                ]
-                if img_srcset:
-                    first_image_from_srcset = (
-                        img_srcset.split(",")[0].strip().split(" ")[0]
+            current_page = 1
+
+            def build_url(query: str, current_page: int):
+                if is_relevant_only:
+                    return f"https://www.tesco.ie/groceries/en-IE/search?query={query}&count={core_models.ShopPageCount.TESCO_LONG}"
+                else:
+                    return f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page={current_page}&count={core_models.ShopPageCount.TESCO_LONG}"
+
+            while True:
+                print(f"TESCO PAGE: {current_page}")
+                page.goto(build_url(query=query, current_page=current_page))
+
+                # Wait for the search results to load
+                page.wait_for_selector(".product-list-container")
+
+                if not is_relevant_only or total_number_of_items == 0:
+                    strong_element_with_total_count = page.query_selector(
+                        "div.pagination__items-displayed > strong:nth-child(2)"
                     )
-                    product["imgSrc"] = first_image_from_srcset
 
-                if product["name"] and product["price"]:
-                    products.append(product)
-        else:
-            url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page=1&count={core_models.ShopPageCount.TESCO_LONG}"
-            response = requests.get(url, headers=headers)
-            html = response.text
-            soup = BeautifulSoup(html, "html.parser")
+                    if strong_element_with_total_count:
+                        # Get the text content from the element
+                        text_content_with_total_count = (
+                            strong_element_with_total_count.text_content()
+                        )
 
-            strong_element_with_total_count = soup.select_one(
-                "div.pagination__items-displayed > strong:nth-child(2)"
-            )
-            text_content_with_total_count = (
-                strong_element_with_total_count.get_text()
-                if strong_element_with_total_count
-                else ""
-            )
-            match = re.search(r"(\d+)", text_content_with_total_count)
-            total_number_of_items = int(match.group(1)) if match else 0
+                        # Use regular expression to extract the number
+                        match = re.search(r"(\d+)", text_content_with_total_count)
+                        total_number_of_items = int(match.group(1)) if match else 0
+                    else:
+                        total_number_of_items = 0
+                    assert (
+                        total_number_of_items != 0
+                    ), "AssertionError: No items found for the given query"
 
-            if total_number_of_items == 0:
-                return {
-                    "products": [],
-                    "summaryPerShop": {
-                        "count": 0,
-                        "shopName": core_models.ShopName.TESCO,
-                    },
-                }
+                    total_number_of_pages = math.ceil(
+                        total_number_of_items / items_per_page
+                    )
 
-            total_pages = math.ceil(
-                total_number_of_items / core_models.ShopPageCount.TESCO_LONG
-            )
+                rows = page.query_selector_all("li.product-list--list-item")
 
-            for i in range(1, total_pages + 1):
-                print(f"TESCO PAGE NO: {i}")
-                page_url = f"https://www.tesco.ie/groceries/en-IE/search?query={query}&sortBy=price-ascending&page={i}&count={core_models.ShopPageCount.TESCO_LONG}"
-                page_response = requests.get(page_url, headers=headers)
-                page_html = page_response.text
-                page_soup = BeautifulSoup(page_html, "html.parser")
-
-                for item in page_soup.select("li.product-list--list-item"):
+                for prod in rows:
                     product = {
                         "name": "",
                         "price": 0,
@@ -239,39 +207,57 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                         "shopName": core_models.ShopName.TESCO,
                     }
 
-                    name_span = item.select_one("div.product-details--wrapper h3 span")
-                    product["name"] = name_span.get_text() if name_span else ""
+                    # Get the product name
+                    name_element = prod.query_selector(
+                        "div.product-details--wrapper h3 span"
+                    )
+                    if name_element:
+                        product["name"] = name_element.text_content().strip()
 
-                    price_tag = item.select_one("div.product-details--wrapper form p")
-                    if price_tag:
-                        price_text = price_tag.get_text() or ""
-                        product["price"] = float(re.sub(r"[^0-9.-]+", "", price_text))
+                    # Get the product price
+                    price_element = prod.query_selector(
+                        "div.product-details--wrapper form p"
+                    )
+                    if price_element:
+                        price_text = price_element.text_content().strip() or ""
+                        product["price"] = float(re.sub(r"[^\d.]+", "", price_text))
 
-                    img_srcset = item.select_one("div.product-image__container img")[
-                        "srcset"
-                    ]
-                    if img_srcset:
-                        first_image_from_srcset = (
-                            img_srcset.split(",")[0].strip().split(" ")[0]
-                        )
-                        product["imgSrc"] = first_image_from_srcset
+                    # Get the product image source
+                    img_element = prod.query_selector(
+                        "div.product-image__container img"
+                    )
+                    if img_element:
+                        img_srcset = img_element.get_attribute("srcset")
+                        if img_srcset:
+                            first_image_from_srcset = (
+                                img_srcset.split(",")[0].strip().split(" ")[0]
+                            )
+                            product["imgSrc"] = first_image_from_srcset
 
-                    if product["name"] and product["price"]:
+                    # If product has name and price, add to the list
+                    if product["name"] and product["price"] > 0:
                         products.append(product)
 
-        end_time = time.time()
-        elapsed_time = end_time - start_time
+                current_page += 1
+                if is_relevant_only or current_page > total_number_of_pages:
+                    break
 
-        return {
-            "products": products,
-            "summaryPerShop": {
-                "count": len(products),
-                "exec_time": elapsed_time,
-                "shopName": core_models.ShopName.TESCO,
-            },
-        }
-    except Exception as e:
+            browser.close()
+
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+
+            return {
+                "products": products,
+                "summaryPerShop": {
+                    "count": len(products),
+                    "exec_time": elapsed_time,
+                    "shopName": core_models.ShopName.TESCO,
+                },
+            }
+    except (AssertionError, Exception) as e:
         print(f"Error fetching and parsing data from {core_models.ShopName.TESCO}: {e}")
+
         return {
             "products": [],
             "summaryPerShop": {
@@ -322,6 +308,10 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                         if total_number_of_items_attribute
                         else 0
                     )
+                    assert (
+                        total_number_of_items != 0
+                    ), "AssertionError: No items found for the given query"
+
                     total_number_of_pages = math.ceil(
                         total_number_of_items / items_per_page
                     )
@@ -372,7 +362,7 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                     "shopName": core_models.ShopName.ALDI,
                 },
             }
-    except Exception as e:
+    except (AssertionError, Exception) as e:
         print(f"Error fetching and parsing data from {core_models.ShopName.ALDI}: {e}")
         return {
             "products": [],
@@ -434,6 +424,10 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                         else None
                     )
                     total_number_of_items = int(match.group(1)) if match else 0
+                    assert (
+                        total_number_of_items != 0
+                    ), "AssertionError: No items found for the given query"
+
                     total_number_of_pages = math.ceil(
                         total_number_of_items / items_per_page
                     )
@@ -499,7 +493,7 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                     "shopName": core_models.ShopName.SUPERVALU,
                 },
             }
-    except Exception as e:
+    except (AssertionError, Exception) as e:
         print(
             f"Error fetching and parsing data from {core_models.ShopName.SUPERVALU}: {e}"
         )
