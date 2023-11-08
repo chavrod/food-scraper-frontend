@@ -29,9 +29,7 @@ export default function PaginationForm({
 
     // Wait for the scroll to complete (you can adjust the timeout as needed)
     setTimeout(() => {
-      router.push(
-        `?query=${searchMetaData.keyword}&page=${page}&is_relevant_only=${searchMetaData.isRelevantOnly}`
-      );
+      router.push(`?query=${searchMetaData.keyword}&page=${page}`);
     }, 500); // Adjust this time based on your scrolling speed
   };
 

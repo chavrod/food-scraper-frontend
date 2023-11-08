@@ -35,7 +35,6 @@ export default function SearchResults({
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("query");
-  const isRelevantOnlyParam = searchParams.get("is_relevant_only");
 
   const [loading, setLoading] = useState(false);
   const [currentAverageScrapingTime, setCurrentAverageScrapingTime] = useState<
@@ -73,7 +72,6 @@ export default function SearchResults({
         // Sending a message to the server after connection
         const messageData = {
           query: form.values.query,
-          is_relevant_only: form.values.is_relevant_only,
           sender: "Client",
         };
 
@@ -113,7 +111,6 @@ export default function SearchResults({
     initialValues: {
       query: searchText || "",
       page: 1,
-      is_relevant_only: "true",
     },
 
     validate: {
@@ -121,14 +118,8 @@ export default function SearchResults({
     },
   });
 
-  const handleFormSubmit = (values: {
-    query: string;
-    page: number;
-    is_relevant_only: string;
-  }) => {
-    router.push(
-      `?query=${values.query}&page=${values.page}&is_relevant_only=${values.is_relevant_only}`
-    );
+  const handleFormSubmit = (values: { query: string; page: number }) => {
+    router.push(`?query=${values.query}&page=${values.page}`);
 
     setLoading(true);
   };
@@ -141,9 +132,7 @@ export default function SearchResults({
 
     // Wait for the scroll to complete (you can adjust the timeout as needed)
     setTimeout(() => {
-      router.push(
-        `?query=${queryParam}&page=${page}&is_relevant_only=${isRelevantOnlyParam}`
-      );
+      router.push(`?query=${queryParam}&page=${page}`);
     }, 500); // Adjust this time based on your scrolling speed
   };
 

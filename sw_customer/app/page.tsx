@@ -1,5 +1,5 @@
 // Intenral Components
-import SearchResults from "./SearchResults";
+import SearchResults from "../Components/SearchResults";
 // Intenral Utils
 import getData from "@/app/api/getData";
 import customerApi from "@/app/api/customerApi";
