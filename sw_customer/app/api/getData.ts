@@ -47,13 +47,15 @@ export default async function getData({
 
     const jsonRes = await res.json();
 
+    console.log(jsonRes);
+
     const mappedData: ProductData = {
-      results: jsonRes["cached_products_page"].results,
+      results: jsonRes.results,
       metadata: {
-        currentPage: jsonRes["cached_products_page"].page,
+        currentPage: jsonRes.page,
         totalPages: jsonRes.total_pages,
-        keyword: jsonRes["cached_products_page"].query,
-        isRelevantOnly: jsonRes["cached_products_page"].is_relevant_only,
+        keyword: jsonRes.query,
+        isRelevantOnly: jsonRes.is_relevant_only,
       },
     };
 

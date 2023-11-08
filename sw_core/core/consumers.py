@@ -19,9 +19,10 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
 
-        query = text_data_json["query"]
-        is_relevant_only_str = text_data_json["is_relevant_only"]
-        is_relevant_only = is_relevant_only_str.lower() == "true"
+        query = text_data_json["query"].rstrip()
+        # is_relevant_only_str = text_data_json["is_relevant_only"]
+        # is_relevant_only = is_relevant_only_str.lower() == "true"
+        is_relevant_only = True
         sender = text_data_json["sender"]
 
         print("RECEIVED MESSAGE FROM CLIENT: ", query, is_relevant_only)
@@ -53,7 +54,7 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
         await self.close()  # Close the connection
 
     async def check_for_entry(self, query, is_relevant_only):
-        retry_gap_seconds = 10
+        retry_gap_seconds = 5
         # Set for 3 minutes for now
         start_time = time.time()
         duration = 60 * 3
