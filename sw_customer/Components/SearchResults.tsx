@@ -181,10 +181,12 @@ export default function SearchResults({
             {currentProducts.map((product, index) => (
               <Grid.Col key={index} span={12} md={6} lg={4}>
                 <Paper
+                  h="100%"
+                  shadow="md"
+                  withBorder
                   p="sm"
-                  shadow="sm"
                   radius="md"
-                  style={{ textAlign: "center" }}
+                  style={{ cursor: "pointer", textAlign: "center" }}
                 >
                   <Group noWrap>
                     <Container>
