@@ -14,9 +14,10 @@ import {
   TextInput,
   Button,
   Pagination,
+  Skeleton,
 } from "@mantine/core";
 // Intenral Utils
-import { Product, SearchMetaData, ScrapeStats } from "@/utils/types";
+import { Product, SearchMetaData } from "@/utils/types";
 // Intenral Components
 
 interface SearchResultsProps {
@@ -36,7 +37,7 @@ export default function SearchResults({
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("query");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentAverageScrapingTime, setCurrentAverageScrapingTime] = useState<
     number | null
   >(averageScrapingTime || null);
@@ -130,6 +131,8 @@ export default function SearchResults({
     // Scroll smoothly to the top of the page
     window.scrollTo({ top: 0, behavior: "smooth" });
 
+    setLoading(true);
+
     // Wait for the scroll to complete (you can adjust the timeout as needed)
     setTimeout(() => {
       router.push(`?query=${queryParam}&page=${page}`);
@@ -175,60 +178,76 @@ export default function SearchResults({
         </Stack>
       )}
 
-      {!loading && currentProducts && currentProducts.length > 0 && (
-        <Stack align="center" spacing={0}>
-          <Grid gutter="md" justify="center">
-            {currentProducts.map((product, index) => (
-              <Grid.Col key={index} span={12} md={6} lg={4}>
-                <Paper
-                  h="100%"
-                  shadow="md"
-                  withBorder
-                  p="sm"
-                  radius="md"
-                  style={{ cursor: "pointer", textAlign: "center" }}
-                >
-                  <Group noWrap>
-                    <Container>
-                      <img
-                        src={product.imgSrc}
-                        alt={product.name}
-                        style={{ maxWidth: "5rem" }}
-                      />
-                    </Container>
+      {loading ? (
+        <Grid gutter="md" justify="center">
+          {/* Adjust the number of Skeletons based on your grid layout */}
+          {Array.from({ length: 24 }).map((_, index) => (
+            <Grid.Col key={index} span={12} md={6} lg={4}>
+              <Paper h="100%" shadow="md" withBorder p="sm" radius="md">
+                <Skeleton height={200} circle mb="xl" /> {/* Image skeleton */}
+                <Skeleton height={8} mb="sm" /> {/* Title skeleton */}
+                <Skeleton height={8} width="70%" /> {/* Price skeleton */}
+              </Paper>
+            </Grid.Col>
+          ))}
+        </Grid>
+      ) : (
+        currentProducts &&
+        currentProducts.length > 0 && (
+          <Stack align="center" spacing={0}>
+            <Grid gutter="md" justify="center">
+              {currentProducts.map((product, index) => (
+                <Grid.Col key={index} span={12} md={6} lg={4}>
+                  <Paper
+                    h="100%"
+                    shadow="md"
+                    withBorder
+                    p="sm"
+                    radius="md"
+                    style={{ cursor: "pointer", textAlign: "center" }}
+                  >
+                    <Group noWrap>
+                      <Container>
+                        <img
+                          src={product.imgSrc}
+                          alt={product.name}
+                          style={{ maxWidth: "5rem" }}
+                        />
+                      </Container>
 
-                    <Text fz="sm" align="left">
-                      {product.name}
-                    </Text>
-
-                    <Stack>
-                      <Text align="center">
-                        {product.price
-                          ? `€${product.price.toFixed(2)}`
-                          : "Price not available"}
+                      <Text fz="sm" align="left">
+                        {product.name}
                       </Text>
-                      <img
-                        src={`/brand-logos/${product.shopName}.jpeg`}
-                        alt={product.shopName}
-                        style={{ maxWidth: "3rem" }}
-                      />
-                    </Stack>
-                  </Group>
-                </Paper>
-              </Grid.Col>
-            ))}
-          </Grid>
-          {pages.totalPages && pages.totalPages > 0 ? (
-            <Pagination
-              mb={30}
-              py="xl"
-              spacing={5}
-              value={pages.activePage}
-              onChange={(p) => handlePageChange(p)}
-              total={pages.totalPages}
-            />
-          ) : null}
-        </Stack>
+
+                      <Stack>
+                        <Text align="center">
+                          {product.price
+                            ? `€${product.price.toFixed(2)}`
+                            : "Price not available"}
+                        </Text>
+                        <img
+                          src={`/brand-logos/${product.shopName}.jpeg`}
+                          alt={product.shopName}
+                          style={{ maxWidth: "3rem" }}
+                        />
+                      </Stack>
+                    </Group>
+                  </Paper>
+                </Grid.Col>
+              ))}
+            </Grid>
+            {pages.totalPages && pages.totalPages > 0 ? (
+              <Pagination
+                mb={30}
+                py="xl"
+                spacing={5}
+                value={pages.activePage}
+                onChange={(p) => handlePageChange(p)}
+                total={pages.totalPages}
+              />
+            ) : null}
+          </Stack>
+        )
       )}
 
       {queryParam &&
