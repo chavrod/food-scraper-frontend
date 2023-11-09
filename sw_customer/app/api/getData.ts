@@ -47,8 +47,6 @@ export default async function getData({
 
     const jsonRes = await res.json();
 
-    console.log(jsonRes);
-
     const mappedData: ProductData = {
       results: jsonRes.results,
       metadata: {
