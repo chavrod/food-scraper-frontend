@@ -250,7 +250,7 @@ export default function MainAppShell({
       }
       footer={
         isClient && !isLargerThanSm ? (
-          <Footer height={70} p="md">
+          <Footer height={60} p="xs">
             <Group
               position={session ? "apart" : "center"}
               spacing={!session ? "xl" : ""}
