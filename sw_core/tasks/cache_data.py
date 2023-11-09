@@ -21,7 +21,6 @@ import time
 
 from celery import shared_task
 from playwright.sync_api import sync_playwright
-from bs4 import BeautifulSoup
 
 
 @shared_task
@@ -233,6 +232,15 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                                 img_srcset.split(",")[0].strip().split(" ")[0]
                             )
                             product["imgSrc"] = first_image_from_srcset
+
+                    # Get the link to the product
+                    internal_url_path_el = prod.query_selector("a")
+                    internal_url_path_full_url = internal_url_path_el.get_attribute(
+                        "href"
+                    )
+                    internal_url_path_unique_ref = internal_url_path_full_url.split(
+                        "/"
+                    )[-1]
 
                     # If product has name and price, add to the list
                     if product["name"] and product["price"] > 0:
