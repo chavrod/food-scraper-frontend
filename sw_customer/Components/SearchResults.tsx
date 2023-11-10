@@ -16,6 +16,7 @@ import {
   Pagination,
   Skeleton,
 } from "@mantine/core";
+import { IconArrowBadgeRight } from "@tabler/icons-react";
 // Intenral Utils
 import { Product, SearchMetaData } from "@/utils/types";
 // Intenral Components
@@ -206,29 +207,54 @@ export default function SearchResults({
                     style={{ cursor: "pointer", textAlign: "center" }}
                   >
                     <Group noWrap>
-                      <Container>
+                      <Stack align="center">
                         <img
                           src={product.imgSrc}
                           alt={product.name}
                           style={{ maxWidth: "5rem" }}
                         />
-                      </Container>
-
-                      <Text fz="sm" align="left">
-                        {product.name}
-                      </Text>
-
-                      <Stack>
-                        <Text align="center">
-                          {product.price
-                            ? `€${product.price.toFixed(2)}`
-                            : "Price not available"}
-                        </Text>
                         <img
                           src={`/brand-logos/${product.shopName}.jpeg`}
                           alt={product.shopName}
                           style={{ maxWidth: "3rem" }}
                         />
+                      </Stack>
+
+                      <Stack justify="space-between">
+                        <Text fz="md" align="left">
+                          {product.name}
+                        </Text>
+
+                        <Group spacing={0} align="center">
+                          <Text
+                            fz="md"
+                            c="cyan.7"
+                            sx={{
+                              cursor: "pointer",
+                              "&:hover": {
+                                textDecoration: "underline",
+                              },
+                            }}
+                            fw={700}
+                          >
+                            Go to source
+                          </Text>
+                          <IconArrowBadgeRight
+                            size={20}
+                            style={{ color: "#1098AD" }}
+                          />
+                        </Group>
+
+                        <Group spacing={0} position="apart">
+                          <Text align="center">
+                            {product.price
+                              ? `€${product.price.toFixed(2)}`
+                              : "Price not available"}
+                          </Text>
+                          <Button variant="light" radius="xl" size="xs">
+                            Add To Basket
+                          </Button>
+                        </Group>
                       </Stack>
                     </Group>
                   </Paper>
