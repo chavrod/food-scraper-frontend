@@ -33,7 +33,8 @@ class CachedProductsPageViewSet(
 
         query_param = serializer.validated_data["query"]
         page_param = serializer.validated_data["page"]
-        is_relevant_only_param = serializer.validated_data["is_relevant_only"]
+        # is_relevant_only_param = serializer.validated_data["is_relevant_only"]
+        is_relevant_only_param = True
 
         # Check if we have cached data for this query
         cached_pages = self.queryset.filter(query=query_param).order_by("-page")
@@ -56,6 +57,8 @@ class CachedProductsPageViewSet(
                 status=status.HTTP_206_PARTIAL_CONTENT,
             )
         print("FOUND CACHED RESULTS!!! SENDING RESPONSE....")
+        print("page_param", page_param)
+        print("cached_pages.first().page", cached_pages.first().page)
         # If requested page is greater than the greatest cached page, return the latest available page
         if page_param > cached_pages.first().page:
             page_param = cached_pages.first().page
