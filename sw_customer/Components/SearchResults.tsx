@@ -37,7 +37,7 @@ export default function SearchResults({
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("query");
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentAverageScrapingTime, setCurrentAverageScrapingTime] = useState<
     number | null
   >(averageScrapingTime || null);
@@ -90,7 +90,6 @@ export default function SearchResults({
             activePage: 1,
             totalPages: responseData.total_pages,
           });
-          console.log(responseData);
         } else {
           // TODO: Throw an error?
         }
