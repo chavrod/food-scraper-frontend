@@ -57,8 +57,6 @@ class CachedProductsPageViewSet(
                 status=status.HTTP_206_PARTIAL_CONTENT,
             )
         print("FOUND CACHED RESULTS!!! SENDING RESPONSE....")
-        print("page_param", page_param)
-        print("cached_pages.first().page", cached_pages.first().page)
         # If requested page is greater than the greatest cached page, return the latest available page
         if page_param > cached_pages.first().page:
             page_param = cached_pages.first().page

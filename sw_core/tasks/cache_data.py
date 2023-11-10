@@ -203,6 +203,7 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                         "name": "",
                         "price": 0,
                         "imgSrc": None,
+                        "productUrl": None,
                         "shopName": core_models.ShopName.TESCO,
                     }
 
@@ -235,12 +236,11 @@ def scrape_tesco(query: str, is_relevant_only: bool):
 
                     # Get the link to the product
                     internal_url_path_el = prod.query_selector("a")
-                    internal_url_path_full_url = internal_url_path_el.get_attribute(
-                        "href"
-                    )
-                    internal_url_path_unique_ref = internal_url_path_full_url.split(
-                        "/"
-                    )[-1]
+                    if internal_url_path_el:
+                        internal_url_path = internal_url_path_el.get_attribute("href")
+                        if internal_url_path:
+                            full_url = "https://www.tesco.ie" + internal_url_path
+                            product["productUrl"] = full_url
 
                     # If product has name and price, add to the list
                     if product["name"] and product["price"] > 0:
@@ -331,6 +331,7 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                         "name": "",
                         "price": 0,
                         "imgSrc": None,
+                        "productUrl": None,
                         "shopName": core_models.ShopName.ALDI,
                     }
 
@@ -349,6 +350,14 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                     product["price"] = float(price_match.group(1)) if price_match else 0
 
                     product["imgSrc"] = image_element.get_attribute("src") or None
+
+                    # Get the link to the product
+                    internal_url_path_el = prod.query_selector("a")
+                    if internal_url_path_el:
+                        internal_url_path = internal_url_path_el.get_attribute("href")
+                        if internal_url_path:
+                            full_url = "https://groceries.aldi.ie" + internal_url_path
+                            product["productUrl"] = full_url
 
                     if product["name"] and product["price"] > 0:
                         products.append(product)
@@ -447,6 +456,7 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                         "name": "",
                         "price": 0,
                         "imgSrc": None,
+                        "productUrl": None,
                         "shopName": core_models.ShopName.SUPERVALU,
                     }
 
@@ -478,6 +488,13 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                     product["imgSrc"] = (
                         image_element.get_attribute("src") if image_element else None
                     )
+
+                    # Get the link to the product
+                    internal_url_path_el = prod.query_selector("a")
+                    if internal_url_path_el:
+                        internal_url_path = internal_url_path_el.get_attribute("href")
+                        if internal_url_path:
+                            product["productUrl"] = internal_url_path
 
                     if product["name"] and product["price"] > 0:
                         products.append(product)
