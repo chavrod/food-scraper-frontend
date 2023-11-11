@@ -15,8 +15,10 @@ import {
   Button,
   Pagination,
   Skeleton,
+  Flex,
+  Box,
 } from "@mantine/core";
-import { IconArrowBadgeRight } from "@tabler/icons-react";
+import { IconArrowBadgeRight, IconShoppingBagPlus } from "@tabler/icons-react";
 // Intenral Utils
 import { Product, SearchMetaData } from "@/utils/types";
 // Intenral Components
@@ -197,61 +199,89 @@ export default function SearchResults({
           <Stack align="center" spacing={0}>
             <Grid gutter="md" justify="center">
               {currentProducts.map((product, index) => (
-                <Grid.Col key={index} span={12} md={6} lg={4}>
-                  <Paper
-                    h="100%"
-                    shadow="md"
-                    withBorder
-                    p="sm"
-                    radius="md"
-                    style={{ cursor: "pointer", textAlign: "center" }}
-                  >
+                <Grid.Col key={index} span={12} md={6} xl={4}>
+                  <Paper h="190px" shadow="md" withBorder p="sm" radius="md">
                     <Group noWrap>
-                      <Stack align="center">
-                        <img
-                          src={product.imgSrc}
-                          alt={product.name}
-                          style={{ maxWidth: "5rem" }}
-                        />
-                        <img
-                          src={`/brand-logos/${product.shopName}.jpeg`}
-                          alt={product.shopName}
-                          style={{ maxWidth: "3rem" }}
-                        />
+                      <Stack align="center" spacing={0}>
+                        <Container
+                          w={100}
+                          h={100}
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <img
+                            src={product.imgSrc}
+                            alt={product.name}
+                            style={{ width: "5rem" }}
+                          />
+                        </Container>
+                        <Container
+                          w={100}
+                          h={60}
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <img
+                            src={`/brand-logos/${product.shopName}.jpeg`}
+                            alt={product.shopName}
+                            style={{ width: "3rem" }}
+                          />
+                        </Container>
                       </Stack>
 
-                      <Stack justify="space-between">
-                        <Text fz="md" align="left">
-                          {product.name}
-                        </Text>
-
-                        <Group spacing={0} align="center">
-                          <Text
-                            fz="md"
-                            c="cyan.7"
-                            sx={{
-                              cursor: "pointer",
-                              "&:hover": {
-                                textDecoration: "underline",
-                              },
-                            }}
-                            fw={700}
-                          >
-                            Go to source
+                      <Stack
+                        style={{
+                          width: "100%",
+                        }}
+                        justify="space-between"
+                      >
+                        <Box h={100}>
+                          <Text size={15} align="left" lineClamp={2}>
+                            {product.name}
                           </Text>
-                          <IconArrowBadgeRight
-                            size={20}
-                            style={{ color: "#1098AD" }}
-                          />
-                        </Group>
+                          <Text fz="sm" c="dimmed">
+                            {product.shopName.charAt(0).toUpperCase() +
+                              product.shopName.slice(1).toLowerCase()}
+                          </Text>
+                          <Group spacing={0} align="center">
+                            <Text
+                              fz="md"
+                              c="cyan.7"
+                              sx={{
+                                cursor: "pointer",
+                                "&:hover": {
+                                  textDecoration: "underline",
+                                },
+                              }}
+                              fw={700}
+                            >
+                              Go to source
+                            </Text>
+                            <IconArrowBadgeRight
+                              size={20}
+                              style={{ color: "#1098AD" }}
+                            />
+                          </Group>
+                        </Box>
 
-                        <Group spacing={0} position="apart">
+                        <Group spacing={0} h={40} position="apart">
                           <Text align="center">
                             {product.price
                               ? `€${product.price.toFixed(2)}`
                               : "Price not available"}
                           </Text>
-                          <Button variant="light" radius="xl" size="xs">
+                          <Button
+                            variant="light"
+                            radius="xl"
+                            size="xs"
+                            leftIcon={<IconShoppingBagPlus />}
+                          >
                             Add To Basket
                           </Button>
                         </Group>
