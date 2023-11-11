@@ -18,8 +18,10 @@ import {
   Flex,
   Box,
   Space,
+  Title,
 } from "@mantine/core";
 import { IconArrowBadgeRight, IconShoppingBagPlus } from "@tabler/icons-react";
+import { CountdownCircleTimer } from "react-countdown-circle-timer";
 // Intenral Utils
 import { Product, SearchMetaData } from "@/utils/types";
 // Intenral Components
@@ -194,14 +196,43 @@ export default function SearchResults({
       {loadingStates.loading &&
       loadingStates.loadingNew &&
       !loadingStates.loadingCached ? (
-        <Stack>
-          Results were NOT cached....Wait a bit... So far is has taken{" "}
-          {currentAverageScrapingTime} seconds on average to scrape the data.
-          <Loader
-            size="xl"
-            style={{ textAlign: "center", margin: "20px auto" }}
-          />
-        </Stack>
+        <Paper shadow="md" radius="md" p="md">
+          <Stack mt={20} mb={5} align="center">
+            <Title align="center" w={300}>
+              {" "}
+              Searching supermarkets...
+            </Title>
+            {currentAverageScrapingTime && (
+              <Text align="center" color="dimmed" w={300}>
+                Hang tight! We're checking supermarkets for up-to-date product
+                data, which typically takes about{" "}
+                {Math.ceil(currentAverageScrapingTime) + 5} seconds.
+              </Text>
+            )}
+
+            {/* <CountdownCircleTimer
+              isPlaying
+              duration={10}
+              colors={["#0C8599", "#15AABF", "#0CA678", "#37B24D"]}
+              colorsTime={[10, 7, 4, 0]}
+              strokeWidth={30}
+            >
+              {({ remainingTime }) => remainingTime}
+            </CountdownCircleTimer> */}
+
+            {currentAverageScrapingTime && (
+              <CountdownCircleTimer
+                isPlaying
+                duration={Math.ceil(currentAverageScrapingTime) + 5}
+                colors={["#0C8599", "#15AABF", "#0CA678", "#37B24D"]}
+                colorsTime={[10, 7, 4, 0]}
+                strokeWidth={30}
+              >
+                {({ remainingTime }) => remainingTime}
+              </CountdownCircleTimer>
+            )}
+          </Stack>
+        </Paper>
       ) : loadingStates.loading &&
         !loadingStates.loadingNew &&
         loadingStates.loadingCached ? (
