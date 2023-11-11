@@ -17,6 +17,7 @@ import {
   Skeleton,
   Flex,
   Box,
+  Space,
 } from "@mantine/core";
 import { IconArrowBadgeRight, IconShoppingBagPlus } from "@tabler/icons-react";
 // Intenral Utils
@@ -41,6 +42,7 @@ export default function SearchResults({
   const queryParam = searchParams.get("query");
 
   const [loading, setLoading] = useState(false);
+  const [loadingNewPage, setLoadingNewPage] = useState(false);
   const [currentAverageScrapingTime, setCurrentAverageScrapingTime] = useState<
     number | null
   >(averageScrapingTime || null);
@@ -133,7 +135,7 @@ export default function SearchResults({
     // Scroll smoothly to the top of the page
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    setLoading(true);
+    setLoadingNewPage(true);
 
     // Wait for the scroll to complete (you can adjust the timeout as needed)
     setTimeout(() => {
@@ -142,10 +144,11 @@ export default function SearchResults({
   };
 
   useEffect(() => {
-    if (!currentAverageScrapingTime && currentProducts) setLoading(false);
+    if (!currentAverageScrapingTime && currentProducts) {
+      setLoading(false);
+      setLoadingNewPage(false);
+    }
   }, [currentProducts, currentAverageScrapingTime]);
-
-  console.log(currentProducts);
 
   return (
     <Stack align="center">
@@ -182,15 +185,34 @@ export default function SearchResults({
         </Stack>
       )}
 
-      {loading ? (
+      {loadingNewPage ? (
         <Grid gutter="md" justify="center">
-          {/* Adjust the number of Skeletons based on your grid layout */}
           {Array.from({ length: 24 }).map((_, index) => (
             <Grid.Col key={index} span={12} md={6} lg={4}>
-              <Paper h="100%" shadow="md" withBorder p="sm" radius="md">
-                <Skeleton height={200} circle mb="xl" /> {/* Image skeleton */}
-                <Skeleton height={8} mb="sm" /> {/* Title skeleton */}
-                <Skeleton height={8} width="70%" /> {/* Price skeleton */}
+              <Paper h="190px" shadow="md" withBorder p="sm" m="xs" radius="md">
+                <Flex
+                  gap="md"
+                  justify="flex-start"
+                  align="flex-start"
+                  direction="row"
+                  wrap="wrap"
+                >
+                  <Stack align="center">
+                    <Skeleton height={80} width={80} />
+                    <Skeleton height={60} width={60} />
+                  </Stack>
+
+                  <Stack>
+                    <Skeleton height={8} width={200} />
+                    <Skeleton height={8} width={160} />
+                    <Skeleton height={8} width={100} />
+                    <Space h={35} />
+                    <Group position="apart">
+                      <Skeleton height={25} width={35} />
+                      <Skeleton height={30} width={80} radius="lg" />
+                    </Group>
+                  </Stack>
+                </Flex>
               </Paper>
             </Grid.Col>
           ))}
@@ -199,10 +221,17 @@ export default function SearchResults({
         currentProducts &&
         currentProducts.length > 0 && (
           <Stack align="center" spacing={0}>
-            <Grid gutter="md" justify="center">
+            <Grid gutter={0} justify="center">
               {currentProducts.map((product, index) => (
                 <Grid.Col key={index} span={12} md={6} xl={4}>
-                  <Paper h="190px" shadow="md" withBorder p="sm" radius="md">
+                  <Paper
+                    h="190px"
+                    shadow="md"
+                    withBorder
+                    p="sm"
+                    m="xs"
+                    radius="md"
+                  >
                     <Group noWrap>
                       <Stack align="center" spacing={0}>
                         <Container
@@ -290,7 +319,7 @@ export default function SearchResults({
                             size="xs"
                             leftIcon={<IconShoppingBagPlus />}
                           >
-                            Save to List
+                            Add
                           </Button>
                         </Group>
                       </Stack>
