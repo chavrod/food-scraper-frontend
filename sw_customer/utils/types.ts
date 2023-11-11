@@ -15,6 +15,7 @@ export interface Product {
   name: string;
   price: number;
   imgSrc: string | undefined;
+  productUrl:  string | undefined;
   shopName: ShopName;
 }
 

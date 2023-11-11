@@ -145,6 +145,8 @@ export default function SearchResults({
     if (!currentAverageScrapingTime && currentProducts) setLoading(false);
   }, [currentProducts, currentAverageScrapingTime]);
 
+  console.log(currentProducts);
+
   return (
     <Stack align="center">
       <form onSubmit={form.onSubmit(handleFormSubmit)}>
@@ -260,6 +262,12 @@ export default function SearchResults({
                                 },
                               }}
                               fw={700}
+                              component="a"
+                              href={
+                                product.productUrl ? product.productUrl : ""
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
                             >
                               Go to source
                             </Text>
@@ -282,7 +290,7 @@ export default function SearchResults({
                             size="xs"
                             leftIcon={<IconShoppingBagPlus />}
                           >
-                            Add To Basket
+                            Save to List
                           </Button>
                         </Group>
                       </Stack>
