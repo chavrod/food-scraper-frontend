@@ -31,6 +31,12 @@ interface SearchResultsProps {
   averageScrapingTime: number | null;
 }
 
+type LoadingStates = {
+  loading: boolean;
+  loadingNew: boolean;
+  loadingCached: boolean;
+};
+
 export default function SearchResults({
   searchText,
   products,
@@ -41,8 +47,21 @@ export default function SearchResults({
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("query");
 
-  const [loading, setLoading] = useState(false);
-  const [loadingNewPage, setLoadingNewPage] = useState(false);
+  // Combined state declaration
+  const [loadingStates, setLoadingStates] = useState<LoadingStates>({
+    loading: false,
+    loadingNew: false,
+    loadingCached: false,
+  });
+
+  // Function to update a specific loading state
+  const setLoadingState = (stateName: keyof LoadingStates, value: boolean) => {
+    setLoadingStates((prevStates) => ({
+      ...prevStates,
+      [stateName]: value,
+    }));
+  };
+
   const [currentAverageScrapingTime, setCurrentAverageScrapingTime] = useState<
     number | null
   >(averageScrapingTime || null);
@@ -70,6 +89,8 @@ export default function SearchResults({
   useEffect(() => {
     console.log("AVERAGE SCRAPING TIME: ", averageScrapingTime);
     if (currentAverageScrapingTime) {
+      setLoadingState("loadingNew", true);
+
       const socket = new WebSocket("ws://localhost:8000/ws/scraped_result/");
 
       socket.onopen = () => {
@@ -95,6 +116,8 @@ export default function SearchResults({
             activePage: 1,
             totalPages: responseData.total_pages,
           });
+          setLoadingState("loading", false);
+          setLoadingState("loadingNew", false);
         } else {
           // TODO: Throw an error?
         }
@@ -126,7 +149,7 @@ export default function SearchResults({
   const handleFormSubmit = (values: { query: string; page: number }) => {
     router.push(`?query=${values.query}&page=${values.page}`);
 
-    setLoading(true);
+    setLoadingState("loading", true);
   };
 
   const handlePageChange = (page: number) => {
@@ -135,7 +158,8 @@ export default function SearchResults({
     // Scroll smoothly to the top of the page
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    setLoadingNewPage(true);
+    setLoadingState("loading", true);
+    setLoadingState("loadingCached", true);
 
     // Wait for the scroll to complete (you can adjust the timeout as needed)
     setTimeout(() => {
@@ -145,8 +169,9 @@ export default function SearchResults({
 
   useEffect(() => {
     if (!currentAverageScrapingTime && currentProducts) {
-      setLoading(false);
-      setLoadingNewPage(false);
+      setLoadingState("loading", false);
+      setLoadingState("loadingCached", false);
+      setLoadingState("loadingNew", false);
     }
   }, [currentProducts, currentAverageScrapingTime]);
 
@@ -158,51 +183,49 @@ export default function SearchResults({
             id="1"
             withAsterisk
             placeholder="Type a product name"
-            disabled={loading}
+            disabled={loadingStates.loading}
             {...form.getInputProps("query")}
           />
-          <Button type="submit" loading={loading}>
+          <Button type="submit" loading={loadingStates.loading}>
             Search
           </Button>
         </Group>
       </form>
-      {loading && searchText !== "" && (
+      {loadingStates.loading &&
+      loadingStates.loadingNew &&
+      !loadingStates.loadingCached ? (
         <Stack>
-          {currentAverageScrapingTime ? (
-            <>
-              Results were NOT cached....Wait a bit... So far is has taken{" "}
-              {currentAverageScrapingTime} seconds on average to scrape the
-              data.
-            </>
-          ) : (
-            <>Processing request!!</>
-          )}
-
+          Results were NOT cached....Wait a bit... So far is has taken{" "}
+          {currentAverageScrapingTime} seconds on average to scrape the data.
           <Loader
             size="xl"
             style={{ textAlign: "center", margin: "20px auto" }}
           />
         </Stack>
-      )}
-
-      {loadingNewPage ? (
+      ) : loadingStates.loading &&
+        !loadingStates.loadingNew &&
+        loadingStates.loadingCached ? (
         <Grid gutter="md" justify="center">
           {Array.from({ length: 24 }).map((_, index) => (
-            <Grid.Col key={index} span={12} md={6} lg={4}>
+            <Grid.Col key={index} span={12} md={6} xl={4}>
               <Paper h="190px" shadow="md" withBorder p="sm" m="xs" radius="md">
                 <Flex
                   gap="md"
                   justify="flex-start"
                   align="flex-start"
                   direction="row"
-                  wrap="wrap"
+                  wrap="nowrap"
                 >
                   <Stack align="center">
                     <Skeleton height={80} width={80} />
                     <Skeleton height={60} width={60} />
                   </Stack>
 
-                  <Stack>
+                  <Stack
+                    style={{
+                      width: "80%",
+                    }}
+                  >
                     <Skeleton height={8} width={200} />
                     <Skeleton height={8} width={160} />
                     <Skeleton height={8} width={100} />
@@ -343,7 +366,7 @@ export default function SearchResults({
       )}
 
       {queryParam &&
-        !loading &&
+        !loadingStates.loading &&
         currentProducts &&
         currentProducts.length === 0 && <>Sorry, there was nothing found!</>}
     </Stack>
