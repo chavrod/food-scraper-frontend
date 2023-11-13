@@ -21,6 +21,7 @@ import {
   Title,
   Tabs,
   Badge,
+  ActionIcon,
 } from "@mantine/core";
 import {
   IconArrowBadgeRight,
@@ -186,7 +187,7 @@ export default function SearchResults({
   }, [currentProducts, currentAverageScrapingTime]);
 
   return (
-    <Tabs defaultValue="gallery">
+    <Tabs defaultValue="search">
       <Title align="left" mb="sm">
         Explore
       </Title>
@@ -220,18 +221,33 @@ export default function SearchResults({
       <Tabs.Panel value="search" pt="xs">
         <Stack align="center">
           <form onSubmit={form.onSubmit(handleFormSubmit)}>
-            <Group mb="md">
+            <Flex
+              my="md"
+              gap="xs"
+              justify="center"
+              align="flex-start"
+              direction="row"
+              wrap="nowrap"
+            >
               <TextInput
                 id="1"
                 withAsterisk
                 placeholder="Type a product name"
                 disabled={loadingStates.loading}
+                radius="lg"
                 {...form.getInputProps("query")}
               />
-              <Button type="submit" loading={loadingStates.loading}>
-                Search
-              </Button>
-            </Group>
+              <ActionIcon
+                type="submit"
+                variant="filled"
+                radius="lg"
+                size="lg"
+                color="cyan"
+                loading={loadingStates.loading}
+              >
+                <IconSearch size="1.3rem" />
+              </ActionIcon>
+            </Flex>
           </form>
           {loadingStates.loading &&
           loadingStates.loadingNew &&
