@@ -21,13 +21,11 @@ import {
   Avatar,
   Paper,
   Box,
-  Notification,
   Title,
 } from "@mantine/core";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import {
   Icon,
-  IconSearch,
   IconCalculator,
   IconChartHistogram,
   IconUserCircle,
@@ -36,6 +34,7 @@ import {
   IconSettings,
   IconLogin,
   IconCircleCheckFilled,
+  IconCompass,
 } from "@tabler/icons-react";
 import { useSession, signOut } from "next-auth/react";
 // Internal: Components
@@ -86,7 +85,7 @@ export default function MainAppShell({
     {
       link: "/",
       label: "Explore",
-      icon: IconSearch,
+      icon: IconCompass,
       footer: true,
       navbar: true,
       isLoggedInVisible: true,
