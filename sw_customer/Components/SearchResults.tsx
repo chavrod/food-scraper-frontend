@@ -22,9 +22,10 @@ import {
 } from "@mantine/core";
 import { IconArrowBadgeRight, IconShoppingBagPlus } from "@tabler/icons-react";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
-// Intenral Utils
+// Intenral: Utils
 import { Product, SearchMetaData } from "@/utils/types";
-// Intenral Components
+// Intenral: Components
+import renderTime from "@/Components/RenderTimeNumber";
 
 interface SearchResultsProps {
   searchText?: string;
@@ -205,30 +206,24 @@ export default function SearchResults({
             {currentAverageScrapingTime && (
               <Text align="center" color="dimmed" w={300}>
                 Hang tight! We're checking supermarkets for up-to-date product
-                data, which typically takes about{" "}
-                {Math.ceil(currentAverageScrapingTime) + 5} seconds.
+                data. So far, this has taken us{" "}
+                {Math.ceil(currentAverageScrapingTime) + 10} seconds on average.
               </Text>
             )}
 
-            {/* <CountdownCircleTimer
-              isPlaying
-              duration={10}
-              colors={["#0C8599", "#15AABF", "#0CA678", "#37B24D"]}
-              colorsTime={[10, 7, 4, 0]}
-              strokeWidth={30}
-            >
-              {({ remainingTime }) => remainingTime}
-            </CountdownCircleTimer> */}
-
             {currentAverageScrapingTime && (
               <CountdownCircleTimer
-                isPlaying
+                isPlaying={
+                  loadingStates.loading &&
+                  loadingStates.loadingNew &&
+                  !loadingStates.loadingCached
+                }
                 duration={Math.ceil(currentAverageScrapingTime) + 5}
                 colors={["#0C8599", "#15AABF", "#0CA678", "#37B24D"]}
                 colorsTime={[10, 7, 4, 0]}
-                strokeWidth={30}
+                strokeWidth={20}
               >
-                {({ remainingTime }) => remainingTime}
+                {renderTime}
               </CountdownCircleTimer>
             )}
           </Stack>
