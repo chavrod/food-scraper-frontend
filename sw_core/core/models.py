@@ -24,26 +24,6 @@ class ShopPageCount(models.IntegerChoices):
     SUPERVALU = 30
 
 
-class CachedRelevantProduct(models.Model):
-    name = models.CharField(max_length=100)
-    shop = models.CharField(max_length=30, choices=ShopName.choices)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    image_url = models.URLField(blank=True, null=True)
-
-    def __str__(self) -> str:
-        return f"{self.shop}: {self.name} {self.price}"
-
-
-class CachedAllProduct(models.Model):
-    name = models.CharField(max_length=100)
-    shop = models.CharField(max_length=30, choices=ShopName.choices)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    image_url = models.URLField(blank=True, null=True)
-
-    def __str__(self) -> str:
-        return f"{self.shop}: {self.name} {self.price}"
-
-
 # All products are sorted in ascending order
 class CachedProductsPage(models.Model):
     query = models.CharField(max_length=30)
@@ -75,3 +55,54 @@ class ScrapeSummaryPerShop(models.Model):
     summary_total = models.ForeignKey(
         ScrapeSummaryTotal, on_delete=models.CASCADE, related_name="shop_summaries"
     )
+
+
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    imgSrc = models.URLField(blank=True, null=True)
+    productUrl = models.URLField(blank=True, null=True)
+    shop_name = models.CharField(max_length=50, choices=ShopName.choices)
+
+    def __str__(self):
+        return f"{self.name} for {self.price}"
+
+
+class Basket(models.Model):
+    customer = models.OneToOneField(
+        Customer, on_delete=models.CASCADE, related_name="basket"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.customer.user.username}'s Basket"
+
+
+class BasketItem(models.Model):
+    basket = models.ForeignKey(Basket, on_delete=models.CASCADE, related_name="items")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+
+    def __str__(self):
+        return f"{self.quantity} x {self.product.name}"
+
+
+class CachedRelevantProduct(models.Model):
+    name = models.CharField(max_length=100)
+    shop = models.CharField(max_length=30, choices=ShopName.choices)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    image_url = models.URLField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.shop}: {self.name} {self.price}"
+
+
+class CachedAllProduct(models.Model):
+    name = models.CharField(max_length=100)
+    shop = models.CharField(max_length=30, choices=ShopName.choices)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    image_url = models.URLField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.shop}: {self.name} {self.price}"
