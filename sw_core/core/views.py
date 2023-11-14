@@ -6,6 +6,7 @@ from django.http import JsonResponse
 
 from rest_framework import status, viewsets, mixins
 from rest_framework.response import Response
+from rest_framework.decorators import action
 
 from tasks.cache_data import cache_data
 import core.serializers as core_serializers
@@ -72,3 +73,35 @@ class CachedProductsPageViewSet(
         data.update({"total_pages": total_pages})
 
         return Response(data)
+
+
+class BasketViewSet(viewsets.ViewSet):
+    def retrieve(self, request):
+        customer = request.user.customer
+        basket, created = core_models.Basket.objects.get_or_create(customer=customer)
+        serializer = core_serializers.BasketSerializer(basket)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["post"])
+    def add_item(self, request, pk=None):
+        customer = request.user.customer
+        basket, created = core_models.Basket.objects.get_or_create(customer=customer)
+        product_id = request.data.get("product_id")
+        quantity = request.data.get("quantity", 1)
+
+        try:
+            product = core_models.Product.objects.get(id=product_id)
+            core_models.BasketItem.objects.create(
+                basket=basket, product=product, quantity=quantity
+            )
+            return Response({"status": "item added"}, status=status.HTTP_201_CREATED)
+        except core_models.Product.DoesNotExist:
+            return Response(
+                {"error": "Invalid product ID"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(detail=True, methods=["post"])
+    def clear(self, request, pk=None):
+        customer = request.user.customer
+        core_models.Basket.objects.filter(customer=customer).delete()
+        return Response({"status": "basket cleared"}, status=status.HTTP_204_NO_CONTENT)
