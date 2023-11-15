@@ -76,6 +76,8 @@ class CachedProductsPageViewSet(
 
 
 class BasketViewSet(viewsets.ViewSet):
+    queryset = core_models.CachedProductsPage.objects.all()
+
     def retrieve(self, request):
         customer = request.user.customer
         basket, created = core_models.Basket.objects.get_or_create(customer=customer)
@@ -86,19 +88,24 @@ class BasketViewSet(viewsets.ViewSet):
     def add_item(self, request, pk=None):
         customer = request.user.customer
         basket, created = core_models.Basket.objects.get_or_create(customer=customer)
-        product_id = request.data.get("product_id")
+        # TODO: Extraction should happen in the serilizer
+        #   so we need to build a custom serilizer for this !!!
+
+        # TODO: Also, if product id is sent, then we should look for that product!!
+
+        product_name = request.data.get("name")
+        product_price = request.data.get("price")
+        shop_name = request.data.get("shop_name")
         quantity = request.data.get("quantity", 1)
 
-        try:
-            product = core_models.Product.objects.get(id=product_id)
-            core_models.BasketItem.objects.create(
-                basket=basket, product=product, quantity=quantity
-            )
-            return Response({"status": "item added"}, status=status.HTTP_201_CREATED)
-        except core_models.Product.DoesNotExist:
-            return Response(
-                {"error": "Invalid product ID"}, status=status.HTTP_400_BAD_REQUEST
-            )
+        # Find the product based on name, price, and shop_name
+        product, created = core_models.Product.objects.get_or_create(
+            name=product_name, price=product_price, shop_name=shop_name
+        )
+        core_models.BasketItem.objects.create(
+            basket=basket, product=product, quantity=quantity
+        )
+        return Response({"status": "item added"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
     def clear(self, request, pk=None):
