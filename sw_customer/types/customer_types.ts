@@ -14,6 +14,24 @@ export interface CachedProductsPageSerializer {
     created?: string;
 }
 
+export interface ProductSerializer {
+    name: string;
+    price: number;
+    imgSrc?: string | null;
+    productUrl?: string | null;
+    shop_name: "ALDI" | "TESCO" | "SUPERVALU";
+}
+
+export interface BasketItemSerializer {
+    product?: ProductSerializer;
+    quantity?: number;
+}
+
+export interface BasketSerializer {
+    id?: number;
+    items?: BasketItemSerializer[];
+}
+
 export interface SocialAccountSerializer {
     provider: "google";
 }
