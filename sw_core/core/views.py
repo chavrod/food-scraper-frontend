@@ -7,21 +7,11 @@ from django.http import JsonResponse
 from rest_framework import status, viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 
 from tasks.cache_data import cache_data
 import core.serializers as core_serializers
 import core.models as core_models
-
-from django.contrib.auth.models import User
-from myapp.serializers import UserSerializer
-from rest_framework import generics
-from rest_framework.permissions import IsAdminUser
-
-
-class UserList(generics.ListCreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]
 
 
 @csrf_protect
@@ -33,7 +23,6 @@ def ping(request):
 
 
 class CachedProductsPageViewSet(
-    mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
     serializer_class = core_serializers.CachedProductsPageSerializer
@@ -87,6 +76,8 @@ class CachedProductsPageViewSet(
 
 
 class BasketViewSet(viewsets.GenericViewSet):
+    permission_classes = [IsAuthenticated]
+
     # TODO: Make this available to admin only
     def list(self, request):
         pass
