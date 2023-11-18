@@ -1,12 +1,11 @@
 from rest_framework import serializers
-import core.models as core_models
-import authentication.models as authentication_models
-
-from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from django_typomatic import ts_interface, generate_ts
 
 from shop_wiz.settings import ENV
+import core.models as core_models
+import authentication.models as authentication_models
 
 
 @ts_interface()
@@ -57,7 +56,67 @@ class CachedProductsPageSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = core_models.Product
+        fields = "__all__"
+
+
+class ProductCreateOrUpdateSerializer(serializers.ModelSerializer):
+    prod_id = serializers.IntegerField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        prod_id = attrs.get("prod_id")
+        name = attrs.get("name")
+        price = attrs.get("price")
+        imgSrc = attrs.get("imgSrc")
+        productUrl = attrs.get("productUrl")
+        shop_name = attrs.get("shop_name")
+
+        if prod_id and len(attrs) > 1:
+            raise serializers.ValidationError(
+                {"error": "Only 'prod_id' should be provided if present"}
+            )
+
+        if name:
+            if not all([price, imgSrc, productUrl, shop_name]):
+                raise serializers.ValidationError(
+                    {
+                        "error": "All fields 'name', 'price', 'imgSrc', 'productUrl', 'shop_name' must be provided together"
+                    }
+                )
+
+        return attrs
+
+    def create(self, validated_data):
+        prod_id = validated_data.get("prod_id")
+        name = validated_data.get("name")
+        shop_name = validated_data.get("shop_name")
+
+        if prod_id:
+            return core_models.Product.objects.get(id=prod_id)
+        elif name and shop_name:
+            product, created = core_models.Product.objects.get_or_create(
+                name=name, shop_name=shop_name, defaults=validated_data
+            )
+            if not created:
+                # Update product if already exists
+                for key, value in validated_data.items():
+                    setattr(product, key, value)
+                product.save()
+            return product
+        else:
+            raise serializers.ValidationError(
+                "Must provide product id or name and shop_name"
+            )
+
+    class Meta:
+        model = core_models.Product
         fields = ["name", "price", "imgSrc", "productUrl", "shop_name"]
+        extra_kwargs = {
+            "name": {"required": False},
+            "price": {"required": False},
+            "imgSrc": {"required": False},
+            "productUrl": {"required": False},
+            "shop_name": {"required": False},
+        }
 
 
 @ts_interface()
