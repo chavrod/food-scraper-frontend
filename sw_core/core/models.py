@@ -64,6 +64,7 @@ class Product(models.Model):
     productUrl = models.URLField(blank=True, null=True)
     shop_name = models.CharField(max_length=50, choices=ShopName.choices)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.name} for {self.price}"
