@@ -12,6 +12,17 @@ from tasks.cache_data import cache_data
 import core.serializers as core_serializers
 import core.models as core_models
 
+from django.contrib.auth.models import User
+from myapp.serializers import UserSerializer
+from rest_framework import generics
+from rest_framework.permissions import IsAdminUser
+
+
+class UserList(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAdminUser]
+
 
 @csrf_protect
 def ping(request):
@@ -38,7 +49,7 @@ class CachedProductsPageViewSet(
         is_relevant_only_param = True
 
         # Check if we have cached data for this query
-        cached_pages = self.queryset.filter(query=query_param).order_by("-page")
+        cached_pages = self.get_queryset().filter(query=query_param).order_by("-page")
         if not cached_pages.exists():
             print("RESULTS WERE NOT CACHED. STARTING THE SCRAPING....")
             # Start the scraping process
@@ -75,16 +86,21 @@ class CachedProductsPageViewSet(
         return Response(data)
 
 
-class BasketViewSet(viewsets.ViewSet):
+class BasketViewSet(viewsets.GenericViewSet):
     queryset = core_models.CachedProductsPage.objects.all()
 
-    def retrieve(self, request):
+    # TODO: Make this available to admin only
+    def list(self, request):
+        pass
+
+    @action(detail=False, methods=["get"])
+    def get_items(self, request, pk=None):
         customer = request.user.customer
         basket, created = core_models.Basket.objects.get_or_create(customer=customer)
         serializer = core_serializers.BasketSerializer(basket)
         return Response(serializer.data)
 
-    @action(detail=True, methods=["post"])
+    @action(detail=False, methods=["post"])
     def add_item(self, request, pk=None):
         customer = request.user.customer
         basket, created = core_models.Basket.objects.get_or_create(customer=customer)
@@ -108,7 +124,11 @@ class BasketViewSet(viewsets.ViewSet):
         return Response({"status": "item added"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
-    def clear(self, request, pk=None):
+    def remove_item(self, request, pk=None):
+        pass
+
+    @action(detail=False, methods=["post"])
+    def clear_all(self, request, pk=None):
         customer = request.user.customer
         core_models.Basket.objects.filter(customer=customer).delete()
         return Response({"status": "basket cleared"}, status=status.HTTP_204_NO_CONTENT)
