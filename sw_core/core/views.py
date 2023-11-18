@@ -103,25 +103,24 @@ class BasketViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=["post"])
     def add_item(self, request, pk=None):
         customer = request.user.customer
-        basket, created = core_models.Basket.objects.get_or_create(customer=customer)
-        # TODO: Extraction should happen in the serilizer
-        #   so we need to build a custom serilizer for this !!!
+        # TODO: Add auth and menigful response msg
+        (basket,) = core_models.Basket.objects.get_or_create(customer=customer)
 
-        # TODO: Also, if product id is sent, then we should look for that product!!
+        serializer = core_serializers.ProductCreateOrUpdateSerializer(data=request.data)
+        if serializer.is_valid():
+            product = serializer.save()
+            # Logic to add product to the basket
+            basket_item, item_created = core_models.BasketItem.objects.get_or_create(
+                basket=basket, product=product
+            )
+            if not item_created:
+                # Increment the quantity if the item is already in the basket
+                basket_item.quantity += 1
+                basket_item.save()
 
-        product_name = request.data.get("name")
-        product_price = request.data.get("price")
-        shop_name = request.data.get("shop_name")
-        quantity = request.data.get("quantity", 1)
-
-        # Find the product based on name, price, and shop_name
-        product, created = core_models.Product.objects.get_or_create(
-            name=product_name, price=product_price, shop_name=shop_name
-        )
-        core_models.BasketItem.objects.create(
-            basket=basket, product=product, quantity=quantity
-        )
-        return Response({"status": "item added"}, status=status.HTTP_201_CREATED)
+            return Response({"status": "item added"}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["post"])
     def remove_item(self, request, pk=None):
