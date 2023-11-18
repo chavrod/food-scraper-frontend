@@ -87,8 +87,6 @@ class CachedProductsPageViewSet(
 
 
 class BasketViewSet(viewsets.GenericViewSet):
-    queryset = core_models.CachedProductsPage.objects.all()
-
     # TODO: Make this available to admin only
     def list(self, request):
         pass
@@ -118,7 +116,8 @@ class BasketViewSet(viewsets.GenericViewSet):
                 basket_item.quantity += 1
                 basket_item.save()
 
-            return Response({"status": "item added"}, status=status.HTTP_201_CREATED)
+            basket_item_serializer = core_serializers.BasketItemSerializer(basket_item)
+            return Response(basket_item_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
