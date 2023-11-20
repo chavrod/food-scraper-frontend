@@ -88,23 +88,3 @@ class BasketItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
-
-
-class CachedRelevantProduct(models.Model):
-    name = models.CharField(max_length=100)
-    shop = models.CharField(max_length=30, choices=ShopName.choices)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    image_url = models.URLField(blank=True, null=True)
-
-    def __str__(self) -> str:
-        return f"{self.shop}: {self.name} {self.price}"
-
-
-class CachedAllProduct(models.Model):
-    name = models.CharField(max_length=100)
-    shop = models.CharField(max_length=30, choices=ShopName.choices)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    image_url = models.URLField(blank=True, null=True)
-
-    def __str__(self) -> str:
-        return f"{self.shop}: {self.name} {self.price}"
