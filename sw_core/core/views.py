@@ -78,6 +78,40 @@ class CachedProductsPageViewSet(
 class BasketViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
 
+    def _get_basket_item(self, request):
+        """Helper method to retrieve basket and item, handling common validation."""
+        customer = request.user.customer
+        basket = core_models.Basket.objects.get(customer=customer)
+
+        if not basket:
+            return (
+                None,
+                Response(
+                    {"error": "Basket not found."}, status=status.HTTP_404_NOT_FOUND
+                ),
+            )
+
+        item_id = request.data.get("item_id")
+        if not item_id:
+            return (
+                None,
+                Response(
+                    {"error": "Item ID is required."}, status=status.HTTP_404_NOT_FOUND
+                ),
+            )
+
+        basket_item = core_models.BasketItem.objects.get(pk=item_id, basket=basket)
+        if not basket_item:
+            return (
+                None,
+                Response(
+                    {"error": "Item not found in basket"},
+                    status=status.HTTP_404_NOT_FOUND,
+                ),
+            )
+
+        return basket_item, None
+
     # TODO: Make this available to admin only
     def list(self, request):
         pass
@@ -113,66 +147,34 @@ class BasketViewSet(viewsets.GenericViewSet):
 
     @action(detail=True, methods=["post"])
     def decrease_item_quantity(self, request, pk=None):
-        customer = request.user.customer
-        basket = core_models.Basket.objects.get(customer=customer)
-        if not basket:
-            return Response(
-                {"error": "Basket not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-        item_id = request.data.get("item_id")
-        if not item_id:
-            return Response(
-                {"error": "Item ID is required."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Find the basket item
-        try:
-            basket_item = core_models.BasketItem.objects.get(pk=item_id, basket=basket)
-        except core_models.BasketItem.DoesNotExist:
-            return Response(
-                {"error": "Item not found in basket"}, status=status.HTTP_404_NOT_FOUND
-            )
+        basket_item, error_response = self._get_basket_item(request)
+        if error_response:
+            return error_response
 
         # Decrease count or remove item
         if basket_item.quantity > 1:
             basket_item.quantity -= 1
             basket_item.save()
             return Response(
-                {"item_id": item_id, "quantity": basket_item.quantity},
+                {"item_id": basket_item.pk, "quantity": basket_item.quantity},
                 status=status.HTTP_200_OK,
             )
         else:
             basket_item.delete()
             return Response(
-                {"status": "Item removed from basket", "item_id": item_id},
+                {"status": "Item removed from basket", "item_id": basket_item.pk},
                 status=status.HTTP_200_OK,
             )
 
     @action(detail=True, methods=["post"])
     def remove_product_items(self, request, pk=None):
-        customer = request.user.customer
-        basket = core_models.Basket.objects.get(customer=customer)
-        if not basket:
-            return Response(
-                {"error": "Basket not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-        item_id = request.data.get("item_id")
-        if not item_id:
-            return Response(
-                {"error": "Item ID is required."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Find the basket item
-        try:
-            basket_item = core_models.BasketItem.objects.get(pk=item_id, basket=basket)
-        except core_models.BasketItem.DoesNotExist:
-            return Response(
-                {"error": "Item not found in basket"}, status=status.HTTP_404_NOT_FOUND
-            )
+        basket_item, error_response = self._get_basket_item(request)
+        if error_response:
+            return error_response
 
         basket_item.delete()
         return Response(
-            {"status": "Item removed from basket", "item_id": item_id},
+            {"status": "Item removed from basket", "item_id": basket_item.pk},
             status=status.HTTP_200_OK,
         )
 
