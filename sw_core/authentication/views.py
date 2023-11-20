@@ -33,7 +33,7 @@ from dj_rest_auth.views import (
 
 from authentication.serializers import CustomPasswordResetConfirmSerializer
 import authentication.models as authentication_models
-from core.models import Customer
+from core.models import Customer, Basket
 from shop_wiz.settings import BASE_DOMAIN_NAME
 import utils.abuse_detection as abuse_detection
 
@@ -44,7 +44,9 @@ User = get_user_model()
 class CustomRegisterView(RegisterView):
     def perform_create(self, serializer):
         user = super().perform_create(serializer)
-        Customer.objects.create(user=user)
+        customer = Customer.objects.create(user=user)
+        # Create empty basket and associate it with a customer
+        Basket.objects.create(customer=customer)
         return user
 
 
