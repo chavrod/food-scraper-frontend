@@ -148,8 +148,42 @@ class BasketViewSet(viewsets.GenericViewSet):
                 status=status.HTTP_200_OK,
             )
 
+    @action(detail=True, methods=["post"])
+    def remove_product_items(self, request, pk=None):
+        customer = request.user.customer
+        basket = core_models.Basket.objects.get(customer=customer)
+        if not basket:
+            return Response(
+                {"error": "Basket not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        item_id = request.data.get("item_id")
+        if not item_id:
+            return Response(
+                {"error": "Item ID is required."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Find the basket item
+        try:
+            basket_item = core_models.BasketItem.objects.get(pk=item_id, basket=basket)
+        except core_models.BasketItem.DoesNotExist:
+            return Response(
+                {"error": "Item not found in basket"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        basket_item.delete()
+        return Response(
+            {"status": "Item removed from basket", "item_id": item_id},
+            status=status.HTTP_200_OK,
+        )
+
     @action(detail=False, methods=["post"])
     def clear_all(self, request, pk=None):
         customer = request.user.customer
-        core_models.Basket.objects.filter(customer=customer).delete()
+        basket = core_models.Basket.objects.get(customer=customer)
+        if not basket:
+            return Response(
+                {"error": "Basket not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        # Delete all items related to the basket
+        basket.items.all().delete()
         return Response({"status": "basket cleared"}, status=status.HTTP_204_NO_CONTENT)
