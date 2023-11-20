@@ -90,9 +90,8 @@ class BasketViewSet(viewsets.GenericViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=["post"])
-    def add_item(self, request, pk=None):
+    def add_item_quantity(self, request, pk=None):
         customer = request.user.customer
-        # TODO: Add auth and menigful response msg
         (basket,) = core_models.Basket.objects.get_or_create(customer=customer)
 
         serializer = core_serializers.ProductCreateOrUpdateSerializer(data=request.data)
@@ -113,8 +112,41 @@ class BasketViewSet(viewsets.GenericViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["post"])
-    def remove_item(self, request, pk=None):
-        pass
+    def decrease_item_quantity(self, request, pk=None):
+        customer = request.user.customer
+        basket = core_models.Basket.objects.get(customer=customer)
+        if not basket:
+            return Response(
+                {"error": "Basket not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        item_id = request.data.get("item_id")
+        if not item_id:
+            return Response(
+                {"error": "Item ID is required."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Find the basket item
+        try:
+            basket_item = core_models.BasketItem.objects.get(pk=item_id, basket=basket)
+        except core_models.BasketItem.DoesNotExist:
+            return Response(
+                {"error": "Item not found in basket"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Decrease count or remove item
+        if basket_item.quantity > 1:
+            basket_item.quantity -= 1
+            basket_item.save()
+            return Response(
+                {"item_id": item_id, "quantity": basket_item.quantity},
+                status=status.HTTP_200_OK,
+            )
+        else:
+            basket_item.delete()
+            return Response(
+                {"status": "Item removed from basket", "item_id": item_id},
+                status=status.HTTP_200_OK,
+            )
 
     @action(detail=False, methods=["post"])
     def clear_all(self, request, pk=None):
