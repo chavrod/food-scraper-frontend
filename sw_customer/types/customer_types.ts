@@ -15,11 +15,14 @@ export interface CachedProductsPageSerializer {
 }
 
 export interface ProductSerializer {
+    id?: number;
     name: string;
     price: number;
     imgSrc?: string | null;
     productUrl?: string | null;
     shop_name: "ALDI" | "TESCO" | "SUPERVALU";
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface BasketItemSerializer {
