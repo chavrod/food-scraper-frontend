@@ -1,6 +1,7 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReactElement, useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 // External Styling
 import { useForm } from "@mantine/form";
 import {
@@ -34,6 +35,7 @@ import { CountdownCircleTimer } from "react-countdown-circle-timer";
 import { Product, SearchMetaData } from "@/utils/types";
 // Intenral: Components
 import renderTime from "@/Components/RenderTimeNumber";
+import Basket from "./Basket";
 
 interface SearchResultsProps {
   searchText?: string;
@@ -54,6 +56,8 @@ export default function SearchResults({
   searchMetaData,
   averageScrapingTime,
 }: SearchResultsProps): ReactElement {
+  const { data: session } = useSession();
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("query");
@@ -219,7 +223,7 @@ export default function SearchResults({
       </Tabs.List>
 
       <Tabs.Panel value="search" pt="xs">
-        <Stack align="center">
+        <Stack align="center" spacing={0}>
           <form onSubmit={form.onSubmit(handleFormSubmit)}>
             <Flex
               my="md"
@@ -464,7 +468,7 @@ export default function SearchResults({
       </Tabs.Panel>
 
       <Tabs.Panel value="basket" pt="xs">
-        Messages tab content
+        <Basket session={session} />
       </Tabs.Panel>
     </Tabs>
   );
