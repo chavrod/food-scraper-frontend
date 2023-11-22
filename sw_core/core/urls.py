@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
-router.register(r"baskets", core_views.BasketViewSet, basename="basket")
+router.register("basket_items", core_views.BasketItemViewSet, basename="basket_item")
 
 
 urlpatterns = [
