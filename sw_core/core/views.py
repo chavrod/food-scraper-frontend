@@ -76,14 +76,20 @@ class CachedProductsPageViewSet(
 
 
 class BasketViewSet(viewsets.GenericViewSet):
+    # TODO: Make this available to admin only
+    def list(self, request):
+        pass
+
+
+class BasketItemViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
 
-    def _get_basket_item(self, request):
+    def _get_basket_item(self, request, pk):
         """Helper method to retrieve basket and item, handling common validation."""
         customer = request.user.customer
-        basket = core_models.Basket.objects.get(customer=customer)
-
-        if not basket:
+        try:
+            basket = core_models.Basket.objects.get(customer=customer)
+        except core_models.Basket.DoesNotExist:
             return (
                 None,
                 Response(
@@ -91,17 +97,9 @@ class BasketViewSet(viewsets.GenericViewSet):
                 ),
             )
 
-        item_id = request.data.get("item_id")
-        if not item_id:
-            return (
-                None,
-                Response(
-                    {"error": "Item ID is required."}, status=status.HTTP_404_NOT_FOUND
-                ),
-            )
-
-        basket_item = core_models.BasketItem.objects.get(pk=item_id, basket=basket)
-        if not basket_item:
+        try:
+            basket_item = core_models.BasketItem.objects.get(pk=pk, basket=basket)
+        except core_models.BasketItem.DoesNotExist:
             return (
                 None,
                 Response(
@@ -112,15 +110,14 @@ class BasketViewSet(viewsets.GenericViewSet):
 
         return basket_item, None
 
-    # TODO: Make this available to admin only
-    def list(self, request):
-        pass
-
     @action(detail=False, methods=["get"])
     def get_items(self, request, pk=None):
         customer = request.user.customer
-        basket, created = core_models.Basket.objects.get_or_create(customer=customer)
-        serializer = core_serializers.BasketSerializer(basket)
+        (basket,) = core_models.Basket.objects.get_or_create(customer=customer)
+
+        items = core_models.BasketItem.objects.filter(basket=basket)
+
+        serializer = core_serializers.BasketItemSerializer(items)
         return Response(serializer.data)
 
     @action(detail=False, methods=["post"])
@@ -147,7 +144,7 @@ class BasketViewSet(viewsets.GenericViewSet):
 
     @action(detail=True, methods=["post"])
     def decrease_item_quantity(self, request, pk=None):
-        basket_item, error_response = self._get_basket_item(request)
+        basket_item, error_response = self._get_basket_item(request, pk)
         if error_response:
             return error_response
 
@@ -168,7 +165,7 @@ class BasketViewSet(viewsets.GenericViewSet):
 
     @action(detail=True, methods=["post"])
     def remove_product_items(self, request, pk=None):
-        basket_item, error_response = self._get_basket_item(request)
+        basket_item, error_response = self._get_basket_item(request, pk)
         if error_response:
             return error_response
 
