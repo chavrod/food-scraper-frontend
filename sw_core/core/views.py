@@ -81,7 +81,7 @@ class BasketViewSet(viewsets.GenericViewSet):
         pass
 
 
-class BasketItemViewSet(viewsets.GenericViewSet):
+class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
 
     def _get_basket_item(self, request, pk):
@@ -111,7 +111,7 @@ class BasketItemViewSet(viewsets.GenericViewSet):
         return basket_item, None
 
     @action(detail=False, methods=["get"])
-    def get_items(self, request, pk=None):
+    def list(self, request, pk=None):
         customer = request.user.customer
         (basket,) = core_models.Basket.objects.get_or_create(customer=customer)
 
