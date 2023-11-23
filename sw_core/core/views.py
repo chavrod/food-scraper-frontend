@@ -110,7 +110,6 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         return basket_item, None
 
-    @action(detail=False, methods=["get"])
     def list(self, request, pk=None):
         customer = request.user.customer
         (basket,) = core_models.Basket.objects.get_or_create(customer=customer)
