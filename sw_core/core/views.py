@@ -25,7 +25,7 @@ def ping(request):
 class CachedProductsPageViewSet(
     viewsets.GenericViewSet,
 ):
-    serializer_class = core_serializers.CachedProductsPageSerializer
+    serializer_class = core_serializers.CachedProductsPage
     queryset = core_models.CachedProductsPage.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
@@ -112,19 +112,19 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def list(self, request, pk=None):
         customer = request.user.customer
-        (basket,) = core_models.Basket.objects.get_or_create(customer=customer)
+        basket, created = core_models.Basket.objects.get_or_create(customer=customer)
 
         items = core_models.BasketItem.objects.filter(basket=basket)
 
-        serializer = core_serializers.BasketItemSerializer(items)
+        serializer = core_serializers.BasketItem(items)
         return Response(serializer.data)
 
     @action(detail=False, methods=["post"])
     def add_item_quantity(self, request, pk=None):
         customer = request.user.customer
-        (basket,) = core_models.Basket.objects.get_or_create(customer=customer)
+        basket, created = core_models.Basket.objects.get_or_create(customer=customer)
 
-        serializer = core_serializers.ProductCreateOrUpdateSerializer(data=request.data)
+        serializer = core_serializers.ProductCreateOrUpdate(data=request.data)
         if serializer.is_valid():
             product = serializer.save()
             # Logic to add product to the basket
@@ -136,7 +136,7 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                 basket_item.quantity += 1
                 basket_item.save()
 
-            basket_item_serializer = core_serializers.BasketItemSerializer(basket_item)
+            basket_item_serializer = core_serializers.BasketItem(basket_item)
             return Response(basket_item_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
