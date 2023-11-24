@@ -10,7 +10,7 @@ from django.db import transaction
 
 from shop_wiz.settings import RESULTS_PER_PAGE
 import core.models as core_models
-from core.serializers import CachedProductsPageSerializer
+from core.serializers import CachedProductsPage
 
 import argparse
 import requests
@@ -126,7 +126,7 @@ def save_results_to_db(query, sorted_and_paginated_data, is_relevant_only):
     print(f"SAVING  RESULTS FOR {query} TO THE DB")
     with transaction.atomic():
         for index, page_data in enumerate(sorted_and_paginated_data, start=1):
-            serializer = CachedProductsPageSerializer(
+            serializer = CachedProductsPage(
                 data={
                     "query": query,
                     "page": index,
