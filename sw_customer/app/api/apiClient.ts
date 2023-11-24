@@ -1,13 +1,22 @@
+import { getSession } from "next-auth/react";
+
 async function request(
   endpoint: string,
   method = "GET",
   data: {} | null = null
 ) {
+  const session = await getSession();
+  let accessToken = "";
+  if (session) {
+    accessToken = session.access_token;
+  }
+
   const options: any = {
     method,
     cache: "no-store",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
     },
   };
 
