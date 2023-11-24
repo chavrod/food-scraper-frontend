@@ -9,7 +9,7 @@ import authentication.models as authentication_models
 
 
 @ts_interface()
-class CustomerSerializer(serializers.ModelSerializer):
+class Customer(serializers.ModelSerializer):
     password_reset_attempts = serializers.SerializerMethodField()
 
     class Meta:
@@ -28,7 +28,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 @ts_interface()
-class CachedProductsPageSerializer(serializers.ModelSerializer):
+class CachedProductsPage(serializers.ModelSerializer):
     query = serializers.CharField(max_length=30, required=True)
     page = serializers.IntegerField(default=1)
     is_relevant_only = serializers.BooleanField(required=True)
@@ -53,13 +53,13 @@ class CachedProductsPageSerializer(serializers.ModelSerializer):
 
 
 @ts_interface()
-class ProductSerializer(serializers.ModelSerializer):
+class Product(serializers.ModelSerializer):
     class Meta:
         model = core_models.Product
         fields = "__all__"
 
 
-class ProductCreateOrUpdateSerializer(serializers.ModelSerializer):
+class ProductCreateOrUpdate(serializers.ModelSerializer):
     prod_id = serializers.IntegerField(required=False, allow_null=True)
 
     def validate(self, attrs):
@@ -120,8 +120,8 @@ class ProductCreateOrUpdateSerializer(serializers.ModelSerializer):
 
 
 @ts_interface()
-class BasketItemSerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)
+class BasketItem(serializers.ModelSerializer):
+    product = Product(read_only=True)
 
     class Meta:
         model = core_models.BasketItem
@@ -129,8 +129,8 @@ class BasketItemSerializer(serializers.ModelSerializer):
 
 
 @ts_interface()
-class BasketSerializer(serializers.ModelSerializer):
-    items = BasketItemSerializer(many=True, read_only=True)
+class Basket(serializers.ModelSerializer):
+    items = BasketItem(many=True, read_only=True)
 
     class Meta:
         model = core_models.Basket

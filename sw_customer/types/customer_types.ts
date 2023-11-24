@@ -1,11 +1,11 @@
-export interface CustomerSerializer {
+export interface Customer {
     id?: number;
     password_reset_attempts?: null;
     phone_number?: string | null;
     user: number | string;
 }
 
-export interface CachedProductsPageSerializer {
+export interface CachedProductsPage {
     id?: number;
     query: string;
     page?: number;
@@ -14,7 +14,7 @@ export interface CachedProductsPageSerializer {
     created?: string;
 }
 
-export interface ProductSerializer {
+export interface Product {
     id?: number;
     name: string;
     price: number;
@@ -25,14 +25,14 @@ export interface ProductSerializer {
     updated_at?: string;
 }
 
-export interface BasketItemSerializer {
-    product?: ProductSerializer;
+export interface BasketItem {
+    product?: Product;
     quantity?: number;
 }
 
-export interface BasketSerializer {
+export interface Basket {
     id?: number;
-    items?: BasketItemSerializer[];
+    items?: BasketItem[];
 }
 
 export interface SocialAccountSerializer {
@@ -45,7 +45,7 @@ export interface CustomUserDetailsSerializer {
     email?: string;
     first_name?: string;
     last_name?: string;
-    customer?: CustomerSerializer;
+    customer?: Customer;
     social_accounts?: SocialAccountSerializer[];
 }
 

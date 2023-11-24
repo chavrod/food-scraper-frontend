@@ -4,7 +4,7 @@ from dj_rest_auth.serializers import UserDetailsSerializer, JWTSerializer
 from allauth.account.adapter import get_adapter
 from allauth.socialaccount.models import SocialAccount
 
-from core.serializers import CustomerSerializer
+from core.serializers import Customer
 
 from django_typomatic import ts_interface, generate_ts
 
@@ -20,7 +20,7 @@ class SocialAccountSerializer(serializers.ModelSerializer):
 
 @ts_interface()
 class CustomUserDetailsSerializer(UserDetailsSerializer):
-    customer = CustomerSerializer(read_only=True)
+    customer = Customer(read_only=True)
     social_accounts = SocialAccountSerializer(
         source="socialaccount_set", many=True, read_only=True
     )
