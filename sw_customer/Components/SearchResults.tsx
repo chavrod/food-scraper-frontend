@@ -1,6 +1,6 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ReactElement, useState, useEffect } from "react";
+import { ReactElement, useState, useEffect, useId } from "react";
 import { useSession } from "next-auth/react";
 // External Styling
 import { useForm } from "@mantine/form";
@@ -31,11 +31,15 @@ import {
   IconShoppingCart,
 } from "@tabler/icons-react";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
+// Internal: Types
+import { BasketItem } from "@/types/customer_types";
 // Intenral: Utils
 import { Product, SearchMetaData } from "@/utils/types";
 // Intenral: Components
 import renderTime from "@/Components/RenderTimeNumber";
 import Basket from "./Basket";
+import basketItemsApi from "@/app/api/basketItemsApi";
+import useApi from "@/utils/useApi";
 
 interface SearchResultsProps {
   searchText?: string;
@@ -56,6 +60,8 @@ export default function SearchResults({
   searchMetaData,
   averageScrapingTime,
 }: SearchResultsProps): ReactElement {
+  const chartId = useId();
+
   const { data: session } = useSession();
 
   const router = useRouter();
@@ -190,20 +196,31 @@ export default function SearchResults({
     }
   }, [currentProducts, currentAverageScrapingTime]);
 
+  const basketItems = useApi({
+    apiFunc: basketItemsApi.list,
+    onSuccess: (res) => {},
+  });
+
   return (
-    <Tabs defaultValue="search">
+    <Tabs id="tabs-main" defaultValue="search">
       <Title align="left" mb="sm">
         Explore
       </Title>
       <Text c="dimmed" mb="md">
         Search for products, add to basket, and make your choices
       </Text>
-      <Tabs.List>
-        <Tabs.Tab value="search" icon={<IconSearch size="1.2rem" />}>
+      <Tabs.List id="tabs-list">
+        <Tabs.Tab
+          id="tabs-search-pick"
+          value="search"
+          icon={<IconSearch size="1.2rem" />}
+        >
           Search
         </Tabs.Tab>
         <Tabs.Tab
+          id="tabs-basket-pick"
           value="basket"
+          onClick={basketItems.request}
           icon={<IconShoppingCart size="1.2rem" />}
           rightSection={
             <Badge
@@ -222,7 +239,7 @@ export default function SearchResults({
         </Tabs.Tab>
       </Tabs.List>
 
-      <Tabs.Panel value="search" pt="xs">
+      <Tabs.Panel id="tabs-search-view" value="search" pt="xs">
         <Stack align="center" spacing={0}>
           <form onSubmit={form.onSubmit(handleFormSubmit)}>
             <Flex
@@ -467,7 +484,7 @@ export default function SearchResults({
         </Stack>
       </Tabs.Panel>
 
-      <Tabs.Panel value="basket" pt="xs">
+      <Tabs.Panel id="tabs-basket-view" value="basket" pt="xs">
         <Basket session={session} />
       </Tabs.Panel>
     </Tabs>
