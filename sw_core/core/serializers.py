@@ -60,33 +60,34 @@ class Product(serializers.ModelSerializer):
 
 
 class ProductCreateOrUpdate(serializers.ModelSerializer):
-    prod_id = serializers.IntegerField(required=False, allow_null=True)
+    pk = serializers.IntegerField(required=False, allow_null=True)
+    name = serializers.CharField(trim_whitespace=True, required=False)
 
     def validate(self, attrs):
-        prod_id = attrs.get("prod_id")
+        prod_id = attrs.get("pk")
         name = attrs.get("name")
         price = attrs.get("price")
-        imgSrc = attrs.get("imgSrc")
-        productUrl = attrs.get("productUrl")
+        img_src = attrs.get("img_src")
+        product_url = attrs.get("product_url")
         shop_name = attrs.get("shop_name")
 
         if prod_id and len(attrs) > 1:
             raise serializers.ValidationError(
-                {"error": "Only 'prod_id' should be provided if present"}
+                {"error": "Only 'pk' should be provided if present"}
             )
 
         if name:
-            if not all([price, imgSrc, productUrl, shop_name]):
+            if not all([price, img_src, product_url, shop_name]):
                 raise serializers.ValidationError(
                     {
-                        "error": "All fields 'name', 'price', 'imgSrc', 'productUrl', 'shop_name' must be provided together"
+                        "error": "All fields 'name', 'price', 'img_src', 'product_url', 'shop_name' must be provided together"
                     }
                 )
 
         return attrs
 
     def create(self, validated_data):
-        prod_id = validated_data.get("prod_id")
+        prod_id = validated_data.get("pk")
         name = validated_data.get("name")
         shop_name = validated_data.get("shop_name")
 
@@ -109,12 +110,13 @@ class ProductCreateOrUpdate(serializers.ModelSerializer):
 
     class Meta:
         model = core_models.Product
-        fields = ["name", "price", "imgSrc", "productUrl", "shop_name"]
+        fields = ["pk", "name", "price", "img_src", "product_url", "shop_name"]
         extra_kwargs = {
+            "pk": {"required": False, "allow_null": True},
             "name": {"required": False},
             "price": {"required": False},
-            "imgSrc": {"required": False},
-            "productUrl": {"required": False},
+            "img_src": {"required": False},
+            "product_url": {"required": False},
             "shop_name": {"required": False},
         }
 
