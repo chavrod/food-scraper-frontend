@@ -38,7 +38,7 @@ def cache_data(query: str, is_relevant_only: bool):
     print("RESULTS SORTED AND PAGINATED")
     print("TOTAL RESULTS:", len(unsorted_results))
     for shop in scraped_data["summaryPerShop"]:
-        print(f'{shop["shopName"]} RESULTS:', shop["count"])
+        print(f'{shop["shop_name"]} RESULTS:', shop["count"])
     print("NUMBER OF PAGES:", len(sorted_and_paginated_data))
 
     save_results_to_db(
@@ -88,7 +88,7 @@ def scrape_data(query: str, is_relevant_only: bool) -> Dict:
 
     for shop in results["summaryPerShop"]:
         summarise_scraping(
-            shop=shop["shopName"],
+            shop=shop["shop_name"],
             results_count=shop["count"],
             execution_time=shop["exec_time"],
             total_summary=total_summary,
@@ -202,9 +202,9 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                     product = {
                         "name": "",
                         "price": 0,
-                        "imgSrc": None,
-                        "productUrl": None,
-                        "shopName": core_models.ShopName.TESCO,
+                        "img_src": None,
+                        "product_url": None,
+                        "shop_name": core_models.ShopName.TESCO,
                     }
 
                     # Get the product name
@@ -232,7 +232,7 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                             first_image_from_srcset = (
                                 img_srcset.split(",")[0].strip().split(" ")[0]
                             )
-                            product["imgSrc"] = first_image_from_srcset
+                            product["img_src"] = first_image_from_srcset
 
                     # Get the link to the product
                     internal_url_path_el = prod.query_selector("a")
@@ -240,7 +240,7 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                         internal_url_path = internal_url_path_el.get_attribute("href")
                         if internal_url_path:
                             full_url = "https://www.tesco.ie" + internal_url_path
-                            product["productUrl"] = full_url
+                            product["product_url"] = full_url
 
                     # If product has name and price, add to the list
                     if product["name"] and product["price"] > 0:
@@ -260,7 +260,7 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                 "summaryPerShop": {
                     "count": len(products),
                     "exec_time": elapsed_time,
-                    "shopName": core_models.ShopName.TESCO,
+                    "shop_name": core_models.ShopName.TESCO,
                 },
             }
     except (AssertionError, Exception) as e:
@@ -271,7 +271,7 @@ def scrape_tesco(query: str, is_relevant_only: bool):
             "summaryPerShop": {
                 "count": 0,
                 "exec_time": 0,
-                "shopName": core_models.ShopName.TESCO,
+                "shop_name": core_models.ShopName.TESCO,
             },
         }
 
@@ -330,9 +330,9 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                     product = {
                         "name": "",
                         "price": 0,
-                        "imgSrc": None,
-                        "productUrl": None,
-                        "shopName": core_models.ShopName.ALDI,
+                        "img_src": None,
+                        "product_url": None,
+                        "shop_name": core_models.ShopName.ALDI,
                     }
 
                     # Extracting elements
@@ -349,7 +349,7 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                     price_match = re.search(r"(\d+\.\d+)", price_text)
                     product["price"] = float(price_match.group(1)) if price_match else 0
 
-                    product["imgSrc"] = image_element.get_attribute("src") or None
+                    product["img_src"] = image_element.get_attribute("src") or None
 
                     # Get the link to the product
                     internal_url_path_el = prod.query_selector("a")
@@ -357,7 +357,7 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                         internal_url_path = internal_url_path_el.get_attribute("href")
                         if internal_url_path:
                             full_url = "https://groceries.aldi.ie" + internal_url_path
-                            product["productUrl"] = full_url
+                            product["product_url"] = full_url
 
                     if product["name"] and product["price"] > 0:
                         products.append(product)
@@ -376,7 +376,7 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                 "summaryPerShop": {
                     "count": len(products),
                     "exec_time": elapsed_time,
-                    "shopName": core_models.ShopName.ALDI,
+                    "shop_name": core_models.ShopName.ALDI,
                 },
             }
     except (AssertionError, Exception) as e:
@@ -386,7 +386,7 @@ def scrape_aldi(query: str, is_relevant_only: bool):
             "summaryPerShop": {
                 "count": 0,
                 "exec_time": 0,
-                "shopName": core_models.ShopName.ALDI,
+                "shop_name": core_models.ShopName.ALDI,
             },
         }
 
@@ -455,9 +455,9 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                     product = {
                         "name": "",
                         "price": 0,
-                        "imgSrc": None,
-                        "productUrl": None,
-                        "shopName": core_models.ShopName.SUPERVALU,
+                        "img_src": None,
+                        "product_url": None,
+                        "shop_name": core_models.ShopName.SUPERVALU,
                     }
 
                     name_element = prod.query_selector(
@@ -485,7 +485,7 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                     match = re.search(r"(\d+\.\d+)", price_text) if price_text else None
                     product["price"] = float(match.group(1)) if match else 0
 
-                    product["imgSrc"] = (
+                    product["img_src"] = (
                         image_element.get_attribute("src") if image_element else None
                     )
 
@@ -494,7 +494,7 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                     if internal_url_path_el:
                         internal_url_path = internal_url_path_el.get_attribute("href")
                         if internal_url_path:
-                            product["productUrl"] = internal_url_path
+                            product["product_url"] = internal_url_path
 
                     if product["name"] and product["price"] > 0:
                         products.append(product)
@@ -515,7 +515,7 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                 "summaryPerShop": {
                     "count": len(products),
                     "exec_time": elapsed_time,
-                    "shopName": core_models.ShopName.SUPERVALU,
+                    "shop_name": core_models.ShopName.SUPERVALU,
                 },
             }
     except (AssertionError, Exception) as e:
@@ -527,7 +527,7 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
             "summaryPerShop": {
                 "count": 0,
                 "exec_time": 0,
-                "shopName": core_models.ShopName.SUPERVALU,
+                "shop_name": core_models.ShopName.SUPERVALU,
             },
         }
 
@@ -555,4 +555,4 @@ if __name__ == "__main__":
 
     # Display the desired results
     for shop in result["summaryPerShop"]:
-        print(f'{shop["shopName"]} RESULTS:', shop["count"])
+        print(f'{shop["shop_name"]} RESULTS:', shop["count"])

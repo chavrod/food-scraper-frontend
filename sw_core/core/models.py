@@ -60,8 +60,8 @@ class ScrapeSummaryPerShop(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    imgSrc = models.URLField(blank=True, null=True)
-    productUrl = models.URLField(blank=True, null=True)
+    img_src = models.URLField(blank=True, null=True)
+    product_url = models.URLField(blank=True, null=True)
     shop_name = models.CharField(max_length=50, choices=ShopName.choices)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
