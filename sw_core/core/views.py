@@ -116,7 +116,9 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         items = core_models.BasketItem.objects.filter(basket=basket)
 
-        serializer = core_serializers.BasketItem(items)
+        print(items)
+
+        serializer = core_serializers.BasketItem(items, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=["post"])
@@ -135,6 +137,8 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                 # Increment the quantity if the item is already in the basket
                 basket_item.quantity += 1
                 basket_item.save()
+
+            print("BASKET ITEM ADDED", basket_item.product.name, basket_item.quantity)
 
             basket_item_serializer = core_serializers.BasketItem(basket_item)
             return Response(basket_item_serializer.data, status=status.HTTP_201_CREATED)
