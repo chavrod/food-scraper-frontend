@@ -5,20 +5,18 @@ async function request(
   method = "GET",
   data: {} | null = null
 ) {
-  const session = await getSession();
-  let accessToken = "";
-  if (session) {
-    accessToken = session.access_token;
-  }
-
   const options: any = {
     method,
     cache: "no-store",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
     },
   };
+
+  const session = await getSession();
+  if (session?.access_token) {
+    options.headers.Authorization = `Bearer ${session.access_token}`;
+  }
 
   if (data && Object.keys(data).length > 0) {
     options.body = JSON.stringify(data);
@@ -28,10 +26,6 @@ async function request(
     `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
     options
   );
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }
 
   return response;
 }
