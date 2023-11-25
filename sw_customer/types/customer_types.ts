@@ -18,8 +18,8 @@ export interface Product {
     id?: number;
     name: string;
     price: number;
-    imgSrc?: string | null;
-    productUrl?: string | null;
+    img_src?: string | null;
+    product_url?: string | null;
     shop_name: "ALDI" | "TESCO" | "SUPERVALU";
     created_at?: string;
     updated_at?: string;
