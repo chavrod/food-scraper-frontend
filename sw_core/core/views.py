@@ -1,7 +1,7 @@
 from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
 
-from django.db.models import Avg
+from django.db.models import Avg, Sum
 from django.http import JsonResponse
 
 from rest_framework import status, viewsets, mixins
@@ -115,11 +115,12 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         basket, created = core_models.Basket.objects.get_or_create(customer=customer)
 
         items = core_models.BasketItem.objects.filter(basket=basket)
-
-        print(items)
+        total_quantity = items.aggregate(Sum("quantity"))["quantity__sum"] or 0
 
         serializer = core_serializers.BasketItem(items, many=True)
-        return Response(serializer.data)
+        return Response(
+            {"data": serializer.data, "metadata": {"total_quantity": total_quantity}}
+        )
 
     @action(detail=False, methods=["post"])
     def add_item_quantity(self, request, pk=None):
