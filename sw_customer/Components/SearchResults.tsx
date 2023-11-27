@@ -2,6 +2,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReactElement, useState, useEffect, useId } from "react";
 import { useSession } from "next-auth/react";
+import normalizeUrl from "normalize-url";
 // External Styling
 import { useForm } from "@mantine/form";
 import {
@@ -29,17 +30,21 @@ import {
   IconShoppingBagPlus,
   IconSearch,
   IconShoppingCart,
+  IconCheck,
 } from "@tabler/icons-react";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 // Internal: Types
 import { BasketItem } from "@/types/customer_types";
 // Intenral: Utils
-import { Product, SearchMetaData } from "@/utils/types";
+import { SearchMetaData } from "@/utils/types";
+import { Product } from "@/types/customer_types";
 // Intenral: Components
 import renderTime from "@/Components/RenderTimeNumber";
 import Basket from "./Basket";
+// Intenral: API
 import basketItemsApi from "@/app/api/basketItemsApi";
 import useApi from "@/utils/useApi";
+import useApiSubmit from "@/utils/useApiSubmit";
 
 interface SearchResultsProps {
   searchText?: string;
@@ -54,14 +59,17 @@ type LoadingStates = {
   loadingCached: boolean;
 };
 
+type ProductStateType = {
+  loading: Record<number, boolean>;
+  added: Record<number, boolean>;
+};
+
 export default function SearchResults({
   searchText,
   products,
   searchMetaData,
   averageScrapingTime,
 }: SearchResultsProps): ReactElement {
-  const chartId = useId();
-
   const { data: session } = useSession();
 
   const router = useRouter();
@@ -196,10 +204,56 @@ export default function SearchResults({
     }
   }, [currentProducts, currentAverageScrapingTime]);
 
-  const basketItems = useApi({
+  const basketItems = useApi<BasketItem[]>({
     apiFunc: basketItemsApi.list,
-    onSuccess: (res) => {},
+    onSuccess: () => {},
   });
+
+  const { handleSubmit, loading: loadingSubmit } = useApiSubmit({
+    apiFunc: basketItemsApi.addItemQuantity,
+    data: {},
+    onSuccess: () => {
+      basketItems.request();
+    },
+  });
+
+  const [productStates, setProductStates] = useState<ProductStateType>({
+    loading: {},
+    added: {},
+  });
+
+  const handleAddToBasket = async (product: Product, index: number) => {
+    setProductStates((prevStates) => ({
+      ...prevStates,
+      loading: { ...prevStates.loading, [index]: true },
+    }));
+
+    // Encode the URL - some urls are non standard
+    if (product.img_src) {
+      product.img_src = normalizeUrl(product.img_src);
+    }
+    await handleSubmit(product);
+
+    // Set loading to false once operation is complete
+    setProductStates((prevStates) => ({
+      loading: { ...prevStates.loading, [index]: false },
+      added: { ...prevStates.added, [index]: true },
+    }));
+
+    setTimeout(() => {
+      setProductStates((prevStates) => ({
+        ...prevStates,
+        added: { ...prevStates.added, [index]: false },
+      }));
+    }, 2000);
+  };
+
+  const basketQty = basketItems.metaData?.total_quantity || 0;
+  useEffect(() => {
+    if (session) {
+      basketItems.request();
+    }
+  }, [session]);
 
   return (
     <Tabs id="tabs-main" defaultValue="search">
@@ -220,19 +274,25 @@ export default function SearchResults({
         <Tabs.Tab
           id="tabs-basket-pick"
           value="basket"
-          onClick={basketItems.request}
+          onClick={() => {
+            session && basketItems.request();
+          }}
           icon={<IconShoppingCart size="1.2rem" />}
           rightSection={
-            <Badge
-              w={21}
-              h={21}
-              sx={{ pointerEvents: "none" }}
-              variant="filled"
-              size="xs"
-              p={0}
-            >
-              12
-            </Badge>
+            session && loadingSubmit ? (
+              <Loader size="xs" />
+            ) : (
+              <Badge
+                w={21}
+                h={21}
+                sx={{ pointerEvents: "none" }}
+                variant="filled"
+                size="xs"
+                p={0}
+              >
+                {session ? basketQty : 0}
+              </Badge>
+            )
           }
         >
           Basket
@@ -377,7 +437,7 @@ export default function SearchResults({
                               }}
                             >
                               <img
-                                src={product.imgSrc}
+                                src={product.img_src || "no-product-image.jpeg"}
                                 alt={product.name}
                                 style={{ width: "5rem" }}
                               />
@@ -392,8 +452,8 @@ export default function SearchResults({
                               }}
                             >
                               <img
-                                src={`/brand-logos/${product.shopName}.jpeg`}
-                                alt={product.shopName}
+                                src={`/brand-logos/${product.shop_name}.jpeg`}
+                                alt={product.shop_name}
                                 style={{ width: "3rem" }}
                               />
                             </Container>
@@ -410,8 +470,8 @@ export default function SearchResults({
                                 {product.name}
                               </Text>
                               <Text fz="sm" c="dimmed">
-                                {product.shopName.charAt(0).toUpperCase() +
-                                  product.shopName.slice(1).toLowerCase()}
+                                {product.shop_name.charAt(0).toUpperCase() +
+                                  product.shop_name.slice(1).toLowerCase()}
                               </Text>
                               <Group spacing={0} align="center">
                                 <Text
@@ -426,7 +486,9 @@ export default function SearchResults({
                                   fw={700}
                                   component="a"
                                   href={
-                                    product.productUrl ? product.productUrl : ""
+                                    product.product_url
+                                      ? product.product_url
+                                      : ""
                                   }
                                   target="_blank"
                                   rel="noopener noreferrer"
@@ -447,12 +509,28 @@ export default function SearchResults({
                                   : "Price not available"}
                               </Text>
                               <Button
+                                disabled={!session}
+                                loading={productStates.loading[index]}
                                 variant="light"
                                 radius="xl"
                                 size="xs"
-                                leftIcon={<IconShoppingBagPlus />}
+                                leftIcon={
+                                  productStates.added[index] ? (
+                                    <IconCheck />
+                                  ) : (
+                                    <IconShoppingBagPlus />
+                                  )
+                                }
+                                color={
+                                  productStates.added[index]
+                                    ? "teal"
+                                    : "default"
+                                }
+                                onClick={() =>
+                                  handleAddToBasket(product, index)
+                                }
                               >
-                                Add
+                                {productStates.added[index] ? "Added!" : "Add"}
                               </Button>
                             </Group>
                           </Stack>
