@@ -232,20 +232,28 @@ export default function SearchResults({
     if (product.img_src) {
       product.img_src = normalizeUrl(product.img_src);
     }
-    await handleSubmit(product);
 
-    // Set loading to false once operation is complete
-    setProductStates((prevStates) => ({
-      loading: { ...prevStates.loading, [index]: false },
-      added: { ...prevStates.added, [index]: true },
-    }));
+    const wasSuccessful = await handleSubmit(product);
+    // Update states based on whether adding to basket was successful
+    if (wasSuccessful) {
+      setProductStates((prevStates) => ({
+        loading: { ...prevStates.loading, [index]: false },
+        added: { ...prevStates.added, [index]: true },
+      }));
 
-    setTimeout(() => {
+      setTimeout(() => {
+        setProductStates((prevStates) => ({
+          ...prevStates,
+          added: { ...prevStates.added, [index]: false },
+        }));
+      }, 2000);
+    } else {
       setProductStates((prevStates) => ({
         ...prevStates,
-        added: { ...prevStates.added, [index]: false },
+        loading: { ...prevStates.loading, [index]: false },
+        // Don't update the 'added' state if it was not successful
       }));
-    }, 2000);
+    }
   };
 
   const basketQty = basketItems.metaData?.total_quantity || 0;
