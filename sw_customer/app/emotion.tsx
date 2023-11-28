@@ -58,7 +58,7 @@ export default function RootStyleRegistry({
             },
           }}
         >
-          <Notifications />
+          <Notifications position="top-right" />
           {children}
         </MantineProvider>
       </ColorSchemeProvider>
