@@ -24,6 +24,7 @@ import {
   Tabs,
   Badge,
   ActionIcon,
+  Tooltip,
 } from "@mantine/core";
 import {
   IconArrowBadgeRight,
@@ -516,30 +517,44 @@ export default function SearchResults({
                                   ? `€${product.price.toFixed(2)}`
                                   : "Price not available"}
                               </Text>
-                              <Button
-                                disabled={!session}
-                                loading={productStates.loading[index]}
-                                variant="light"
-                                radius="xl"
-                                size="xs"
-                                leftIcon={
-                                  productStates.added[index] ? (
-                                    <IconCheck />
-                                  ) : (
-                                    <IconShoppingBagPlus />
-                                  )
-                                }
-                                color={
-                                  productStates.added[index]
-                                    ? "teal"
-                                    : "default"
-                                }
-                                onClick={() =>
-                                  handleAddToBasket(product, index)
-                                }
+                              <Tooltip
+                                label="Log in to Add"
+                                disabled={!!session}
+                                events={{
+                                  hover: true,
+                                  focus: false,
+                                  touch: true,
+                                }}
                               >
-                                {productStates.added[index] ? "Added!" : "Add"}
-                              </Button>
+                                <Button
+                                  loading={productStates.loading[index]}
+                                  variant="light"
+                                  radius="xl"
+                                  size="xs"
+                                  leftIcon={
+                                    productStates.added[index] ? (
+                                      <IconCheck />
+                                    ) : (
+                                      <IconShoppingBagPlus />
+                                    )
+                                  }
+                                  color={
+                                    session
+                                      ? productStates.added[index]
+                                        ? "teal"
+                                        : "default"
+                                      : "gray.6"
+                                  }
+                                  onClick={() => {
+                                    session &&
+                                      handleAddToBasket(product, index);
+                                  }}
+                                >
+                                  {productStates.added[index]
+                                    ? "Added!"
+                                    : "Add"}
+                                </Button>
+                              </Tooltip>
                             </Group>
                           </Stack>
                         </Group>
