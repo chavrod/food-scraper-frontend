@@ -1,6 +1,8 @@
 import { notifications } from "@mantine/notifications";
 import { useState } from "react";
-import { IconX } from "@tabler/icons-react";
+import { IconX, IconCheck } from "@tabler/icons-react";
+// Internal
+import notifyError from "./notifyError";
 
 interface useApiSubmitProps<T> {
   apiFunc: (data: T) => Promise<Response>;
@@ -21,24 +23,26 @@ function useApiSubmit<T>({ apiFunc, onSuccess }: useApiSubmitProps<T>) {
       const res = await apiFunc(data);
 
       if (res.ok) {
+        const successData = await res.json();
+        notifications.show({
+          title: "Success!",
+          message: `Added ${
+            successData?.product?.name || "product"
+          } to basket.`,
+          icon: <IconCheck size="1rem" />,
+          color: "green",
+          withBorder: true,
+        });
+
         onSuccess();
         return true;
       } else {
         const errorData = await res.json();
 
-        // Handle different error formats
-        if (errorData.error) {
-          // Single error message
-          notifyError(errorData.error);
-        } else {
-          // Multiple error messages
-          Object.entries(errorData).forEach(([key, value]) => {
-            const errorMessage = Array.isArray(value)
-              ? value.join(", ")
-              : value;
-            notifyError(`${key}: ${errorMessage}`);
-          });
-        }
+        Object.entries(errorData).forEach(([key, value]) => {
+          const errorMessage = Array.isArray(value) ? value.join(", ") : value;
+          notifyError(`${key}: ${errorMessage}`);
+        });
       }
     } catch (err) {
       notifyError("Network or server error");
@@ -48,17 +52,6 @@ function useApiSubmit<T>({ apiFunc, onSuccess }: useApiSubmitProps<T>) {
 
     return false;
   };
-
-  // Helper function for notifications
-  function notifyError(message: string) {
-    notifications.show({
-      title: "Error",
-      message,
-      icon: <IconX size="1rem" />,
-      color: "red",
-      withBorder: true,
-    });
-  }
 
   return { handleSubmit, loading };
 }
