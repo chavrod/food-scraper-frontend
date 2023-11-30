@@ -209,6 +209,7 @@ export default function SearchResults({
     apiFunc: basketItemsApi.list,
     onSuccess: () => {},
   });
+  const basketItemsData = basketItems.data;
 
   const { handleSubmit, loading: loadingSubmit } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
@@ -586,7 +587,7 @@ export default function SearchResults({
       </Tabs.Panel>
 
       <Tabs.Panel id="tabs-basket-view" value="basket" pt="xs">
-        <Basket session={session} />
+        <Basket session={session} basketItems={basketItemsData} />
       </Tabs.Panel>
     </Tabs>
   );
