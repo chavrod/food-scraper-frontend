@@ -1,6 +1,6 @@
 import apiClient from "./apiClient";
 
-const list = (data: {}) => apiClient.get("basket_items", data);
+const list = (data: {}) => apiClient.get("basket_items/", data);
 
 const addItemQuantity = (data: {}) =>
   apiClient.post("basket_items/add_item_quantity/", data);
