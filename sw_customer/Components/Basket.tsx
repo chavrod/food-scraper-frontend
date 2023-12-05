@@ -4,16 +4,17 @@ import {
   Text,
   Stack,
   Button,
-  Card,
   Image,
   Group,
   Badge,
-  NumberInput,
   Container,
   ActionIcon,
   Grid,
   Paper,
   Box,
+  Title,
+  Divider,
+  Accordion,
 } from "@mantine/core";
 import {
   IconShoppingCartOff,
@@ -75,6 +76,79 @@ export default function Basket({ session, basketItems }: BasketProps) {
 
   return (
     <Stack>
+      <Paper shadow="md" withBorder p="md" m="xs" radius="md">
+        <Title mb="xs" order={4} align="left">
+          Basket Summary by Shop
+        </Title>
+        <Divider></Divider>
+        <Accordion multiple>
+          <Accordion.Item value="customization">
+            <Accordion.Control>
+              <Group position="apart">
+                <Text>Aldi</Text>
+                <Text weight={500}> €100.49</Text>
+              </Group>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Group position="apart">
+                <Text ml={4} c="dimmed">
+                  Items
+                </Text>
+                <Text mr={45} c="dimmed">
+                  2
+                </Text>
+              </Group>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item value="flexibility">
+            <Accordion.Control>
+              <Group position="apart">
+                <Text>Tesco</Text>
+                <Text weight={500}> €2.49</Text>
+              </Group>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Group position="apart">
+                <Text ml={4} c="dimmed">
+                  Items
+                </Text>
+                <Text mr={45} c="dimmed">
+                  20
+                </Text>
+              </Group>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item value="focus-ring">
+            <Accordion.Control>
+              <Group position="apart">
+                <Text>Supervalu</Text>
+                <Text weight={500}> €20.49</Text>
+              </Group>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Group position="apart">
+                <Text ml={4} c="dimmed">
+                  Items
+                </Text>
+                <Text mr={45} c="dimmed">
+                  2
+                </Text>
+              </Group>
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+        <Divider></Divider>
+        <Group mt="xs" position="apart">
+          <Text ml={21} weight={500}>
+            Total
+          </Text>
+          <Text mr={59} weight={500}>
+            €140.49
+          </Text>
+        </Group>
+      </Paper>
       <Grid gutter={0} justify="center">
         {basketItems &&
           basketItems.map((item, index) => (
