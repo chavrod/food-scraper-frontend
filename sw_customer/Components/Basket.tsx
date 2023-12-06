@@ -24,14 +24,21 @@ import {
   IconSquareRoundedMinus,
   IconSquareRoundedPlusFilled,
 } from "@tabler/icons-react";
+// Internal: Types
 import { Product, BasketItem } from "@/types/customer_types";
+import { BasketItemMetaData } from "@/types/customer_plus_types";
 
 interface BasketProps {
   session: Session | null;
-  basketItems: BasketItem[];
+  basketItems: BasketItem[] | undefined;
+  basketItemsMetaData: BasketItemMetaData | undefined;
 }
 
-export default function Basket({ session, basketItems }: BasketProps) {
+export default function Basket({
+  session,
+  basketItems,
+  basketItemsMetaData,
+}: BasketProps) {
   if (!session) {
     return (
       <Stack align="center" justify="center" style={{ height: "100%" }} mt="xl">
@@ -74,81 +81,54 @@ export default function Basket({ session, basketItems }: BasketProps) {
     // Add logic to clear the entire basket
   };
 
+  console.log(basketItemsMetaData);
+
   return (
     <Stack>
-      <Paper shadow="md" withBorder p="md" m="xs" radius="md">
-        <Title mb="xs" order={4} align="left">
-          Basket Summary by Shop
-        </Title>
-        <Divider></Divider>
-        <Accordion multiple>
-          <Accordion.Item value="customization">
-            <Accordion.Control>
-              <Group position="apart">
-                <Text>Aldi</Text>
-                <Text weight={500}> €100.49</Text>
-              </Group>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <Group position="apart">
-                <Text ml={4} c="dimmed">
-                  Items
-                </Text>
-                <Text mr={45} c="dimmed">
-                  2
-                </Text>
-              </Group>
-            </Accordion.Panel>
-          </Accordion.Item>
+      {basketItemsMetaData && (
+        <Paper shadow="md" withBorder p="md" m="xs" radius="md">
+          <Title mb="xs" order={4} align="left">
+            Basket Summary by Shop
+          </Title>
+          <Divider></Divider>
+          <Accordion multiple>
+            {basketItemsMetaData &&
+              basketItemsMetaData.shop_breakdown?.map((shop, index) => (
+                <Accordion.Item value={shop.product__shop_name} key={index}>
+                  <Accordion.Control>
+                    <Group position="apart">
+                      <Text>
+                        {shop.product__shop_name.charAt(0).toUpperCase() +
+                          shop.product__shop_name.slice(1).toLowerCase()}
+                      </Text>
+                      <Text weight={500}> €{shop.total_price}</Text>
+                    </Group>
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    <Group position="apart">
+                      <Text ml={4} c="dimmed">
+                        Items
+                      </Text>
+                      <Text mr={45} c="dimmed">
+                        {shop.total_quantity}
+                      </Text>
+                    </Group>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              ))}
+          </Accordion>
+          <Divider></Divider>
+          <Group mt="xs" position="apart">
+            <Text ml={21} weight={500}>
+              Total
+            </Text>
+            <Text mr={59} weight={500}>
+              €{basketItemsMetaData.total_price}
+            </Text>
+          </Group>
+        </Paper>
+      )}
 
-          <Accordion.Item value="flexibility">
-            <Accordion.Control>
-              <Group position="apart">
-                <Text>Tesco</Text>
-                <Text weight={500}> €2.49</Text>
-              </Group>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <Group position="apart">
-                <Text ml={4} c="dimmed">
-                  Items
-                </Text>
-                <Text mr={45} c="dimmed">
-                  20
-                </Text>
-              </Group>
-            </Accordion.Panel>
-          </Accordion.Item>
-
-          <Accordion.Item value="focus-ring">
-            <Accordion.Control>
-              <Group position="apart">
-                <Text>Supervalu</Text>
-                <Text weight={500}> €20.49</Text>
-              </Group>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <Group position="apart">
-                <Text ml={4} c="dimmed">
-                  Items
-                </Text>
-                <Text mr={45} c="dimmed">
-                  2
-                </Text>
-              </Group>
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
-        <Divider></Divider>
-        <Group mt="xs" position="apart">
-          <Text ml={21} weight={500}>
-            Total
-          </Text>
-          <Text mr={59} weight={500}>
-            €140.49
-          </Text>
-        </Group>
-      </Paper>
       <Grid gutter={0} justify="center">
         {basketItems &&
           basketItems.map((item, index) => (
