@@ -1,7 +1,7 @@
 from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
 
-from django.db.models import Avg, Sum
+from django.db.models import Avg, Sum, F, FloatField
 from django.http import JsonResponse
 
 from rest_framework import status, viewsets, mixins
@@ -114,12 +114,40 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         customer = request.user.customer
         basket, created = core_models.Basket.objects.get_or_create(customer=customer)
 
-        items = core_models.BasketItem.objects.filter(basket=basket)
-        total_quantity = items.aggregate(Sum("quantity"))["quantity__sum"] or 0
+        # Annotate each item with total price (price * quantity)
+        items = (
+            core_models.BasketItem.objects.filter(basket=basket)
+            .select_related("product")
+            .annotate(total_price=F("product__price") * F("quantity"))
+        )
 
+        # Group by shop name and aggregate total quantity and price
+        shop_breakdown = items.values("product__shop_name").annotate(
+            total_quantity=Sum("quantity"),
+            total_price=Sum("total_price", output_field=FloatField()),
+        )
+
+        # Calculating the total quantity across all items
+        total_quantity_all = (
+            items.aggregate(total_quantity_all=Sum("quantity"))["total_quantity_all"]
+            or 0
+        )
+        total_price_all = (
+            items.aggregate(total_price_all=Sum("total_price"))["total_price_all"] or 0
+        )
+
+        # Serialize the items
         serializer = core_serializers.BasketItem(items, many=True)
+
         return Response(
-            {"data": serializer.data, "metadata": {"total_quantity": total_quantity}}
+            {
+                "data": serializer.data,
+                "metadata": {
+                    "total_quantity": total_quantity_all,
+                    "total_price": total_price_all,
+                    "shop_breakdown": shop_breakdown,
+                },
+            }
         )
 
     @action(detail=False, methods=["post"])
