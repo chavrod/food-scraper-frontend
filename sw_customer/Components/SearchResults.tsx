@@ -36,6 +36,7 @@ import {
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 // Internal: Types
 import { BasketItem } from "@/types/customer_types";
+import { BasketItemMetaData } from "@/types/customer_plus_types";
 // Intenral: Utils
 import { SearchMetaData } from "@/utils/types";
 import { Product } from "@/types/customer_types";
@@ -205,11 +206,12 @@ export default function SearchResults({
     }
   }, [currentProducts, currentAverageScrapingTime]);
 
-  const basketItems = useApi<BasketItem[]>({
+  const basketItems = useApi<BasketItem[], BasketItemMetaData>({
     apiFunc: basketItemsApi.list,
     onSuccess: () => {},
   });
-  const basketItemsData = basketItems.data;
+  const { data: basketItemsData, metaData: basketItemsMetaData } =
+    basketItems.responseData;
 
   const { handleSubmit, loading: loadingSubmit } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
@@ -258,7 +260,7 @@ export default function SearchResults({
     }
   };
 
-  const basketQty = basketItems.metaData?.total_quantity || 0;
+  const basketQty = basketItemsMetaData?.total_quantity || 0;
   useEffect(() => {
     if (session) {
       basketItems.request();
@@ -587,7 +589,11 @@ export default function SearchResults({
       </Tabs.Panel>
 
       <Tabs.Panel id="tabs-basket-view" value="basket" pt="xs">
-        <Basket session={session} basketItems={basketItemsData} />
+        <Basket
+          session={session}
+          basketItems={basketItemsData}
+          basketItemsMetaData={basketItemsMetaData}
+        />
       </Tabs.Panel>
     </Tabs>
   );
