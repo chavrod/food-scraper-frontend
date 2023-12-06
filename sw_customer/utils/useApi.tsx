@@ -11,18 +11,18 @@ interface useApiProps {
   onSuccess: () => void;
 }
 
-interface MetaData {
-  total_quantity?: number;
-  // add more optional properties as needed
-}
-
-function useApi<T>({ apiFunc, defaultParams = {}, onSuccess }: useApiProps) {
+function useApi<T, M = any>({
+  apiFunc,
+  defaultParams = {},
+  onSuccess,
+}: useApiProps) {
   const [params, setParams] = useState(defaultParams);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<any[]>([]);
 
-  const [data, setData] = useState<T | undefined>();
-  const [metaData, setMetaData] = useState<MetaData | undefined>();
+  const [responseData, setResponseData] = useState<{ data?: T; metaData?: M }>(
+    {}
+  );
 
   const request = async () => {
     if (apiFunc === undefined) return;
@@ -36,8 +36,7 @@ function useApi<T>({ apiFunc, defaultParams = {}, onSuccess }: useApiProps) {
         const jsonRes = await res.json();
         const { data, metadata } = jsonRes;
 
-        setData(data);
-        setMetaData(metadata);
+        setResponseData({ data, metaData: metadata });
       } else {
         const errorData = await res.json();
 
@@ -80,7 +79,7 @@ function useApi<T>({ apiFunc, defaultParams = {}, onSuccess }: useApiProps) {
   //   }
   // };
 
-  return { request, data, metaData, loading, errors };
+  return { request, responseData, loading, errors };
 }
 
 export default useApi;
