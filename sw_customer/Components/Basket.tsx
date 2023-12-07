@@ -15,6 +15,7 @@ import {
   Title,
   Divider,
   Accordion,
+  Flex,
 } from "@mantine/core";
 import {
   IconShoppingCartOff,
@@ -24,6 +25,7 @@ import {
   IconSquareRoundedMinus,
   IconSquareRoundedPlusFilled,
 } from "@tabler/icons-react";
+import { useMediaQuery } from "@mantine/hooks";
 // Internal: Types
 import { Product, BasketItem } from "@/types/customer_types";
 import { BasketItemMetaData } from "@/types/customer_plus_types";
@@ -56,6 +58,9 @@ export default function Basket({
     );
   }
 
+  const isLargerThanMd = useMediaQuery("(min-width: 768px)");
+  console.log(isLargerThanMd);
+
   const handleQuantityChange = (productId: number, quantity: number) => {
     console.log(`Adjust quantity for product ${productId} to ${quantity}`);
     // Add logic to adjust quantity
@@ -81,12 +86,26 @@ export default function Basket({
     // Add logic to clear the entire basket
   };
 
-  console.log(basketItemsMetaData);
+  console.log(isLargerThanMd);
 
   return (
-    <Stack>
+    <Flex
+      gap="md"
+      justify="center"
+      align={isLargerThanMd ? "flex-start" : "center"}
+      direction={isLargerThanMd ? "row-reverse" : "column"}
+      style={{ width: "100%" }}
+    >
       {basketItemsMetaData && (
-        <Paper shadow="md" withBorder p="md" m="xs" radius="md">
+        <Paper
+          shadow="md"
+          withBorder
+          p="md"
+          m="xs"
+          radius="md"
+          miw={300}
+          style={{ flexGrow: 1, width: "100%" }}
+        >
           <Title mb="xs" order={4} align="left">
             Basket Summary by Shop
           </Title>
@@ -133,7 +152,15 @@ export default function Basket({
         {basketItems &&
           basketItems.map((item, index) => (
             <Grid.Col key={index} span={12}>
-              <Paper h="200px" shadow="md" withBorder p="md" m="xs" radius="md">
+              <Paper
+                maw={450}
+                h="200px"
+                shadow="md"
+                withBorder
+                p="md"
+                m="xs"
+                radius="md"
+              >
                 <Group position="apart" noWrap>
                   {item.product?.img_src && (
                     <Stack>
@@ -249,9 +276,6 @@ export default function Basket({
             </Grid.Col>
           ))}
       </Grid>
-      <Button color="red" onClick={clearBasket} mt="md">
-        <IconX size={16} /> Clear Basket
-      </Button>
-    </Stack>
+    </Flex>
   );
 }
