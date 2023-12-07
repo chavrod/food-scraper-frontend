@@ -103,13 +103,27 @@ export default function Basket({
           p="md"
           m="xs"
           radius="md"
-          miw={300}
+          miw={400}
           style={{ flexGrow: 1, width: "100%" }}
         >
           <Title mb="xs" order={4} align="left">
             Basket Summary by Shop
           </Title>
+          {isLargerThanMd && (
+            <Group position="apart" noWrap>
+              <Text ml={20} c="dimmed">
+                Shop
+              </Text>
+              <Text ml={120} c="dimmed">
+                Items
+              </Text>
+              <Text mr={60} c="dimmed">
+                Amount
+              </Text>
+            </Group>
+          )}
           <Divider></Divider>
+
           <Accordion multiple>
             {basketItemsMetaData &&
               basketItemsMetaData.shop_breakdown?.map((shop, index) => (
