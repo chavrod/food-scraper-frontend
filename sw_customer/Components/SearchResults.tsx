@@ -269,12 +269,8 @@ export default function SearchResults({
 
   return (
     <Tabs id="tabs-main" defaultValue="search">
-      <Title align="left" mb="sm">
-        Explore
-      </Title>
-      <Text c="dimmed" mb="md">
-        Search for products, add to basket, and make your choices
-      </Text>
+      <Title align="left">Explore</Title>
+      <Text c="dimmed">Search for products and add to basket</Text>
       <Tabs.List id="tabs-list">
         <Tabs.Tab
           id="tabs-search-pick"
