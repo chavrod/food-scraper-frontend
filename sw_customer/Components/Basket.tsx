@@ -58,8 +58,8 @@ export default function Basket({
     );
   }
 
-  const isLargerThanMd = useMediaQuery("(min-width: 768px)");
-  console.log(isLargerThanMd);
+  const isLargerThanLg = useMediaQuery("(min-width: 1184px)");
+  console.log(isLargerThanLg);
 
   const handleQuantityChange = (productId: number, quantity: number) => {
     console.log(`Adjust quantity for product ${productId} to ${quantity}`);
@@ -86,30 +86,27 @@ export default function Basket({
     // Add logic to clear the entire basket
   };
 
-  console.log(isLargerThanMd);
-
   return (
     <Flex
       gap="md"
       justify="center"
-      align={isLargerThanMd ? "flex-start" : "center"}
-      direction={isLargerThanMd ? "row-reverse" : "column"}
+      align="flex-start"
+      direction={isLargerThanLg ? "row-reverse" : "column"}
       style={{ width: "100%" }}
     >
       {basketItemsMetaData && (
         <Paper
+          maw={isLargerThanLg ? "auto" : 450}
           shadow="md"
           withBorder
           p="md"
-          m="xs"
           radius="md"
-          miw={400}
-          style={{ flexGrow: 1, width: "100%" }}
+          style={{ width: "100%" }}
         >
           <Title mb="xs" order={4} align="left">
             Basket Summary by Shop
           </Title>
-          {isLargerThanMd && (
+          {isLargerThanLg && (
             <Group position="apart" noWrap>
               <Text ml={20} c="dimmed">
                 Shop
@@ -172,8 +169,9 @@ export default function Basket({
                 shadow="md"
                 withBorder
                 p="md"
-                m="xs"
+                my="xs"
                 radius="md"
+                style={{ width: "100%" }}
               >
                 <Group position="apart" noWrap>
                   {item.product?.img_src && (
