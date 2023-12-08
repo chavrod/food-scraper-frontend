@@ -19,11 +19,12 @@ import {
 } from "@mantine/core";
 import {
   IconShoppingCartOff,
-  IconTrash,
+  IconPlus,
   IconX,
   IconArrowBadgeRight,
   IconSquareRoundedMinus,
   IconSquareRoundedPlusFilled,
+  IconCircle,
 } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
 // Internal: Types
@@ -101,6 +102,7 @@ export default function Basket({
           withBorder
           p="md"
           radius="md"
+          mt="xs"
           style={{ width: "100%" }}
         >
           <Title mb="xs" order={4} align="left">
@@ -108,30 +110,55 @@ export default function Basket({
           </Title>
           {isLargerThanLg && (
             <Group position="apart" noWrap>
-              <Text ml={20} c="dimmed">
+              <Text miw={120} ml={20} c="dimmed">
                 Shop
               </Text>
-              <Text ml={120} c="dimmed">
+              <Text mr={40} c="dimmed">
                 Items
               </Text>
-              <Text mr={60} c="dimmed">
+              <Text miw={90} mr={27} c="dimmed">
                 Amount
               </Text>
             </Group>
           )}
           <Divider></Divider>
 
-          <Accordion multiple>
+          <Accordion
+            multiple
+            chevron={isLargerThanLg ? "" : <IconPlus size="1rem" />}
+            styles={{
+              chevron: {
+                "&[data-rotate]": {
+                  transform: "rotate(45deg)",
+                },
+              },
+            }}
+          >
             {basketItemsMetaData &&
               basketItemsMetaData.shop_breakdown?.map((shop, index) => (
                 <Accordion.Item value={shop.product__shop_name} key={index}>
-                  <Accordion.Control>
+                  <Accordion.Control
+                    disabled={isLargerThanLg}
+                    style={{
+                      color: "black", // or any color you prefer
+                      cursor: isLargerThanLg ? "default" : "auto", // to override the disabled cursor
+                      opacity: 1, // to remove the default opacity applied to disabled elements
+                    }}
+                  >
                     <Group position="apart">
-                      <Text>
+                      <Text miw={80} align="left">
                         {shop.product__shop_name.charAt(0).toUpperCase() +
                           shop.product__shop_name.slice(1).toLowerCase()}
                       </Text>
-                      <Text weight={500}> €{shop.total_price}</Text>
+
+                      {isLargerThanLg && (
+                        <Text weight={500} miw={40} align="right">
+                          {shop.total_quantity}
+                        </Text>
+                      )}
+                      <Text weight={500} miw={60} align="right">
+                        €{shop.total_price}
+                      </Text>
                     </Group>
                   </Accordion.Control>
                   <Accordion.Panel>
@@ -147,12 +174,18 @@ export default function Basket({
                 </Accordion.Item>
               ))}
           </Accordion>
-          <Divider></Divider>
+          <Divider color="dark"></Divider>
           <Group mt="xs" position="apart">
-            <Text ml={21} weight={500}>
-              Total
+            <Text ml={21} weight={500} miw={80} align="left">
+              {isLargerThanLg ? "" : "Total"}
             </Text>
-            <Text mr={59} weight={500}>
+
+            {isLargerThanLg && (
+              <Text weight={500} miw={40} align="right">
+                {basketItemsMetaData.total_quantity}
+              </Text>
+            )}
+            <Text mr={59} weight={500} miw={20}>
               €{basketItemsMetaData.total_price}
             </Text>
           </Group>
