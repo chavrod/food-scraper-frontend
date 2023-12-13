@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Session } from "next-auth";
 import {
   Text,
@@ -24,21 +24,32 @@ import {
   IconArrowBadgeRight,
   IconSquareRoundedMinus,
   IconSquareRoundedPlusFilled,
-  IconCircle,
+  IconCheck,
 } from "@tabler/icons-react";
-import { useMediaQuery } from "@mantine/hooks";
 // Internal: Types
 import { Product, BasketItem } from "@/types/customer_types";
 import { BasketItemMetaData } from "@/types/customer_plus_types";
+// Intenral: API
+import basketItemsApi from "@/app/api/basketItemsApi";
+import useApiSubmit from "@/utils/useApiSubmit";
 
 interface BasketProps {
   session: Session | null;
+  isLargerThanLg: boolean;
   basketItems: BasketItem[] | undefined;
   basketItemsMetaData: BasketItemMetaData | undefined;
 }
 
+type ProductStateType = {
+  loadingIncrease: Record<number, boolean>;
+  loadingDecrease: Record<number, boolean>;
+  decreased: Record<number, boolean>;
+  increased: Record<number, boolean>;
+};
+
 export default function Basket({
   session,
+  isLargerThanLg,
   basketItems,
   basketItemsMetaData,
 }: BasketProps) {
@@ -59,22 +70,86 @@ export default function Basket({
     );
   }
 
-  const isLargerThanLg = useMediaQuery("(min-width: 1184px)");
-  console.log(isLargerThanLg);
+  const [productStates, setProductStates] = useState<ProductStateType>({
+    loadingIncrease: {},
+    loadingDecrease: {},
+    decreased: {},
+    increased: {},
+  });
 
-  const handleQuantityChange = (productId: number, quantity: number) => {
-    console.log(`Adjust quantity for product ${productId} to ${quantity}`);
-    // Add logic to adjust quantity
+  // const { handleSubmit: handleDecreaseQunatity } = useApiSubmit({
+  //   apiFunc: basketItemsApi.decreaseItemQuantity(),
+  //   data: {},
+  //   onSuccess: () => {
+  //     // basketItems.request();
+  //   },
+  // });
+
+  const handleDecreaseQuantity = (productId: number, index: number) => {
+    // if (quantity > 1) {
+    //   handleQuantityChange(productId, quantity - 1);
+    // }
+    // const wasSuccessful = await handleSubmit(product);
+    // // Update states based on whether adding to basket was successful
+    // if (wasSuccessful) {
+    //   setProductStates((prevStates) => ({
+    //     loading: { ...prevStates.loading, [index]: false },
+    //     added: { ...prevStates.added, [index]: true },
+    //   }));
+    //   setTimeout(() => {
+    //     setProductStates((prevStates) => ({
+    //       ...prevStates,
+    //       added: { ...prevStates.added, [index]: false },
+    //     }));
+    //   }, 2000);
+    // } else {
+    //   setProductStates((prevStates) => ({
+    //     ...prevStates,
+    //     loading: { ...prevStates.loading, [index]: false },
+    //     // Don't update the 'added' state if it was not successful
+    //   }));
+    // }
   };
 
-  const handleDecreaseQuantity = (productId: number, quantity: number) => {
-    if (quantity > 1) {
-      handleQuantityChange(productId, quantity - 1);
+  const { handleSubmit: handleAddQunatity } = useApiSubmit({
+    apiFunc: basketItemsApi.addItemQuantity,
+    data: {},
+    onSuccess: () => {
+      // basketItems.request();
+    },
+  });
+
+  const handleIncreaseQuantity = async (productId: number, index: number) => {
+    setProductStates((prevStates) => ({
+      ...prevStates,
+      loadingIncrease: { ...prevStates.loadingIncrease, [index]: true },
+    }));
+
+    const data = {
+      pk: productId,
+    };
+    const wasSuccessful = await handleAddQunatity(data);
+
+    if (wasSuccessful) {
+      setProductStates((prevStates) => ({
+        ...prevStates,
+        loadingIncrease: { ...prevStates.loadingIncrease, [index]: false },
+        increased: { ...prevStates.increased, [index]: true },
+      }));
+
+      setTimeout(() => {
+        setProductStates((prevStates) => ({
+          ...prevStates,
+          increased: { ...prevStates.increased, [index]: false },
+        }));
+      }, 2000);
+    } else {
+      setProductStates((prevStates) => ({
+        ...prevStates,
+        loadingIncrease: { ...prevStates.loadingIncrease, [index]: false },
+        // Don't update the 'added' state if it was not successful
+      }));
     }
-  };
-
-  const handleIncreaseQuantity = (productId: number, quantity: number) => {
-    handleQuantityChange(productId, quantity + 1);
   };
 
   const clearProduct = (productId: number) => {
@@ -275,31 +350,35 @@ export default function Basket({
 
                     <Group noWrap>
                       <ActionIcon
+                        loading={productStates.loadingDecrease[index]}
                         size="xl"
-                        color="cyan"
+                        color={productStates.decreased[index] ? "teal" : "cyan"}
                         variant="transparent"
                         onClick={() =>
-                          handleDecreaseQuantity(
-                            item.product?.id,
-                            item.quantity
-                          )
+                          handleDecreaseQuantity(item.product?.id, index)
                         }
                       >
-                        <IconSquareRoundedMinus size="3rem" />
+                        {productStates.decreased[index] ? (
+                          <IconCheck size="2.2rem" />
+                        ) : (
+                          <IconSquareRoundedMinus size="3rem" />
+                        )}
                       </ActionIcon>
                       <Text weight={500}>{item.quantity}</Text>
                       <ActionIcon
+                        loading={productStates.loadingIncrease[index]}
                         size="xl"
-                        color="cyan"
+                        color={productStates.increased[index] ? "teal" : "cyan"}
                         variant="transparent"
                         onClick={() =>
-                          handleIncreaseQuantity(
-                            item.product?.id,
-                            item.quantity
-                          )
+                          handleIncreaseQuantity(item.product?.id, index)
                         }
                       >
-                        <IconSquareRoundedPlusFilled size="3rem" />
+                        {productStates.increased[index] ? (
+                          <IconCheck size="2.2rem" />
+                        ) : (
+                          <IconSquareRoundedPlusFilled size="3rem" />
+                        )}
                       </ActionIcon>
                     </Group>
                   </Stack>
