@@ -34,6 +34,7 @@ import {
   IconCheck,
 } from "@tabler/icons-react";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
+import { useMediaQuery } from "@mantine/hooks";
 // Internal: Types
 import { BasketItem } from "@/types/customer_types";
 import { BasketItemMetaData } from "@/types/customer_plus_types";
@@ -73,6 +74,8 @@ export default function SearchResults({
   averageScrapingTime,
 }: SearchResultsProps): ReactElement {
   const { data: session } = useSession();
+
+  const isLargerThanLg = useMediaQuery("(min-width: 1184px)");
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -269,8 +272,12 @@ export default function SearchResults({
 
   return (
     <Tabs id="tabs-main" defaultValue="search">
-      <Title align="left">Explore</Title>
-      <Text c="dimmed">Search for products and add to basket</Text>
+      <Title align="left" mb={isLargerThanLg ? "md" : 0}>
+        Explore
+      </Title>
+      <Text c="dimmed" mb={isLargerThanLg ? "md" : 0}>
+        Search for products and add to basket
+      </Text>
       <Tabs.List id="tabs-list">
         <Tabs.Tab
           id="tabs-search-pick"
@@ -587,6 +594,7 @@ export default function SearchResults({
       <Tabs.Panel id="tabs-basket-view" value="basket" pt="xs">
         <Basket
           session={session}
+          isLargerThanLg={isLargerThanLg}
           basketItems={basketItemsData}
           basketItemsMetaData={basketItemsMetaData}
         />
