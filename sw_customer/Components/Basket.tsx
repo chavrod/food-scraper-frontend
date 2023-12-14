@@ -38,6 +38,7 @@ interface BasketProps {
   isLargerThanLg: boolean;
   basketItems: BasketItem[] | undefined;
   basketItemsMetaData: BasketItemMetaData | undefined;
+  handleSuccess: () => void;
 }
 
 type ProductStateType = {
@@ -52,6 +53,7 @@ export default function Basket({
   isLargerThanLg,
   basketItems,
   basketItemsMetaData,
+  handleSuccess,
 }: BasketProps) {
   if (!session) {
     return (
@@ -77,45 +79,46 @@ export default function Basket({
     increased: {},
   });
 
-  // const { handleSubmit: handleDecreaseQunatity } = useApiSubmit({
-  //   apiFunc: basketItemsApi.decreaseItemQuantity(),
-  //   data: {},
-  //   onSuccess: () => {
-  //     // basketItems.request();
-  //   },
-  // });
+  const { handleSubmit: handleDecreaseQunatity } = useApiSubmit({
+    apiFunc: basketItemsApi.decreaseItemQuantity,
+    onSuccess: () => {
+      handleSuccess();
+    },
+  });
 
-  const handleDecreaseQuantity = (productId: number, index: number) => {
-    // if (quantity > 1) {
-    //   handleQuantityChange(productId, quantity - 1);
-    // }
-    // const wasSuccessful = await handleSubmit(product);
-    // // Update states based on whether adding to basket was successful
-    // if (wasSuccessful) {
-    //   setProductStates((prevStates) => ({
-    //     loading: { ...prevStates.loading, [index]: false },
-    //     added: { ...prevStates.added, [index]: true },
-    //   }));
-    //   setTimeout(() => {
-    //     setProductStates((prevStates) => ({
-    //       ...prevStates,
-    //       added: { ...prevStates.added, [index]: false },
-    //     }));
-    //   }, 2000);
-    // } else {
-    //   setProductStates((prevStates) => ({
-    //     ...prevStates,
-    //     loading: { ...prevStates.loading, [index]: false },
-    //     // Don't update the 'added' state if it was not successful
-    //   }));
-    // }
+  const handleDecreaseQuantity = async (productId: number, index: number) => {
+    setProductStates((prevStates) => ({
+      ...prevStates,
+      loadingDecrease: { ...prevStates.loadingDecrease, [index]: true },
+    }));
+
+    const wasSuccessful = await handleDecreaseQunatity(productId);
+
+    if (wasSuccessful) {
+      setProductStates((prevStates) => ({
+        ...prevStates,
+        loadingDecrease: { ...prevStates.loadingDecrease, [index]: false },
+        decreased: { ...prevStates.decreased, [index]: true },
+      }));
+
+      setTimeout(() => {
+        setProductStates((prevStates) => ({
+          ...prevStates,
+          decreased: { ...prevStates.decreased, [index]: false },
+        }));
+      }, 2000);
+    } else {
+      setProductStates((prevStates) => ({
+        ...prevStates,
+        loadingDecrease: { ...prevStates.loadingDecrease, [index]: false },
+      }));
+    }
   };
 
   const { handleSubmit: handleAddQunatity } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
-    data: {},
     onSuccess: () => {
-      // basketItems.request();
+      handleSuccess();
     },
   });
 
