@@ -5,8 +5,7 @@ import { IconX, IconCheck } from "@tabler/icons-react";
 import notifyError from "./notifyError";
 
 interface useApiSubmitProps<T> {
-  apiFunc: (data: T) => Promise<Response>;
-  data?: T;
+  apiFunc: (data: T, successMessage?: string) => Promise<Response>;
   onSuccess: () => void;
 }
 
@@ -14,7 +13,7 @@ function useApiSubmit<T>({ apiFunc, onSuccess }: useApiSubmitProps<T>) {
   const [loading, setLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<any[]>([]);
 
-  const handleSubmit = async (data: T) => {
+  const handleSubmit = async (data: T, successMessage?: string) => {
     if (apiFunc === undefined) return;
 
     setLoading(true);
@@ -23,16 +22,16 @@ function useApiSubmit<T>({ apiFunc, onSuccess }: useApiSubmitProps<T>) {
       const res = await apiFunc(data);
 
       if (res.ok) {
-        const successData = await res.json();
-        notifications.show({
-          title: "Success!",
-          message: `Added ${
-            successData?.product?.name || "product"
-          } to basket.`,
-          icon: <IconCheck size="1rem" />,
-          color: "green",
-          withBorder: true,
-        });
+        await res.json();
+        if (successMessage) {
+          notifications.show({
+            title: "Success!",
+            message: successMessage,
+            icon: <IconCheck size="1rem" />,
+            color: "green",
+            withBorder: true,
+          });
+        }
 
         onSuccess();
         return true;
