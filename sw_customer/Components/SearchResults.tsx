@@ -216,9 +216,13 @@ export default function SearchResults({
   const { data: basketItemsData, metaData: basketItemsMetaData } =
     basketItems.responseData;
 
+  const handleSuccess = () => {
+    basketItems.request();
+  };
+
   const { handleSubmit, loading: loadingSubmit } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
-    data: {},
+
     onSuccess: () => {
       basketItems.request();
     },
@@ -240,7 +244,10 @@ export default function SearchResults({
       product.img_src = normalizeUrl(product.img_src);
     }
 
-    const wasSuccessful = await handleSubmit(product);
+    const wasSuccessful = await handleSubmit(
+      product,
+      `Added ${product.name} to basket.`
+    );
     // Update states based on whether adding to basket was successful
     if (wasSuccessful) {
       setProductStates((prevStates) => ({
@@ -597,6 +604,7 @@ export default function SearchResults({
           isLargerThanLg={isLargerThanLg}
           basketItems={basketItemsData}
           basketItemsMetaData={basketItemsMetaData}
+          handleSuccess={handleSuccess}
         />
       </Tabs.Panel>
     </Tabs>
