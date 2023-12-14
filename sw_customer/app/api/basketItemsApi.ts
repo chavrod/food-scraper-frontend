@@ -1,17 +1,17 @@
 import apiClient from "./apiClient";
 
-const list = (data: {}) => apiClient.get("basket_items/", data);
+const list = () => apiClient.get("basket_items/");
 
 const addItemQuantity = (data: {}) =>
   apiClient.post("basket_items/add_item_quantity/", data);
 
-const decreaseItemQuantity = (id: number, data: {}) =>
-  apiClient.post(`basket_items/${id}/decrease_item_quantity/`, data);
+const decreaseItemQuantity = (id: number) =>
+  apiClient.post(`basket_items/${id}/decrease_item_quantity/`);
 
-const removeProductItems = (id: number, data: {}) =>
-  apiClient.post(`basket_items/${id}/remove_product_items/`, data);
+const removeProductItems = (id: number) =>
+  apiClient.post(`basket_items/${id}/remove_product_items/`);
 
-const clearAll = (data: {}) => apiClient.post("basket_items/clear_all/", data);
+const clearAll = () => apiClient.post("basket_items/clear_all/");
 
 const basketItemsApi = {
   list,
