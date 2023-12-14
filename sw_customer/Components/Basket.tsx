@@ -26,6 +26,7 @@ import {
   IconSquareRoundedPlusFilled,
   IconCheck,
 } from "@tabler/icons-react";
+import { formatDateRelative } from "@/utils/datesUtil";
 // Internal: Types
 import { Product, BasketItem } from "@/types/customer_types";
 import { BasketItemMetaData } from "@/types/customer_plus_types";
@@ -292,7 +293,7 @@ export default function Basket({
         </Paper>
       )}
 
-      <Grid gutter={0} justify="center">
+      <Grid gutter={0} justify="center" mb={50}>
         {basketItems &&
           basketItems.map((item, index) => (
             <Grid.Col key={index} span={12}>
@@ -370,7 +371,12 @@ export default function Basket({
                           €2.49/kg{" "}
                         </Text>
                       </Group>
-                      <Text size="xs">{`(Updated: Today)`}</Text>
+                      <Text size="xs">
+                        {item.product?.updated_at &&
+                          `(Updated: ${formatDateRelative(
+                            item.product.updated_at
+                          )})`}
+                      </Text>
                     </Stack>
 
                     <Group noWrap>
@@ -425,9 +431,21 @@ export default function Basket({
                     >
                       <IconX size="1.2rem" />
                     </ActionIcon>
-                    <Stack spacing={0} mt={70}>
+                    <Stack
+                      spacing={0}
+                      miw={50}
+                      mt={70}
+                      style={{
+                        border: "1px solid red",
+                      }}
+                    >
                       <Text c="dimmed">Total: </Text>
-                      <Text weight={500}>€20.4</Text>
+                      <Text weight={500}>
+                        €
+                        {item.product?.price && item.quantity
+                          ? (item.product?.price * item.quantity).toFixed(2)
+                          : "N/A"}
+                      </Text>
                     </Stack>
                   </Stack>
                 </Group>
