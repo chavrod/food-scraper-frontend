@@ -44,6 +44,7 @@ interface BasketProps {
 type ProductStateType = {
   loadingIncrease: Record<number, boolean>;
   loadingDecrease: Record<number, boolean>;
+  loadingClearing: Record<number, boolean>;
   decreased: Record<number, boolean>;
   increased: Record<number, boolean>;
 };
@@ -75,11 +76,12 @@ export default function Basket({
   const [productStates, setProductStates] = useState<ProductStateType>({
     loadingIncrease: {},
     loadingDecrease: {},
+    loadingClearing: {},
     decreased: {},
     increased: {},
   });
 
-  const { handleSubmit: handleDecreaseQunatity } = useApiSubmit({
+  const { handleSubmit: submitDecreaseQuantity } = useApiSubmit({
     apiFunc: basketItemsApi.decreaseItemQuantity,
     onSuccess: () => {
       handleSuccess();
@@ -92,7 +94,7 @@ export default function Basket({
       loadingDecrease: { ...prevStates.loadingDecrease, [index]: true },
     }));
 
-    const wasSuccessful = await handleDecreaseQunatity(productId);
+    const wasSuccessful = await submitDecreaseQuantity(productId);
 
     if (wasSuccessful) {
       setProductStates((prevStates) => ({
@@ -115,7 +117,7 @@ export default function Basket({
     }
   };
 
-  const { handleSubmit: handleAddQunatity } = useApiSubmit({
+  const { handleSubmit: submitIncreaseQuantity } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
     onSuccess: () => {
       handleSuccess();
@@ -131,7 +133,7 @@ export default function Basket({
     const data = {
       pk: productId,
     };
-    const wasSuccessful = await handleAddQunatity(data);
+    const wasSuccessful = await submitIncreaseQuantity(data);
 
     if (wasSuccessful) {
       setProductStates((prevStates) => ({
@@ -155,9 +157,29 @@ export default function Basket({
     }
   };
 
-  const clearProduct = (productId: number) => {
-    console.log(`Clearing product ${productId}`);
-    // Add logic to clear product from basket
+  const { handleSubmit: submitRemoveProductItems } = useApiSubmit({
+    apiFunc: basketItemsApi.clearProductItems,
+    onSuccess: () => {
+      handleSuccess();
+    },
+  });
+
+  const clearProduct = async (
+    productId: number,
+    name: string,
+    index: number
+  ) => {
+    setProductStates((prevStates) => ({
+      ...prevStates,
+      loadingClearing: { ...prevStates.loadingClearing, [index]: true },
+    }));
+
+    await submitRemoveProductItems(productId, `Removed ${name} from basket.`);
+
+    setProductStates((prevStates) => ({
+      ...prevStates,
+      loadingClearing: { ...prevStates.loadingClearing, [index]: false },
+    }));
   };
 
   const clearBasket = () => {
@@ -357,9 +379,10 @@ export default function Basket({
                         size="xl"
                         color={productStates.decreased[index] ? "teal" : "cyan"}
                         variant="transparent"
-                        onClick={() =>
-                          handleDecreaseQuantity(item.product?.id, index)
-                        }
+                        onClick={() => {
+                          item.product?.id &&
+                            handleDecreaseQuantity(item.product.id, index);
+                        }}
                       >
                         {productStates.decreased[index] ? (
                           <IconCheck size="2.2rem" />
@@ -373,9 +396,10 @@ export default function Basket({
                         size="xl"
                         color={productStates.increased[index] ? "teal" : "cyan"}
                         variant="transparent"
-                        onClick={() =>
-                          handleIncreaseQuantity(item.product?.id, index)
-                        }
+                        onClick={() => {
+                          item.product?.id &&
+                            handleIncreaseQuantity(item.product.id, index);
+                        }}
                       >
                         {productStates.increased[index] ? (
                           <IconCheck size="2.2rem" />
@@ -387,9 +411,17 @@ export default function Basket({
                   </Stack>
                   <Stack align="flex-end" justify="space-between">
                     <ActionIcon
+                      loading={productStates.loadingClearing[index]}
                       variant="transparent"
                       color="red"
-                      onClick={() => clearProduct(item.product?.id)}
+                      onClick={() => {
+                        item.product?.id &&
+                          clearProduct(
+                            item.product.id,
+                            item.product.name,
+                            index
+                          );
+                      }}
                     >
                       <IconX size="1.2rem" />
                     </ActionIcon>
