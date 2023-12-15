@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from tasks.cache_data import cache_data
 import core.serializers as core_serializers
 import core.models as core_models
+import core.pagination as core_paginaton
 
 
 @csrf_protect
@@ -83,6 +84,7 @@ class BasketViewSet(viewsets.GenericViewSet):
 
 class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
+    pagination_class = core_paginaton.BasketItemsPagination
 
     def _get_basket_item(self, request, pk):
         """Helper method to retrieve basket and item, handling common validation."""
@@ -115,40 +117,15 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         basket, created = core_models.Basket.objects.get_or_create(customer=customer)
 
         # Annotate each item with total price (price * quantity)
-        items = (
+        queryset = (
             core_models.BasketItem.objects.filter(basket=basket)
             .select_related("product")
             .annotate(total_price=F("product__price") * F("quantity"))
         )
 
-        # Group by shop name and aggregate total quantity and price
-        shop_breakdown = items.values("product__shop_name").annotate(
-            total_quantity=Sum("quantity"),
-            total_price=Sum("total_price", output_field=FloatField()),
-        )
-
-        # Calculating the total quantity across all items
-        total_quantity_all = (
-            items.aggregate(total_quantity_all=Sum("quantity"))["total_quantity_all"]
-            or 0
-        )
-        total_price_all = (
-            items.aggregate(total_price_all=Sum("total_price"))["total_price_all"] or 0
-        )
-
-        # Serialize the items
-        serializer = core_serializers.BasketItem(items, many=True)
-
-        return Response(
-            {
-                "data": serializer.data,
-                "metadata": {
-                    "total_quantity": total_quantity_all,
-                    "total_price": total_price_all,
-                    "shop_breakdown": shop_breakdown,
-                },
-            }
-        )
+        page = self.paginate_queryset(queryset)
+        serializer = core_serializers.BasketItem(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=["post"])
     def add_item_quantity(self, request, pk=None):
