@@ -183,9 +183,20 @@ export default function Basket({
     }));
   };
 
+  const { handleSubmit: submitclearAllProductItems, loading: loadingClearAll } =
+    useApiSubmit({
+      apiFunc: basketItemsApi.clearAll,
+      onSuccess: () => {
+        handleSuccess();
+      },
+    });
+
   const clearBasket = () => {
-    console.log("Clearing all items from the basket");
-    // Add logic to clear the entire basket
+    const data = "";
+    submitclearAllProductItems(
+      data,
+      `Removed all items from basket from basket.`
+    );
   };
 
   return (
@@ -293,7 +304,7 @@ export default function Basket({
         </Paper>
       )}
 
-      <Grid gutter={0} justify="center" mb={50}>
+      <Grid gutter={0}>
         {basketItems &&
           basketItems.map((item, index) => (
             <Grid.Col key={index} span={12}>
@@ -353,7 +364,11 @@ export default function Basket({
                         }}
                         fw={700}
                         component="a"
-                        href={""}
+                        href={
+                          item?.product?.product_url
+                            ? item.product.product_url
+                            : ""
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -431,14 +446,7 @@ export default function Basket({
                     >
                       <IconX size="1.2rem" />
                     </ActionIcon>
-                    <Stack
-                      spacing={0}
-                      miw={50}
-                      mt={70}
-                      style={{
-                        border: "1px solid red",
-                      }}
-                    >
+                    <Stack spacing={0} miw={50} mt={70}>
                       <Text c="dimmed">Total: </Text>
                       <Text weight={500}>
                         €
@@ -452,6 +460,17 @@ export default function Basket({
               </Paper>
             </Grid.Col>
           ))}
+        <Button
+          onClick={clearBasket}
+          variant="outline"
+          maw={450}
+          fullWidth
+          mt={15}
+          mb={65}
+          loading={loadingClearAll}
+        >
+          Empty basket
+        </Button>
       </Grid>
     </Flex>
   );
