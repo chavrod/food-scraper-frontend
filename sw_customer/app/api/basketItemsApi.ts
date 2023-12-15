@@ -9,9 +9,9 @@ const decreaseItemQuantity = (id: number) =>
   apiClient.post(`basket_items/${id}/decrease_item_quantity/`);
 
 const clearProductItems = (id: number) =>
-  apiClient.post(`basket_items/${id}/remove_product_items/`);
+  apiClient.delete(`basket_items/${id}/remove_product_items/`);
 
-const clearAll = () => apiClient.post("basket_items/clear_all/");
+const clearAll = () => apiClient.delete("basket_items/clear_all/");
 
 const basketItemsApi = {
   list,

@@ -195,7 +195,7 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                 status=status.HTTP_200_OK,
             )
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["delete"])
     def remove_product_items(self, request, pk=None):
         basket_item, error_response = self._get_basket_item(request, pk)
         if error_response:
@@ -207,7 +207,7 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             status=status.HTTP_200_OK,
         )
 
-    @action(detail=False, methods=["post"])
+    @action(detail=False, methods=["delete"])
     def clear_all(self, request, pk=None):
         customer = request.user.customer
         basket = core_models.Basket.objects.get(customer=customer)
@@ -217,4 +217,4 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             )
         # Delete all items related to the basket
         basket.items.all().delete()
-        return Response({"status": "basket cleared"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"status": "basket cleared"}, status=status.HTTP_200_OK)

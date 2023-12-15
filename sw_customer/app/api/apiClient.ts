@@ -39,6 +39,7 @@ const apiClient = {
     return request(endpoint, "GET");
   },
   post: (endpoint: string, data?: {}) => request(endpoint, "POST", data),
+  delete: (endpoint: string, data?: {}) => request(endpoint, "DELETE", data),
 };
 
 export default apiClient;
