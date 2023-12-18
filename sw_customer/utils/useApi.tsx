@@ -24,13 +24,19 @@ function useApi<T, M = any>({
     {}
   );
 
-  const request = async () => {
+  const request = async (additionalParams = {}) => {
     if (apiFunc === undefined) return;
 
     setLoading(true);
 
     try {
-      const res = await apiFunc(params);
+      const finalParams = { ...params, ...additionalParams };
+
+      // Check if finalParams is not an empty object
+      const hasParams = Object.keys(finalParams).length > 0;
+
+      // Call apiFunc with finalParams only if it's not empty
+      const res = hasParams ? await apiFunc(finalParams) : await apiFunc(null);
 
       if (res.ok) {
         const jsonRes = await res.json();
