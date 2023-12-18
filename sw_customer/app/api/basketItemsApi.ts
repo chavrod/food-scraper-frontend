@@ -1,6 +1,7 @@
 import apiClient from "./apiClient";
 
-const list = () => apiClient.get("basket_items/");
+const list = (params?: { [key: string]: string | number }) =>
+  apiClient.get("basket_items/", params);
 
 const addItemQuantity = (data: {}) =>
   apiClient.post("basket_items/add_item_quantity/", data);
