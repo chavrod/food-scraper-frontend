@@ -31,9 +31,9 @@ async function request(
 }
 
 const apiClient = {
-  get: (endpoint: string, data?: {}) => {
-    if (data) {
-      const queryString = new URLSearchParams(data).toString();
+  get: (endpoint: string, params?: { [key: string]: string | number }) => {
+    if (params) {
+      const queryString = new URLSearchParams(params as any).toString();
       endpoint = `${endpoint}?${queryString}`;
     }
     return request(endpoint, "GET");
