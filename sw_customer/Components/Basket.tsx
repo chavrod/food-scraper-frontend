@@ -16,6 +16,7 @@ import {
   Divider,
   Accordion,
   Flex,
+  Pagination,
 } from "@mantine/core";
 import {
   IconShoppingCartOff,
@@ -40,6 +41,7 @@ interface BasketProps {
   basketItems: BasketItem[] | undefined;
   basketItemsMetaData: BasketItemMetaData | undefined;
   handleSuccess: () => void;
+  handleBasketItemsPageChange: (page: number) => void;
 }
 
 type ProductStateType = {
@@ -56,6 +58,7 @@ export default function Basket({
   basketItems,
   basketItemsMetaData,
   handleSuccess,
+  handleBasketItemsPageChange,
 }: BasketProps) {
   if (!session) {
     return (
@@ -73,6 +76,12 @@ export default function Basket({
       </Stack>
     );
   }
+
+  const [activePage, setPage] = useState(1);
+  const handlePageChange = (page: number) => {
+    setPage(page);
+    handleBasketItemsPageChange(page);
+  };
 
   const [productStates, setProductStates] = useState<ProductStateType>({
     loadingIncrease: {},
@@ -304,162 +313,187 @@ export default function Basket({
         </Paper>
       )}
 
-      <Grid gutter={0}>
-        {basketItems &&
-          basketItems.map((item, index) => (
-            <Grid.Col key={index} span={12}>
-              <Paper
-                maw={450}
-                h="200px"
-                shadow="md"
-                withBorder
-                p="md"
-                my="xs"
-                radius="md"
-                style={{ width: "100%" }}
-              >
-                <Group position="apart" noWrap>
-                  {item.product?.img_src && (
-                    <Stack>
-                      <Image
-                        src={item.product.img_src}
-                        alt={item.product.name}
-                        width={50}
-                        height={50}
-                        fit="cover"
-                      />
-                      <Container
-                        w={50}
-                        h={50}
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <img
-                          src={`/brand-logos/${item.product.shop_name}.jpeg`}
-                          alt={item.product.shop_name}
-                          style={{ width: "2rem" }}
+      <Stack>
+        <Grid gutter={0}>
+          {basketItems &&
+            basketItems.map((item, index) => (
+              <Grid.Col key={index} span={12}>
+                <Paper
+                  maw={450}
+                  h="200px"
+                  shadow="md"
+                  withBorder
+                  p="md"
+                  my="xs"
+                  radius="md"
+                  style={{ width: "100%" }}
+                >
+                  <Group position="apart" noWrap>
+                    {item.product?.img_src && (
+                      <Stack>
+                        <Image
+                          src={item.product.img_src}
+                          alt={item.product.name}
+                          width={50}
+                          height={50}
+                          fit="cover"
                         />
-                      </Container>
-                    </Stack>
-                  )}
-                  <Stack spacing={5}>
-                    <Box h={45}>
-                      <Text weight={500} lineClamp={2}>
-                        {item.product?.name}
-                      </Text>
-                    </Box>
-
-                    <Group spacing={0} align="center">
-                      <Text
-                        fz="md"
-                        c="cyan.7"
-                        sx={{
-                          cursor: "pointer",
-                          "&:hover": {
-                            textDecoration: "underline",
-                          },
-                        }}
-                        fw={700}
-                        component="a"
-                        href={
-                          item?.product?.product_url
-                            ? item.product.product_url
-                            : ""
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Go to source
-                      </Text>
-                      <IconArrowBadgeRight
-                        size={20}
-                        style={{ color: "#1098AD" }}
-                      />
-                    </Group>
-                    <Stack spacing={0}>
-                      <Group noWrap>
-                        <Text weight={500}>€{item.product?.price}</Text>
-                        <Text size="sm" c="dimmed">
-                          €2.49/kg{" "}
+                        <Container
+                          w={50}
+                          h={50}
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <img
+                            src={`/brand-logos/${item.product.shop_name}.jpeg`}
+                            alt={item.product.shop_name}
+                            style={{ width: "2rem" }}
+                          />
+                        </Container>
+                      </Stack>
+                    )}
+                    <Stack spacing={5}>
+                      <Box h={45}>
+                        <Text weight={500} lineClamp={2}>
+                          {item.product?.name}
                         </Text>
-                      </Group>
-                      <Text size="xs">
-                        {item.product?.updated_at &&
-                          `(Updated: ${formatDateRelative(
-                            item.product.updated_at
-                          )})`}
-                      </Text>
-                    </Stack>
+                      </Box>
 
-                    <Group noWrap>
-                      <ActionIcon
-                        loading={productStates.loadingDecrease[index]}
-                        size="xl"
-                        color={productStates.decreased[index] ? "teal" : "cyan"}
-                        variant="transparent"
-                        onClick={() => {
-                          item.product?.id &&
-                            handleDecreaseQuantity(item.product.id, index);
-                        }}
-                      >
-                        {productStates.decreased[index] ? (
-                          <IconCheck size="2.2rem" />
-                        ) : (
-                          <IconSquareRoundedMinus size="3rem" />
-                        )}
-                      </ActionIcon>
-                      <Text weight={500}>{item.quantity}</Text>
-                      <ActionIcon
-                        loading={productStates.loadingIncrease[index]}
-                        size="xl"
-                        color={productStates.increased[index] ? "teal" : "cyan"}
-                        variant="transparent"
-                        onClick={() => {
-                          item.product?.id &&
-                            handleIncreaseQuantity(item.product.id, index);
-                        }}
-                      >
-                        {productStates.increased[index] ? (
-                          <IconCheck size="2.2rem" />
-                        ) : (
-                          <IconSquareRoundedPlusFilled size="3rem" />
-                        )}
-                      </ActionIcon>
-                    </Group>
-                  </Stack>
-                  <Stack align="flex-end" justify="space-between">
-                    <ActionIcon
-                      loading={productStates.loadingClearing[index]}
-                      variant="transparent"
-                      color="red"
-                      onClick={() => {
-                        item.product?.id &&
-                          clearProduct(
-                            item.product.id,
-                            item.product.name,
-                            index
-                          );
-                      }}
-                    >
-                      <IconX size="1.2rem" />
-                    </ActionIcon>
-                    <Stack spacing={0} miw={50} mt={70}>
-                      <Text c="dimmed">Total: </Text>
-                      <Text weight={500}>
-                        €
-                        {item.product?.price && item.quantity
-                          ? (item.product?.price * item.quantity).toFixed(2)
-                          : "N/A"}
-                      </Text>
+                      <Group spacing={0} align="center">
+                        <Text
+                          fz="md"
+                          c="cyan.7"
+                          sx={{
+                            cursor: "pointer",
+                            "&:hover": {
+                              textDecoration: "underline",
+                            },
+                          }}
+                          fw={700}
+                          component="a"
+                          href={
+                            item?.product?.product_url
+                              ? item.product.product_url
+                              : ""
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Go to source
+                        </Text>
+                        <IconArrowBadgeRight
+                          size={20}
+                          style={{ color: "#1098AD" }}
+                        />
+                      </Group>
+                      <Stack spacing={0}>
+                        <Group noWrap>
+                          <Text weight={500}>€{item.product?.price}</Text>
+                          <Text size="sm" c="dimmed">
+                            €2.49/kg{" "}
+                          </Text>
+                        </Group>
+                        <Text size="xs">
+                          {item.product?.updated_at &&
+                            `(Updated: ${formatDateRelative(
+                              item.product.updated_at
+                            )})`}
+                        </Text>
+                      </Stack>
+
+                      <Group noWrap>
+                        <ActionIcon
+                          loading={productStates.loadingDecrease[index]}
+                          size="xl"
+                          color={
+                            productStates.decreased[index] ? "teal" : "cyan"
+                          }
+                          variant="transparent"
+                          onClick={() => {
+                            item.product?.id &&
+                              handleDecreaseQuantity(item.product.id, index);
+                          }}
+                        >
+                          {productStates.decreased[index] ? (
+                            <IconCheck size="2.2rem" />
+                          ) : (
+                            <IconSquareRoundedMinus size="3rem" />
+                          )}
+                        </ActionIcon>
+                        <Text weight={500}>{item.quantity}</Text>
+                        <ActionIcon
+                          loading={productStates.loadingIncrease[index]}
+                          size="xl"
+                          color={
+                            productStates.increased[index] ? "teal" : "cyan"
+                          }
+                          variant="transparent"
+                          onClick={() => {
+                            item.product?.id &&
+                              handleIncreaseQuantity(item.product.id, index);
+                          }}
+                        >
+                          {productStates.increased[index] ? (
+                            <IconCheck size="2.2rem" />
+                          ) : (
+                            <IconSquareRoundedPlusFilled size="3rem" />
+                          )}
+                        </ActionIcon>
+                      </Group>
                     </Stack>
-                  </Stack>
-                </Group>
-              </Paper>
-            </Grid.Col>
-          ))}
+                    <Stack align="flex-end" justify="space-between">
+                      <ActionIcon
+                        loading={productStates.loadingClearing[index]}
+                        variant="transparent"
+                        color="red"
+                        onClick={() => {
+                          item.product?.id &&
+                            clearProduct(
+                              item.product.id,
+                              item.product.name,
+                              index
+                            );
+                        }}
+                      >
+                        <IconX size="1.2rem" />
+                      </ActionIcon>
+                      <Stack spacing={0} miw={50} mt={70}>
+                        <Text c="dimmed">Total: </Text>
+                        <Text weight={500}>
+                          €
+                          {item.product?.price && item.quantity
+                            ? (item.product?.price * item.quantity).toFixed(2)
+                            : "N/A"}
+                        </Text>
+                      </Stack>
+                    </Stack>
+                  </Group>
+                </Paper>
+              </Grid.Col>
+            ))}
+        </Grid>
+        <Flex
+          style={{
+            width: "100%",
+          }}
+          justify="center"
+          align="center"
+          direction="row"
+          wrap="wrap"
+          maw={450}
+        >
+          {basketItemsMetaData?.total_pages && (
+            <Pagination
+              value={activePage}
+              onChange={handlePageChange}
+              total={basketItemsMetaData?.total_pages}
+            />
+          )}
+        </Flex>
+
         <Button
           onClick={clearBasket}
           variant="outline"
@@ -471,7 +505,7 @@ export default function Basket({
         >
           Empty basket
         </Button>
-      </Grid>
+      </Stack>
     </Flex>
   );
 }

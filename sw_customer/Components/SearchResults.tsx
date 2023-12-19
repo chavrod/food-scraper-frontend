@@ -213,11 +213,16 @@ export default function SearchResults({
     apiFunc: basketItemsApi.list,
     onSuccess: () => {},
   });
+  console.log("basketItems.responseData", basketItems.responseData);
   const { data: basketItemsData, metaData: basketItemsMetaData } =
     basketItems.responseData;
 
   const handleSuccess = () => {
     basketItems.request();
+  };
+
+  const handleBasketItemsPageChange = (page: number) => {
+    basketItems.request({ page: page });
   };
 
   const { handleSubmit, loading: loadingSubmit } = useApiSubmit({
@@ -605,6 +610,7 @@ export default function SearchResults({
           basketItems={basketItemsData}
           basketItemsMetaData={basketItemsMetaData}
           handleSuccess={handleSuccess}
+          handleBasketItemsPageChange={handleBasketItemsPageChange}
         />
       </Tabs.Panel>
     </Tabs>
