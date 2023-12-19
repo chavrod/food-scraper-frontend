@@ -2,6 +2,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
 
 from django.db.models import Avg, Sum, F, FloatField
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 
 from rest_framework import status, viewsets, mixins
@@ -123,9 +124,52 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             .annotate(total_price=F("product__price") * F("quantity"))
         )
 
-        page = self.paginate_queryset(queryset)
-        serializer = core_serializers.BasketItem(page, many=True)
-        return self.get_paginated_response(serializer.data)
+        # Group by shop name and aggregate total quantity and price
+        shop_breakdown = queryset.values("product__shop_name").annotate(
+            total_quantity=Sum("quantity"),
+            total_price=Sum("total_price", output_field=FloatField()),
+        )
+
+        # Calculating the total quantity and price across all items
+        total_quantity_all = (
+            queryset.aggregate(total_quantity_all=Sum("quantity"))["total_quantity_all"]
+            or 0
+        )
+        total_price_all = (
+            queryset.aggregate(total_price_all=Sum("total_price"))["total_price_all"]
+            or 0
+        )
+
+        # Get page number from request query params
+        page_number = request.query_params.get("page", 1)
+        paginator = Paginator(queryset, self.pagination_class.page_size)
+        page_obj = paginator.get_page(page_number)
+
+        serializer = core_serializers.BasketItem(page_obj, many=True)
+
+        data = {
+            "metadata": {
+                "total_items": queryset.count(),
+                "total_quantity": total_quantity_all,
+                "total_price": total_price_all,
+                "shop_breakdown": shop_breakdown,
+            },
+            "results": serializer.data,
+        }
+
+        return Response(
+            {
+                "results": serializer.data,
+                "metadata": {
+                    "total_items": queryset.count(),
+                    "total_quantity": total_quantity_all,
+                    "total_price": total_price_all,
+                    "shop_breakdown": shop_breakdown,
+                    "page": page_obj.number,
+                    "total_pages": paginator.num_pages,
+                },
+            }
+        )
 
     @action(detail=False, methods=["post"])
     def add_item_quantity(self, request, pk=None):
