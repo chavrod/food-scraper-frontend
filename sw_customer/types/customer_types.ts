@@ -26,12 +26,12 @@ export interface Product {
 }
 
 export interface BasketItem {
+    id?: number;
     product?: Product;
     quantity?: number;
 }
 
 export interface Basket {
-    id?: number;
     items?: BasketItem[];
 }
 
