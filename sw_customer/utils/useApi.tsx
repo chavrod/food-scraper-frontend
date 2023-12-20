@@ -1,4 +1,3 @@
-import { showNotification } from "@mantine/notifications";
 import { useState } from "react";
 // Internal
 import notifyError from "./notifyError";
@@ -11,11 +10,21 @@ interface useApiProps {
   onSuccess: () => void;
 }
 
+export interface UseApiReturnType<T, M> {
+  request: (additionalParams?: any) => Promise<void>;
+  responseData: {
+    data?: T;
+    metaData?: M;
+  };
+  loading: boolean;
+  errors: any[];
+}
+
 function useApi<T, M = any>({
   apiFunc,
   defaultParams = {},
   onSuccess,
-}: useApiProps) {
+}: useApiProps): UseApiReturnType<T, M> {
   const [params, setParams] = useState(defaultParams);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<any[]>([]);
@@ -58,33 +67,6 @@ function useApi<T, M = any>({
       setLoading(false);
     }
   };
-
-  // const go = async (params: any) => {
-  //   setErrors([]);
-  //   setLoadingRequest(true);
-  //   const res = await apiFunc(params);
-  //   console.log(res);
-  //   setLoadingRequest(false);
-  //   console.log(res);
-  //   if (res.ok) {
-  //     onSuccess(res);
-  //   } else {
-  //     if (res.status === 500) {
-  //       showNotification({ message: "Server Error", color: "red" });
-  //     } else {
-  //       // if (typeof res.data === "string") {
-  //       //   return;
-  //       // }
-  //       // const nonFieldErrors = Object.entries(res.data).map(
-  //       //   ([_, value]) => value as string
-  //       // );
-  //       // if (nonFieldErrors.length > 0) {
-  //       //   showNotification({ message: nonFieldErrors[0], color: "red" });
-  //       //   setErrors(nonFieldErrors);
-  //       // }
-  //     }
-  //   }
-  // };
 
   return { request, responseData, loading, errors };
 }
