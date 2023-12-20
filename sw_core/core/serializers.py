@@ -60,40 +60,29 @@ class Product(serializers.ModelSerializer):
 
 
 class ProductCreateOrUpdate(serializers.ModelSerializer):
-    pk = serializers.IntegerField(required=False, allow_null=True)
     name = serializers.CharField(trim_whitespace=True, required=False)
 
     def validate(self, attrs):
-        prod_id = attrs.get("pk")
         name = attrs.get("name")
         price = attrs.get("price")
         img_src = attrs.get("img_src")
         product_url = attrs.get("product_url")
         shop_name = attrs.get("shop_name")
 
-        if prod_id and len(attrs) > 1:
+        if not all([price, img_src, product_url, shop_name]):
             raise serializers.ValidationError(
-                {"error": "Only 'pk' should be provided if present"}
+                {
+                    "error": "All fields 'name', 'price', 'img_src', 'product_url', 'shop_name' must be provided together"
+                }
             )
-
-        if name:
-            if not all([price, img_src, product_url, shop_name]):
-                raise serializers.ValidationError(
-                    {
-                        "error": "All fields 'name', 'price', 'img_src', 'product_url', 'shop_name' must be provided together"
-                    }
-                )
 
         return attrs
 
     def create(self, validated_data):
-        prod_id = validated_data.get("pk")
         name = validated_data.get("name")
         shop_name = validated_data.get("shop_name")
 
-        if prod_id:
-            return core_models.Product.objects.get(id=prod_id)
-        elif name and shop_name:
+        if name and shop_name:
             product, created = core_models.Product.objects.get_or_create(
                 name=name, shop_name=shop_name, defaults=validated_data
             )
@@ -110,9 +99,8 @@ class ProductCreateOrUpdate(serializers.ModelSerializer):
 
     class Meta:
         model = core_models.Product
-        fields = ["pk", "name", "price", "img_src", "product_url", "shop_name"]
+        fields = ["name", "price", "img_src", "product_url", "shop_name"]
         extra_kwargs = {
-            "pk": {"required": False, "allow_null": True},
             "name": {"required": False},
             "price": {"required": False},
             "img_src": {"required": False},
@@ -127,7 +115,7 @@ class BasketItem(serializers.ModelSerializer):
 
     class Meta:
         model = core_models.BasketItem
-        fields = ["product", "quantity"]
+        fields = ["id", "product", "quantity"]
 
 
 @ts_interface()
@@ -136,7 +124,7 @@ class Basket(serializers.ModelSerializer):
 
     class Meta:
         model = core_models.Basket
-        fields = ["id", "items"]
+        fields = ["items"]
 
 
 if ENV == "DEV":

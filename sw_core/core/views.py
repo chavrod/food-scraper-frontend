@@ -92,6 +92,9 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         customer = request.user.customer
         try:
             basket = core_models.Basket.objects.get(customer=customer)
+            print("basket", basket)
+            for item in basket.items.all():
+                print(item.pk, item)
         except core_models.Basket.DoesNotExist:
             return (
                 None,
@@ -102,6 +105,7 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         try:
             basket_item = core_models.BasketItem.objects.get(pk=pk, basket=basket)
+            print("basket_item", basket_item)
         except core_models.BasketItem.DoesNotExist:
             return (
                 None,
@@ -140,22 +144,18 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             or 0
         )
 
+        shop_name = request.query_params.get("shop", None)
+        selected_shop = shop_name if shop_name in core_models.ShopName.values else "ALL"
+        if shop_name in core_models.ShopName.values:
+            print("shop_name", shop_name)
+            queryset = queryset.filter(product__shop_name=shop_name)
+
         # Get page number from request query params
         page_number = request.query_params.get("page", 1)
         paginator = Paginator(queryset, self.pagination_class.page_size)
         page_obj = paginator.get_page(page_number)
 
         serializer = core_serializers.BasketItem(page_obj, many=True)
-
-        data = {
-            "metadata": {
-                "total_items": queryset.count(),
-                "total_quantity": total_quantity_all,
-                "total_price": total_price_all,
-                "shop_breakdown": shop_breakdown,
-            },
-            "results": serializer.data,
-        }
 
         return Response(
             {
@@ -167,28 +167,48 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                     "shop_breakdown": shop_breakdown,
                     "page": page_obj.number,
                     "total_pages": paginator.num_pages,
+                    "selected_shop": selected_shop,
                 },
             }
         )
 
     @action(detail=False, methods=["post"])
     def add_item_quantity(self, request, pk=None):
-        customer = request.user.customer
-        basket, created = core_models.Basket.objects.get_or_create(customer=customer)
+        if "pk" in request.data:
+            return self._update_item_quantity(request)
+        else:
+            return self._add_or_update_item_in_basket(request)
 
+    def _update_item_quantity(self, request):
+        try:
+            basket_item, error_response = self._get_basket_item(
+                request, request.data["pk"]
+            )
+            if error_response:
+                return error_response
+            basket_item.quantity += 1
+            basket_item.save()
+
+            basket_item_serializer = core_serializers.BasketItem(basket_item)
+            return Response(basket_item_serializer.data, status=status.HTTP_200_OK)
+        except core_models.BasketItem.DoesNotExist:
+            return Response(
+                {"error": "Item not found in basket"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def _add_or_update_item_in_basket(self, request):
+        customer = request.user.customer
+        basket, _ = core_models.Basket.objects.get_or_create(customer=customer)
         serializer = core_serializers.ProductCreateOrUpdate(data=request.data)
         if serializer.is_valid():
             product = serializer.save()
-            # Logic to add product to the basket
             basket_item, item_created = core_models.BasketItem.objects.get_or_create(
                 basket=basket, product=product
             )
             if not item_created:
-                # Increment the quantity if the item is already in the basket
                 basket_item.quantity += 1
                 basket_item.save()
-
-            print("BASKET ITEM ADDED", basket_item.product.name, basket_item.quantity)
 
             basket_item_serializer = core_serializers.BasketItem(basket_item)
             return Response(basket_item_serializer.data, status=status.HTTP_201_CREATED)
