@@ -225,6 +225,10 @@ export default function SearchResults({
     basketItems.request({ page: page });
   };
 
+  const handleBasketItemsShopFilterChange = (filter_option: string) => {
+    basketItems.request({ shop: filter_option });
+  };
+
   const { handleSubmit, loading: loadingSubmit } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
 
@@ -607,10 +611,10 @@ export default function SearchResults({
         <Basket
           session={session}
           isLargerThanLg={isLargerThanLg}
-          basketItems={basketItemsData}
-          basketItemsMetaData={basketItemsMetaData}
+          basketItems={basketItems}
           handleSuccess={handleSuccess}
           handleBasketItemsPageChange={handleBasketItemsPageChange}
+          handleBasketItemsShopFilterChange={handleBasketItemsShopFilterChange}
         />
       </Tabs.Panel>
     </Tabs>
