@@ -17,6 +17,7 @@ import {
   Flex,
   Pagination,
   Select,
+  Skeleton,
 } from "@mantine/core";
 import {
   IconShoppingCartOff,
@@ -231,7 +232,132 @@ export default function Basket({
   return (
     <>
       {basketItems.loading ? (
-        <>{/* TODO: SHOW SKELETONS */}</>
+        <Flex
+          gap="md"
+          justify="center"
+          align="flex-start"
+          direction={isLargerThanLg ? "row-reverse" : "column"}
+          style={{ width: "100%" }}
+        >
+          <Paper
+            maw={isLargerThanLg ? "auto" : 450}
+            shadow="md"
+            withBorder
+            p="md"
+            radius="md"
+            mt="xs"
+            style={{ width: "100%" }}
+          >
+            <Title mb="xs" order={4} align="left">
+              Basket Summary by Shop
+            </Title>
+            {isLargerThanLg && (
+              <Group position="apart" noWrap>
+                <Text miw={120} ml={20} c="dimmed">
+                  Shop
+                </Text>
+                <Text mr={40} c="dimmed">
+                  Items
+                </Text>
+                <Text miw={90} mr={27} c="dimmed">
+                  Amount
+                </Text>
+              </Group>
+            )}
+            <Divider></Divider>
+
+            <Accordion
+              multiple
+              disableChevronRotation
+              chevron={isLargerThanLg ? "" : <IconPlus size="1rem" />}
+            >
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Accordion.Item value={index.toString()} key={index}>
+                  <Accordion.Control
+                    disabled={isLargerThanLg}
+                    style={{
+                      color: "black",
+                      cursor: isLargerThanLg ? "default" : "auto",
+                      opacity: 1,
+                    }}
+                  >
+                    <Group position="apart">
+                      <Text miw={80} align="left">
+                        <Skeleton height={20} width={80} />
+                      </Text>
+
+                      {isLargerThanLg && <Skeleton height={20} width={40} />}
+                      <Skeleton height={20} width={60} />
+                    </Group>
+                  </Accordion.Control>
+                </Accordion.Item>
+              ))}
+            </Accordion>
+            <Divider color="dark"></Divider>
+            <Group mt="xs" position="apart">
+              <Text ml={21} weight={500} miw={80} align="left">
+                {isLargerThanLg ? "" : "Total"}
+              </Text>
+
+              {isLargerThanLg && <Skeleton height={20} width={40} />}
+              <Skeleton mr={59} height={20} width={60} />
+            </Group>
+          </Paper>
+
+          <Grid gutter={0} mb={65}>
+            {/* Shop filter skeleton */}
+            <Paper withBorder>
+              <Skeleton height={40} width={150}></Skeleton>
+            </Paper>
+
+            {/* Basket items skeleton */}
+            {Array.from({ length: 8 }).map((_, index) => (
+              <Grid.Col key={index} span={12}>
+                <Paper
+                  maw={450}
+                  h="200px"
+                  shadow="md"
+                  withBorder
+                  p="md"
+                  my="xs"
+                  radius="md"
+                  style={{ width: "100%" }}
+                >
+                  <Group position="apart" noWrap>
+                    <Stack>
+                      <Skeleton height={50} width={50} />
+                      <Skeleton height={50} width={50} />
+                    </Stack>
+
+                    <Stack spacing={5}>
+                      <Box h={45}>
+                        <Skeleton height={20} width={150} />
+                        <Skeleton height={20} width={120} mt={5} />
+                      </Box>
+
+                      <Stack spacing={0} mt="lg">
+                        <Group noWrap>
+                          <Skeleton height={35} width={100} />
+                        </Group>
+                      </Stack>
+
+                      <Group noWrap mt="md">
+                        <Skeleton height={40} width={40} radius="lg" />
+                        <Skeleton height={15} width={30} />
+                        <Skeleton height={40} width={40} radius="lg" />
+                      </Group>
+                    </Stack>
+                    <Stack align="flex-end" justify="space-between">
+                      <Skeleton height={20} width={20} />
+
+                      <Skeleton height={40} width={50} mt={90} />
+                    </Stack>
+                  </Group>
+                </Paper>
+              </Grid.Col>
+            ))}
+          </Grid>
+        </Flex>
       ) : basketItems.responseData.data &&
         basketItems.responseData.data?.length > 0 ? (
         <Flex
@@ -343,8 +469,8 @@ export default function Basket({
             </Paper>
           )}
 
-          <Grid gutter={0}>
-            <Group maw={450} position="right">
+          <Stack>
+            <Group maw={450} position="left">
               <Select
                 value={value}
                 onChange={handleFilterByShop}
@@ -353,159 +479,163 @@ export default function Basket({
                 data={shopOptions}
               />
             </Group>
-            {basketItems.responseData.data.map((item, index) => (
-              <Grid.Col key={index} span={12}>
-                <Paper
-                  maw={450}
-                  h="200px"
-                  shadow="md"
-                  withBorder
-                  p="md"
-                  my="xs"
-                  radius="md"
-                  style={{ width: "100%" }}
-                >
-                  <Group position="apart" noWrap>
-                    {item.product?.img_src && (
-                      <Stack>
-                        <Image
-                          src={item.product.img_src}
-                          alt={item.product.name}
-                          width={50}
-                          height={50}
-                          fit="cover"
-                        />
-                        <Container
-                          w={50}
-                          h={50}
-                          style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}
-                        >
-                          <img
-                            src={`/brand-logos/${item.product.shop_name}.jpeg`}
-                            alt={item.product.shop_name}
-                            style={{ width: "2rem" }}
+            <Grid gutter={0}>
+              {basketItems.responseData.data.map((item, index) => (
+                <Grid.Col key={index} span={12}>
+                  <Paper
+                    maw={450}
+                    h="200px"
+                    shadow="md"
+                    withBorder
+                    p="md"
+                    my="xs"
+                    radius="md"
+                    style={{ width: "100%" }}
+                  >
+                    <Group position="apart" noWrap>
+                      {item.product?.img_src && (
+                        <Stack>
+                          <Image
+                            src={item.product.img_src}
+                            alt={item.product.name}
+                            width={50}
+                            height={50}
+                            fit="cover"
                           />
-                        </Container>
-                      </Stack>
-                    )}
-                    <Stack spacing={5}>
-                      <Box h={45}>
-                        <Text weight={500} lineClamp={2}>
-                          {item.product?.name}
-                        </Text>
-                      </Box>
-
-                      <Group spacing={0} align="center">
-                        <Text
-                          fz="md"
-                          c="cyan.7"
-                          sx={{
-                            cursor: "pointer",
-                            "&:hover": {
-                              textDecoration: "underline",
-                            },
-                          }}
-                          fw={700}
-                          component="a"
-                          href={
-                            item?.product?.product_url
-                              ? item.product.product_url
-                              : ""
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Go to source
-                        </Text>
-                        <IconArrowBadgeRight
-                          size={20}
-                          style={{ color: "#1098AD" }}
-                        />
-                      </Group>
-                      <Stack spacing={0}>
-                        <Group noWrap>
-                          <Text weight={500}>€{item.product?.price}</Text>
-                          <Text size="sm" c="dimmed">
-                            €2.49/kg{" "}
+                          <Container
+                            w={50}
+                            h={50}
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                            }}
+                          >
+                            <img
+                              src={`/brand-logos/${item.product.shop_name}.jpeg`}
+                              alt={item.product.shop_name}
+                              style={{ width: "2rem" }}
+                            />
+                          </Container>
+                        </Stack>
+                      )}
+                      <Stack spacing={5}>
+                        <Box h={45}>
+                          <Text weight={500} lineClamp={2}>
+                            {item.product?.name}
                           </Text>
-                        </Group>
-                        <Text size="xs">
-                          {item.product?.updated_at &&
-                            `(Updated: ${formatDateRelative(
-                              item.product.updated_at
-                            )})`}
-                        </Text>
-                      </Stack>
+                        </Box>
 
-                      <Group noWrap>
-                        <ActionIcon
-                          loading={productStates.loadingDecrease[index]}
-                          size="xl"
-                          color={
-                            productStates.decreased[index] ? "teal" : "cyan"
-                          }
-                          variant="transparent"
-                          onClick={() => {
-                            item?.id && handleDecreaseQuantity(item.id, index);
-                          }}
-                        >
-                          {productStates.decreased[index] ? (
-                            <IconCheck size="2.2rem" />
-                          ) : (
-                            <IconSquareRoundedMinus size="3rem" />
-                          )}
-                        </ActionIcon>
-                        <Text weight={500}>{item.quantity}</Text>
-                        <ActionIcon
-                          loading={productStates.loadingIncrease[index]}
-                          size="xl"
-                          color={
-                            productStates.increased[index] ? "teal" : "cyan"
-                          }
-                          variant="transparent"
-                          onClick={() => {
-                            item?.id && handleIncreaseQuantity(item.id, index);
-                          }}
-                        >
-                          {productStates.increased[index] ? (
-                            <IconCheck size="2.2rem" />
-                          ) : (
-                            <IconSquareRoundedPlusFilled size="3rem" />
-                          )}
-                        </ActionIcon>
-                      </Group>
-                    </Stack>
-                    <Stack align="flex-end" justify="space-between">
-                      <ActionIcon
-                        loading={productStates.loadingClearing[index]}
-                        variant="transparent"
-                        color="red"
-                        onClick={() => {
-                          item?.id &&
-                            item.product?.name &&
-                            clearProduct(item.id, item.product.name, index);
-                        }}
-                      >
-                        <IconX size="1.2rem" />
-                      </ActionIcon>
-                      <Stack spacing={0} miw={50} mt={70}>
-                        <Text c="dimmed">Total: </Text>
-                        <Text weight={500}>
-                          €
-                          {item.product?.price && item.quantity
-                            ? (item.product?.price * item.quantity).toFixed(2)
-                            : "N/A"}
-                        </Text>
+                        <Group spacing={0} align="center">
+                          <Text
+                            fz="md"
+                            c="cyan.7"
+                            sx={{
+                              cursor: "pointer",
+                              "&:hover": {
+                                textDecoration: "underline",
+                              },
+                            }}
+                            fw={700}
+                            component="a"
+                            href={
+                              item?.product?.product_url
+                                ? item.product.product_url
+                                : ""
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Go to source
+                          </Text>
+                          <IconArrowBadgeRight
+                            size={20}
+                            style={{ color: "#1098AD" }}
+                          />
+                        </Group>
+                        <Stack spacing={0}>
+                          <Group noWrap>
+                            <Text weight={500}>€{item.product?.price}</Text>
+                            <Text size="sm" c="dimmed">
+                              €2.49/kg{" "}
+                            </Text>
+                          </Group>
+                          <Text size="xs">
+                            {item.product?.updated_at &&
+                              `(Updated: ${formatDateRelative(
+                                item.product.updated_at
+                              )})`}
+                          </Text>
+                        </Stack>
+
+                        <Group noWrap>
+                          <ActionIcon
+                            loading={productStates.loadingDecrease[index]}
+                            size="xl"
+                            color={
+                              productStates.decreased[index] ? "teal" : "cyan"
+                            }
+                            variant="transparent"
+                            onClick={() => {
+                              item?.id &&
+                                handleDecreaseQuantity(item.id, index);
+                            }}
+                          >
+                            {productStates.decreased[index] ? (
+                              <IconCheck size="2.2rem" />
+                            ) : (
+                              <IconSquareRoundedMinus size="3rem" />
+                            )}
+                          </ActionIcon>
+                          <Text weight={500}>{item.quantity}</Text>
+                          <ActionIcon
+                            loading={productStates.loadingIncrease[index]}
+                            size="xl"
+                            color={
+                              productStates.increased[index] ? "teal" : "cyan"
+                            }
+                            variant="transparent"
+                            onClick={() => {
+                              item?.id &&
+                                handleIncreaseQuantity(item.id, index);
+                            }}
+                          >
+                            {productStates.increased[index] ? (
+                              <IconCheck size="2.2rem" />
+                            ) : (
+                              <IconSquareRoundedPlusFilled size="3rem" />
+                            )}
+                          </ActionIcon>
+                        </Group>
                       </Stack>
-                    </Stack>
-                  </Group>
-                </Paper>
-              </Grid.Col>
-            ))}
+                      <Stack align="flex-end" justify="space-between">
+                        <ActionIcon
+                          loading={productStates.loadingClearing[index]}
+                          variant="transparent"
+                          color="red"
+                          onClick={() => {
+                            item?.id &&
+                              item.product?.name &&
+                              clearProduct(item.id, item.product.name, index);
+                          }}
+                        >
+                          <IconX size="1.2rem" />
+                        </ActionIcon>
+                        <Stack spacing={0} miw={50} mt={70}>
+                          <Text c="dimmed">Total: </Text>
+                          <Text weight={500}>
+                            €
+                            {item.product?.price && item.quantity
+                              ? (item.product?.price * item.quantity).toFixed(2)
+                              : "N/A"}
+                          </Text>
+                        </Stack>
+                      </Stack>
+                    </Group>
+                  </Paper>
+                </Grid.Col>
+              ))}
+            </Grid>
             <Flex
               style={{
                 width: "100%",
@@ -536,7 +666,7 @@ export default function Basket({
             >
               Empty basket
             </Button>
-          </Grid>
+          </Stack>
         </Flex>
       ) : (
         <Stack
