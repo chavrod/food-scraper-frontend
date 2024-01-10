@@ -484,6 +484,7 @@ export default function Basket({
                 <Grid.Col key={index} span={12}>
                   <Paper
                     maw={450}
+                    miw={isLargerThanLg ? 400 : ""}
                     h="200px"
                     shadow="md"
                     withBorder
