@@ -217,16 +217,26 @@ export default function SearchResults({
   const { data: basketItemsData, metaData: basketItemsMetaData } =
     basketItems.responseData;
 
-  const handleSuccess = () => {
-    basketItems.request();
-  };
-
-  const handleBasketItemsPageChange = (page: number) => {
-    basketItems.request({ page: page });
-  };
-
-  const handleBasketItemsShopFilterChange = (filter_option: string) => {
+  const [filteredBasketShop, setFilteredBasketShop] = useState<string | null>(
+    "ALL"
+  );
+  const handleFilterByShop = (filter_option: string) => {
+    setFilteredBasketShop(filter_option);
     basketItems.request({ shop: filter_option });
+  };
+
+  const [activePage, setActivePage] = useState(1);
+  const handleBasketPageChange = (page: number) => {
+    setActivePage(page);
+
+    // Scroll smoothly to the top of the page
+    window.scrollTo({ top: isLargerThanLg ? 0 : 430, behavior: "smooth" });
+
+    basketItems.request({ page: page, shop: filteredBasketShop });
+  };
+
+  const handleSuccess = () => {
+    basketItems.request({ shop: filteredBasketShop });
   };
 
   const { handleSubmit, loading: loadingSubmit } = useApiSubmit({
@@ -613,8 +623,10 @@ export default function SearchResults({
           isLargerThanLg={isLargerThanLg}
           basketItems={basketItems}
           handleSuccess={handleSuccess}
-          handleBasketItemsPageChange={handleBasketItemsPageChange}
-          handleBasketItemsShopFilterChange={handleBasketItemsShopFilterChange}
+          activePage={activePage}
+          handlePageChange={handleBasketPageChange}
+          filteredBasketShop={filteredBasketShop}
+          handleFilterByShop={handleFilterByShop}
         />
       </Tabs.Panel>
     </Tabs>

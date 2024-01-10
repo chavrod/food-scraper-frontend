@@ -47,8 +47,10 @@ interface BasketProps {
   isLargerThanLg: boolean;
   basketItems: BasketItemsType;
   handleSuccess: () => void;
-  handleBasketItemsPageChange: (page: number) => void;
-  handleBasketItemsShopFilterChange: (filter_option: string) => void;
+  activePage: number;
+  handlePageChange: (page: number) => void;
+  filteredBasketShop: string | null;
+  handleFilterByShop: (filter_option: string) => void;
 }
 
 type ProductStateType = {
@@ -64,8 +66,10 @@ export default function Basket({
   isLargerThanLg,
   basketItems,
   handleSuccess,
-  handleBasketItemsPageChange,
-  handleBasketItemsShopFilterChange,
+  activePage,
+  handlePageChange,
+  filteredBasketShop,
+  handleFilterByShop,
 }: BasketProps) {
   if (!session) {
     return (
@@ -75,18 +79,6 @@ export default function Basket({
       </Stack>
     );
   }
-
-  const [activePage, setPage] = useState(1);
-  const handlePageChange = (page: number) => {
-    setPage(page);
-    handleBasketItemsPageChange(page);
-  };
-
-  const [value, setValue] = useState<string | null>("ALL");
-  const handleFilterByShop = (filter_option: string) => {
-    setValue(filter_option);
-    handleBasketItemsShopFilterChange(filter_option);
-  };
 
   const generateShopOptions = (shopBreakdown: BasketItemShopBreakdown[]) => {
     const shopOptions = new Set(
@@ -472,7 +464,7 @@ export default function Basket({
           <Stack>
             <Group maw={450} position="left">
               <Select
-                value={value}
+                value={filteredBasketShop}
                 onChange={handleFilterByShop}
                 label="Selected shops"
                 placeholder="Pick one"
