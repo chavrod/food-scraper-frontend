@@ -50,7 +50,6 @@ export default async function Home(outerParams: {
 
   return (
     <>
-      {/* <SearchForm searchText={searchText || ""} /> */}
       <SearchResults
         searchText={searchParams.query}
         products={products}
