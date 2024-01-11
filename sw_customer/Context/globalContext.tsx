@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, ReactNode } from "react";
+import { useMediaQuery } from "@mantine/hooks";
 import { BasketItem } from "@/types/customer_types";
 import { BasketItemMetaData } from "@/types/customer_plus_types";
 import useApi, { UseApiReturnType } from "@/utils/useApi";
@@ -9,6 +10,7 @@ import basketItemsApi from "@/app/api/basketItemsApi";
 
 interface GlobalContextType {
   basketItems: UseApiReturnType<BasketItem[], BasketItemMetaData>;
+  isLargerThanLg: boolean;
 }
 
 // Define the props for GlobalProvider
@@ -28,8 +30,10 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     onSuccess: () => {},
   });
 
+  const isLargerThanLg = useMediaQuery("(min-width: 1184px)");
+
   return (
-    <GlobalContext.Provider value={{ basketItems }}>
+    <GlobalContext.Provider value={{ basketItems, isLargerThanLg }}>
       {children}
     </GlobalContext.Provider>
   );
