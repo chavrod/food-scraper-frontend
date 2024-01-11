@@ -1,6 +1,7 @@
 import RootStyleRegistry from "./emotion";
 import MainAppShell from "./MainAppShell";
 import { SessionProvider } from "../Components/Provider";
+import { GlobalProvider } from "@/Context/globalContext";
 
 interface RootLayoutProps {
   children: React.ReactNode;
@@ -12,9 +13,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <main style={{ backgroundColor: "#F1F3F5" }}>
           <RootStyleRegistry>
-            <SessionProvider>
-              <MainAppShell>{children}</MainAppShell>
-            </SessionProvider>
+            <GlobalProvider>
+              <SessionProvider>
+                <MainAppShell>{children}</MainAppShell>
+              </SessionProvider>
+            </GlobalProvider>
           </RootStyleRegistry>
         </main>
       </body>
