@@ -1,5 +1,6 @@
+"use client";
+
 import React, { useState } from "react";
-import { Session } from "next-auth";
 import {
   Text,
   Stack,
@@ -39,19 +40,8 @@ import { UseApiReturnType } from "@/utils/useApi";
 // Intenral: API
 import basketItemsApi from "@/app/api/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
-
-type BasketItemsType = UseApiReturnType<BasketItem[], BasketItemMetaData>;
-
-interface BasketProps {
-  session: Session | null;
-  isLargerThanLg: boolean;
-  basketItems: BasketItemsType;
-  handleSuccess: () => void;
-  activePage: number;
-  handlePageChange: (page: number) => void;
-  filteredBasketShop: string | null;
-  handleFilterByShop: (filter_option: string) => void;
-}
+import { useGlobalContext } from "@/Context/globalContext";
+import { useSession } from "next-auth/react";
 
 type ProductStateType = {
   loadingIncrease: Record<number, boolean>;
@@ -61,24 +51,31 @@ type ProductStateType = {
   increased: Record<number, boolean>;
 };
 
-export default function Basket({
-  session,
-  isLargerThanLg,
-  basketItems,
-  handleSuccess,
-  activePage,
-  handlePageChange,
-  filteredBasketShop,
-  handleFilterByShop,
-}: BasketProps) {
-  if (!session) {
-    return (
-      <Stack align="center" justify="center" style={{ height: "100%" }} mt="xl">
-        <IconShoppingCartOff size={80} stroke={2} />
-        <Text>Login or Register to access the basket</Text>
-      </Stack>
-    );
-  }
+export default function BasketPage() {
+  const { data: session } = useSession();
+  const { basketItems, isLargerThanLg } = useGlobalContext();
+
+  const [filteredBasketShop, setFilteredBasketShop] = useState<string | null>(
+    "ALL"
+  );
+  const handleFilterByShop = (filter_option: string) => {
+    setFilteredBasketShop(filter_option);
+    basketItems.request({ shop: filter_option });
+  };
+
+  const [activePage, setActivePage] = useState(1);
+  const handleBasketPageChange = (page: number) => {
+    setActivePage(page);
+
+    // Scroll smoothly to the top of the page
+    window.scrollTo({ top: isLargerThanLg ? 0 : 320, behavior: "smooth" });
+
+    basketItems.request({ page: page, shop: filteredBasketShop });
+  };
+
+  const handleSuccess = () => {
+    basketItems.request({ shop: filteredBasketShop });
+  };
 
   const generateShopOptions = (shopBreakdown: BasketItemShopBreakdown[]) => {
     const shopOptions = new Set(
@@ -220,6 +217,15 @@ export default function Basket({
       `Removed all items from basket from basket.`
     );
   };
+
+  if (!session) {
+    return (
+      <Stack align="center" justify="center" style={{ height: "100%" }} mt="xl">
+        <IconShoppingCartOff size={80} stroke={2} />
+        <Text>Login or Register to access the basket</Text>
+      </Stack>
+    );
+  }
 
   return (
     <>
@@ -642,7 +648,7 @@ export default function Basket({
               {basketItems.responseData.metaData?.total_pages && (
                 <Pagination
                   value={activePage}
-                  onChange={handlePageChange}
+                  onChange={handleBasketPageChange}
                   total={basketItems.responseData.metaData?.total_pages}
                 />
               )}
