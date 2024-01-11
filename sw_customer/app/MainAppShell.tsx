@@ -22,6 +22,7 @@ import {
   Paper,
   Box,
   Title,
+  Badge,
 } from "@mantine/core";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import {
@@ -35,12 +36,14 @@ import {
   IconLogin,
   IconCircleCheckFilled,
   IconCompass,
+  IconShoppingCart,
 } from "@tabler/icons-react";
 import { useSession, signOut } from "next-auth/react";
 // Internal: Components
 import UserAccess from "../Components/UserAccess";
 // Internal: Utils
 import { logout } from "@/utils/auth";
+import { useGlobalContext } from "@/Context/globalContext";
 
 interface Route {
   link: string;
@@ -58,6 +61,10 @@ export default function MainAppShell({
 }: {
   children: React.ReactNode;
 }) {
+  const { basketItems } = useGlobalContext();
+  const { metaData: basketItemsMetaData } = basketItems.responseData;
+  const basketQty = basketItemsMetaData?.total_quantity || 0;
+
   const loginParams = useSearchParams();
   const [isEmailConfirmed, setIsEmailConfirmed] = useState(
     loginParams.get("login") === "successful-email-confirmation"
@@ -183,59 +190,100 @@ export default function MainAppShell({
             </Group>
             <Group>
               {isClient ? (
-                <Menu shadow="md" width={200} position="bottom-end" offset={3}>
-                  <Menu.Target>
-                    <Avatar color={session ? "cyan" : "gray"} radius="xl">
-                      {session && session.user.username.length > 2 ? (
-                        session.user.username.slice(0, 2).toUpperCase()
-                      ) : (
-                        <IconUserCircle size="1.8rem" stroke="0.09rem" />
-                      )}
-                    </Avatar>
-                  </Menu.Target>
+                <>
+                  <ActionIcon
+                    size={36.5}
+                    radius="md"
+                    sx={{
+                      "&:hover": {
+                        backgroundColor: "#3BC9DB",
+                      },
+                      backgroundColor:
+                        pathname === "/basket" ? "#3BC9DB" : "#E3FAFC",
+                      cursor: "pointer",
+                      width: "85px",
+                      borderWidth: 0,
+                    }}
+                    variant="filled"
+                    color="cyan.0"
+                    onClick={() => {}}
+                  >
+                    <Link href="/basket" style={{ textDecoration: "none" }}>
+                      <Badge
+                        leftSection={
+                          <IconShoppingCart
+                            size="1.3rem"
+                            stroke="0.12rem"
+                            color="#15AABF"
+                          />
+                        }
+                        radius="md"
+                        size="lg"
+                      >
+                        {session && basketQty ? basketQty : 0}
+                      </Badge>
+                    </Link>
+                  </ActionIcon>
 
-                  <Menu.Dropdown>
-                    {session ? (
-                      <>
-                        {" "}
-                        <Menu.Label>{session.user.email}</Menu.Label>
-                        <Menu.Item icon={<IconLifebuoy size={14} />}>
-                          Help
-                        </Menu.Item>
-                        <Menu.Item icon={<IconSettings size={14} />}>
-                          <Link
-                            href="/account-settings"
-                            style={{ textDecoration: "none", color: "black" }}
+                  <Menu
+                    shadow="md"
+                    width={200}
+                    position="bottom-end"
+                    offset={3}
+                  >
+                    <Menu.Target>
+                      <Avatar color={session ? "cyan" : "gray"} radius="md">
+                        {session && session.user.username.length > 2 ? (
+                          session.user.username.slice(0, 2).toUpperCase()
+                        ) : (
+                          <IconUserCircle size="1.8rem" stroke="0.09rem" />
+                        )}
+                      </Avatar>
+                    </Menu.Target>
+
+                    <Menu.Dropdown>
+                      {session ? (
+                        <>
+                          {" "}
+                          <Menu.Label>{session.user.email}</Menu.Label>
+                          <Menu.Item icon={<IconLifebuoy size={14} />}>
+                            Help
+                          </Menu.Item>
+                          <Menu.Item icon={<IconSettings size={14} />}>
+                            <Link
+                              href="/account-settings"
+                              style={{ textDecoration: "none", color: "black" }}
+                            >
+                              Account Settings
+                            </Link>
+                          </Menu.Item>
+                          <Menu.Divider />
+                          <Menu.Item
+                            onClick={() => logout(session.refresh_token)}
+                            // onClick={() => signOut()}
+                            icon={<IconLogout size={14} />}
                           >
-                            Account Settings
-                          </Link>
-                        </Menu.Item>
-                        <Menu.Divider />
-                        <Menu.Item
-                          onClick={() => logout(session.refresh_token)}
-                          // onClick={() => signOut()}
-                          icon={<IconLogout size={14} />}
-                        >
-                          Log Out
-                        </Menu.Item>
-                      </>
-                    ) : (
-                      <>
-                        {" "}
-                        <Menu.Item
-                          onClick={() => open()}
-                          icon={<IconLogin size={14} />}
-                        >
-                          Log in
-                        </Menu.Item>
-                        <Menu.Divider />
-                        <Menu.Item icon={<IconLifebuoy size={14} />}>
-                          Help
-                        </Menu.Item>
-                      </>
-                    )}
-                  </Menu.Dropdown>
-                </Menu>
+                            Log Out
+                          </Menu.Item>
+                        </>
+                      ) : (
+                        <>
+                          {" "}
+                          <Menu.Item
+                            onClick={() => open()}
+                            icon={<IconLogin size={14} />}
+                          >
+                            Log in
+                          </Menu.Item>
+                          <Menu.Divider />
+                          <Menu.Item icon={<IconLifebuoy size={14} />}>
+                            Help
+                          </Menu.Item>
+                        </>
+                      )}
+                    </Menu.Dropdown>
+                  </Menu>
+                </>
               ) : (
                 <>
                   <Avatar color={"gray"} radius="xl">
