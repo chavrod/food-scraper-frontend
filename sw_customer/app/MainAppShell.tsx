@@ -220,7 +220,11 @@ export default function MainAppShell({
                         radius="md"
                         size="lg"
                       >
-                        {session && basketQty ? basketQty : 0}
+                        {session && basketQty
+                          ? basketQty > 99
+                            ? "99+"
+                            : basketQty
+                          : 0}
                       </Badge>
                     </Link>
                   </ActionIcon>
