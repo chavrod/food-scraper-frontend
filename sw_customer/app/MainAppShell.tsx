@@ -24,7 +24,7 @@ import {
   Title,
   Badge,
 } from "@mantine/core";
-import { useMediaQuery, useDisclosure } from "@mantine/hooks";
+import { useDisclosure } from "@mantine/hooks";
 import {
   Icon,
   IconCalculator,
@@ -38,7 +38,7 @@ import {
   IconCompass,
   IconShoppingCart,
 } from "@tabler/icons-react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 // Internal: Components
 import UserAccess from "../Components/UserAccess";
 // Internal: Utils
@@ -61,7 +61,7 @@ export default function MainAppShell({
 }: {
   children: React.ReactNode;
 }) {
-  const { basketItems } = useGlobalContext();
+  const { basketItems, isLargerThanSm } = useGlobalContext();
   const { metaData: basketItemsMetaData } = basketItems.responseData;
   const basketQty = basketItemsMetaData?.total_quantity || 0;
 
@@ -139,8 +139,6 @@ export default function MainAppShell({
     setIsClient(true);
   }, []);
 
-  const isLargerThanSm = useMediaQuery("(min-width: 768px)");
-
   const handleLoginSucess = () => {
     close();
 
@@ -151,152 +149,162 @@ export default function MainAppShell({
     }
   };
 
+  const headerHeight = isLargerThanSm ? 120 : 60;
+
   return (
     <AppShell
-      styles={(theme) => ({})}
-      navbar={
-        isClient && isLargerThanSm ? (
-          <Navbar width={{ base: 300 }} p="xs">
-            {routes
-              .filter((r) => r.navbar)
-              .map((r, i) => (
-                <Link key={i} href={r.link} style={{ textDecoration: "none" }}>
-                  <NavLink
-                    my={4}
-                    key={i}
-                    label={r.label}
-                    icon={<r.icon size="1.5rem" stroke={1.5} />}
-                    active={r.link === pathname}
-                    variant="filled"
-                  ></NavLink>
-                </Link>
-              ))}
-          </Navbar>
-        ) : (
-          <></>
-        )
-      }
+      styles={(theme) => ({
+        main: {
+          paddingTop: headerHeight,
+        },
+      })}
       header={
-        <Header height={60} p="xs">
-          <Group position="apart" spacing="xs" noWrap>
-            <Group>
-              <Link href="/">
-                <img
-                  src="/shopping_wiz_logo.png"
-                  alt="Shopping Wiz logo"
-                  style={{ maxWidth: "9rem" }}
-                />
-              </Link>
-            </Group>
-            <Group>
-              {isClient ? (
-                <>
-                  <ActionIcon
-                    size={36.5}
-                    radius="md"
-                    sx={{
-                      "&:hover": {
-                        backgroundColor: "#3BC9DB",
-                      },
-                      backgroundColor:
-                        pathname === "/basket" ? "#3BC9DB" : "#E3FAFC",
-                      cursor: "pointer",
-                      width: "85px",
-                      borderWidth: 0,
-                    }}
-                    variant="filled"
-                    color="cyan.0"
-                    onClick={() => {}}
-                  >
-                    <Link href="/basket" style={{ textDecoration: "none" }}>
-                      <Badge
-                        leftSection={
-                          <IconShoppingCart
-                            size="1.3rem"
-                            stroke="0.12rem"
-                            color="#15AABF"
-                          />
-                        }
-                        radius="md"
-                        size="lg"
-                      >
-                        {session && basketQty
-                          ? basketQty > 99
-                            ? "99+"
-                            : basketQty
-                          : 0}
-                      </Badge>
-                    </Link>
-                  </ActionIcon>
+        <Header height={headerHeight} p="xs">
+          <Stack>
+            <Group position="apart" spacing="xs" noWrap>
+              <Group>
+                <Link href="/">
+                  <img
+                    src="/shopping_wiz_logo.png"
+                    alt="Shopping Wiz logo"
+                    style={{ maxWidth: "9rem" }}
+                  />
+                </Link>
+              </Group>
+              <Group>
+                {isClient ? (
+                  <>
+                    <ActionIcon
+                      size={36.5}
+                      radius="md"
+                      sx={{
+                        "&:hover": {
+                          backgroundColor: "#3BC9DB",
+                        },
+                        backgroundColor:
+                          pathname === "/basket" ? "#3BC9DB" : "#E3FAFC",
+                        cursor: "pointer",
+                        width: "85px",
+                        borderWidth: 0,
+                      }}
+                      variant="filled"
+                      color="cyan.0"
+                      onClick={() => {}}
+                    >
+                      <Link href="/basket" style={{ textDecoration: "none" }}>
+                        <Badge
+                          leftSection={
+                            <IconShoppingCart
+                              size="1.3rem"
+                              stroke="0.12rem"
+                              color="#15AABF"
+                            />
+                          }
+                          radius="md"
+                          size="lg"
+                        >
+                          {session && basketQty
+                            ? basketQty > 99
+                              ? "99+"
+                              : basketQty
+                            : 0}
+                        </Badge>
+                      </Link>
+                    </ActionIcon>
 
-                  <Menu
-                    shadow="md"
-                    width={200}
-                    position="bottom-end"
-                    offset={3}
-                  >
-                    <Menu.Target>
-                      <Avatar color={session ? "cyan" : "gray"} radius="md">
-                        {session && session.user.username.length > 2 ? (
-                          session.user.username.slice(0, 2).toUpperCase()
-                        ) : (
-                          <IconUserCircle size="1.8rem" stroke="0.09rem" />
-                        )}
-                      </Avatar>
-                    </Menu.Target>
+                    <Menu
+                      shadow="md"
+                      width={200}
+                      position="bottom-end"
+                      offset={3}
+                    >
+                      <Menu.Target>
+                        <Avatar color={session ? "cyan" : "gray"} radius="md">
+                          {session && session.user.username.length > 2 ? (
+                            session.user.username.slice(0, 2).toUpperCase()
+                          ) : (
+                            <IconUserCircle size="1.8rem" stroke="0.09rem" />
+                          )}
+                        </Avatar>
+                      </Menu.Target>
 
-                    <Menu.Dropdown>
-                      {session ? (
-                        <>
-                          {" "}
-                          <Menu.Label>{session.user.email}</Menu.Label>
-                          <Menu.Item icon={<IconLifebuoy size={14} />}>
-                            Help
-                          </Menu.Item>
-                          <Menu.Item icon={<IconSettings size={14} />}>
-                            <Link
-                              href="/account-settings"
-                              style={{ textDecoration: "none", color: "black" }}
+                      <Menu.Dropdown>
+                        {session ? (
+                          <>
+                            {" "}
+                            <Menu.Label>{session.user.email}</Menu.Label>
+                            <Menu.Item icon={<IconLifebuoy size={14} />}>
+                              Help
+                            </Menu.Item>
+                            <Menu.Item icon={<IconSettings size={14} />}>
+                              <Link
+                                href="/account-settings"
+                                style={{
+                                  textDecoration: "none",
+                                  color: "black",
+                                }}
+                              >
+                                Account Settings
+                              </Link>
+                            </Menu.Item>
+                            <Menu.Divider />
+                            <Menu.Item
+                              onClick={() => logout(session.refresh_token)}
+                              // onClick={() => signOut()}
+                              icon={<IconLogout size={14} />}
                             >
-                              Account Settings
-                            </Link>
-                          </Menu.Item>
-                          <Menu.Divider />
-                          <Menu.Item
-                            onClick={() => logout(session.refresh_token)}
-                            // onClick={() => signOut()}
-                            icon={<IconLogout size={14} />}
-                          >
-                            Log Out
-                          </Menu.Item>
-                        </>
-                      ) : (
-                        <>
-                          {" "}
-                          <Menu.Item
-                            onClick={() => open()}
-                            icon={<IconLogin size={14} />}
-                          >
-                            Log in
-                          </Menu.Item>
-                          <Menu.Divider />
-                          <Menu.Item icon={<IconLifebuoy size={14} />}>
-                            Help
-                          </Menu.Item>
-                        </>
-                      )}
-                    </Menu.Dropdown>
-                  </Menu>
-                </>
-              ) : (
-                <>
-                  <Avatar color={"gray"} radius="xl">
-                    <IconUserCircle size="1.8rem" stroke="0.09rem" />
-                  </Avatar>
-                </>
-              )}
+                              Log Out
+                            </Menu.Item>
+                          </>
+                        ) : (
+                          <>
+                            {" "}
+                            <Menu.Item
+                              onClick={() => open()}
+                              icon={<IconLogin size={14} />}
+                            >
+                              Log in
+                            </Menu.Item>
+                            <Menu.Divider />
+                            <Menu.Item icon={<IconLifebuoy size={14} />}>
+                              Help
+                            </Menu.Item>
+                          </>
+                        )}
+                      </Menu.Dropdown>
+                    </Menu>
+                  </>
+                ) : (
+                  <>
+                    <Avatar color={"gray"} radius="xl">
+                      <IconUserCircle size="1.8rem" stroke="0.09rem" />
+                    </Avatar>
+                  </>
+                )}
+              </Group>
             </Group>
-          </Group>
+            {isClient && isLargerThanSm && (
+              <Group>
+                {routes
+                  .filter((r) => r.navbar)
+                  .map((r, i) => (
+                    <Link
+                      key={i}
+                      href={r.link}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <NavLink
+                        my={4}
+                        label={r.label}
+                        icon={<r.icon size="1.5rem" stroke={1.5} />}
+                        active={r.link === pathname}
+                        variant="filled"
+                      />
+                    </Link>
+                  ))}
+              </Group>
+            )}
+          </Stack>
         </Header>
       }
       footer={
