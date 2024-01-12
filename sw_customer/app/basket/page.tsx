@@ -31,12 +31,7 @@ import {
 } from "@tabler/icons-react";
 import { formatDateRelative } from "@/utils/datesUtil";
 // Internal: Types
-import { Product, BasketItem } from "@/types/customer_types";
-import {
-  BasketItemMetaData,
-  BasketItemShopBreakdown,
-} from "@/types/customer_plus_types";
-import { UseApiReturnType } from "@/utils/useApi";
+import { BasketItemShopBreakdown } from "@/types/customer_plus_types";
 // Intenral: API
 import basketItemsApi from "@/app/api/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
