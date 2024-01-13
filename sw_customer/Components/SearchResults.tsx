@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReactElement, useState, useEffect, useId } from "react";
 import { useSession } from "next-auth/react";
@@ -33,6 +34,7 @@ import {
   IconSearch,
   IconShoppingCart,
   IconCheck,
+  IconShoppingCartOff,
 } from "@tabler/icons-react";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 // Intenral: Utils
@@ -40,6 +42,7 @@ import { SearchMetaData } from "@/utils/types";
 import { Product } from "@/types/customer_types";
 // Intenral: Components
 import renderTime from "@/Components/RenderTimeNumber";
+import BasketPreview from "./BasketPreview";
 // Intenral: API
 import basketItemsApi from "@/app/api/basketItemsApi";
 import useApi from "@/utils/useApi";
@@ -538,59 +541,7 @@ export default function SearchResults({
           currentProducts &&
           currentProducts.length === 0 && <>Sorry, there was nothing found!</>}
       </Stack>
-      <Stack
-        spacing="md"
-        style={{
-          position: "sticky", // Make the Stack sticky
-          top: 120,
-          borderLeft: "1px solid #ADB5BD", // Apply border to the left side
-          borderRight: "1px solid #ADB5BD",
-          borderBottom: "1px solid #ADB5BD",
-          minWidth: "300px",
-          maxWidth: "400px",
-          marginLeft: "20px",
-          marginRight: "20px",
-        }}
-      >
-        <Stack>
-          <Box
-            p="sm"
-            style={{
-              backgroundColor: "white",
-              borderBottom: "1px solid #ADB5BD",
-            }}
-          >
-            <Title order={3} mt="sm">
-              Basket Preview
-            </Title>
-            <Divider my="xs" />
-            <Group>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "3rem", // Width of the circle
-                  height: "3rem", // Height of the circle
-                  backgroundColor: "#15AABF", // Background color of the circle
-                  borderRadius: "50%", // Makes the div circular
-                }}
-              >
-                <IconShoppingCart size="2.3rem" color="white" stroke="0.1rem" />
-              </div>
-            </Group>
-          </Box>
-        </Stack>
-
-        {/* Here you can map over your basket items and display them */}
-        {/* For example: */}
-        {basketItems.responseData.data &&
-          basketItems.responseData.data.map((item, index) => (
-            <Paper key={index} shadow="sm" p="md" radius="md">
-              {/* Add more item details here */}
-            </Paper>
-          ))}
-      </Stack>
+      <BasketPreview />
     </Flex>
   );
 }
