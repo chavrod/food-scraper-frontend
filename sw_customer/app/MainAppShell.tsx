@@ -23,6 +23,7 @@ import {
   Box,
   Title,
   Badge,
+  Button,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -172,7 +173,7 @@ export default function MainAppShell({
                 </Link>
               </Group>
               <Group>
-                {isClient ? (
+                {isClient && session ? (
                   <>
                     <ActionIcon
                       size={36.5}
@@ -229,57 +230,37 @@ export default function MainAppShell({
                       </Menu.Target>
 
                       <Menu.Dropdown>
-                        {session ? (
-                          <>
-                            {" "}
-                            <Menu.Label>{session.user.email}</Menu.Label>
-                            <Menu.Item icon={<IconLifebuoy size={14} />}>
-                              Help
-                            </Menu.Item>
-                            <Menu.Item icon={<IconSettings size={14} />}>
-                              <Link
-                                href="/account-settings"
-                                style={{
-                                  textDecoration: "none",
-                                  color: "black",
-                                }}
-                              >
-                                Account Settings
-                              </Link>
-                            </Menu.Item>
-                            <Menu.Divider />
-                            <Menu.Item
-                              onClick={() => logout(session.refresh_token)}
-                              // onClick={() => signOut()}
-                              icon={<IconLogout size={14} />}
-                            >
-                              Log Out
-                            </Menu.Item>
-                          </>
-                        ) : (
-                          <>
-                            {" "}
-                            <Menu.Item
-                              onClick={() => open()}
-                              icon={<IconLogin size={14} />}
-                            >
-                              Log in
-                            </Menu.Item>
-                            <Menu.Divider />
-                            <Menu.Item icon={<IconLifebuoy size={14} />}>
-                              Help
-                            </Menu.Item>
-                          </>
-                        )}
+                        <Menu.Label>{session.user.email}</Menu.Label>
+                        <Menu.Item icon={<IconLifebuoy size={14} />}>
+                          Help
+                        </Menu.Item>
+                        <Menu.Item icon={<IconSettings size={14} />}>
+                          <Link
+                            href="/account-settings"
+                            style={{
+                              textDecoration: "none",
+                              color: "black",
+                            }}
+                          >
+                            Account Settings
+                          </Link>
+                        </Menu.Item>
+                        <Menu.Divider />
+                        <Menu.Item
+                          onClick={() => logout(session.refresh_token)}
+                          // onClick={() => signOut()}
+                          icon={<IconLogout size={14} />}
+                        >
+                          Log Out
+                        </Menu.Item>
                       </Menu.Dropdown>
                     </Menu>
                   </>
                 ) : (
-                  <>
-                    <Avatar color={"gray"} radius="xl">
-                      <IconUserCircle size="1.8rem" stroke="0.09rem" />
-                    </Avatar>
-                  </>
+                  <Group>
+                    <Button onClick={() => open()}> Log in</Button>
+                    <Button>Help</Button>
+                  </Group>
                 )}
               </Group>
             </Group>
