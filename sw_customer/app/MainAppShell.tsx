@@ -140,6 +140,12 @@ export default function MainAppShell({
     setIsClient(true);
   }, []);
 
+  useEffect(() => {
+    if (session) {
+      basketItems.request();
+    }
+  }, [session]);
+
   const handleLoginSucess = () => {
     close();
 

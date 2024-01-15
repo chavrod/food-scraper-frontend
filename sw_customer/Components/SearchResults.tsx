@@ -259,22 +259,16 @@ export default function SearchResults({
     }
   };
 
-  useEffect(() => {
-    if (session) {
-      basketItems.request();
-    }
-  }, [session]);
-
   return (
     <Flex
-      justify="center"
-      align="flex-start"
+      justify="space-between" // Spaces children divs apart
+      align="flex-start" // Aligns children divs at the top
       direction="row"
       wrap="nowrap"
       style={{ width: "100%" }}
     >
       {/* Main Content Area */}
-      <Stack align="center" spacing={0}>
+      <Stack align="center" spacing={0} mt="md" style={{ flexGrow: "1" }}>
         <form onSubmit={form.onSubmit(handleFormSubmit)}>
           <Flex
             my="md"
