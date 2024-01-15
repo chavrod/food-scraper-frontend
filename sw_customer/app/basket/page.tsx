@@ -231,6 +231,7 @@ export default function BasketPage() {
           align="flex-start"
           direction={isLargerThanLg ? "row-reverse" : "column"}
           style={{ width: "100%" }}
+          mt="sm"
         >
           <Paper
             maw={isLargerThanLg ? "auto" : 450}
@@ -359,6 +360,7 @@ export default function BasketPage() {
           align="flex-start"
           direction={isLargerThanLg ? "row-reverse" : "column"}
           style={{ width: "100%" }}
+          mt="sm"
         >
           {basketItems.responseData.metaData && (
             <Paper

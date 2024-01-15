@@ -174,7 +174,7 @@ export default function BasketPreview() {
         style={{
           position: "sticky",
           top: 120,
-          zIndex: 1000,
+          zIndex: 10,
         }}
       >
         <Box
@@ -259,7 +259,7 @@ export default function BasketPreview() {
           </Paper>
         ) : basketItems.responseData?.data ? (
           basketItems.responseData.data.map((item, index) => (
-            <Paper shadow="xs" radius="xs" withBorder>
+            <Paper key={index} shadow="xs" radius="xs" withBorder>
               <Flex
                 justify="center"
                 align="flex-start"
