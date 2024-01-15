@@ -157,10 +157,8 @@ export default function BasketPreview() {
 
   return (
     <Stack
-      spacing="md"
+      spacing={0}
       style={{
-        position: "sticky", // Make the Stack sticky
-        top: 120,
         borderLeft: "1px solid #ADB5BD", // Apply border to the left side
         borderRight: "1px solid #ADB5BD",
         borderBottom: "1px solid #ADB5BD",
@@ -170,7 +168,14 @@ export default function BasketPreview() {
         marginRight: "20px",
       }}
     >
-      <Stack>
+      <Stack
+        mb="md"
+        style={{
+          position: "sticky",
+          top: 120,
+          zIndex: 1000,
+        }}
+      >
         <Box
           p="sm"
           style={{
