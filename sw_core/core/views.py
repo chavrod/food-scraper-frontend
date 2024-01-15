@@ -121,35 +121,40 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         customer = request.user.customer
         basket, created = core_models.Basket.objects.get_or_create(customer=customer)
 
-        # Annotate each item with total price (price * quantity)
-        queryset = (
+        # Queryset for listing items, ordered by product's updated_at
+        ordered_queryset = (
             core_models.BasketItem.objects.filter(basket=basket)
             .select_related("product")
-            .annotate(total_price=F("product__price") * F("quantity"))
             .order_by("-product__updated_at")
         )
 
+        # Separate queryset for shop breakdown, without the ordering
+        shop_breakdown_queryset = (
+            core_models.BasketItem.objects.filter(basket=basket)
+            .select_related("product")
+            .annotate(total_price=F("product__price") * F("quantity"))
+        )
+
         # Group by shop name and aggregate total quantity and price
-        shop_breakdown = queryset.values("product__shop_name").annotate(
+        shop_breakdown = shop_breakdown_queryset.values("product__shop_name").annotate(
             total_quantity=Sum("quantity"),
             total_price=Sum("total_price", output_field=FloatField()),
         )
 
         # Calculating the total quantity and price across all items
-        total_quantity_all = (
-            queryset.aggregate(total_quantity_all=Sum("quantity"))["total_quantity_all"]
-            or 0
+        aggregated_data = shop_breakdown_queryset.aggregate(
+            total_quantity_all=Sum("quantity"), total_price_all=Sum("total_price")
         )
-        total_price_all = (
-            queryset.aggregate(total_price_all=Sum("total_price"))["total_price_all"]
-            or 0
-        )
+        total_quantity_all = aggregated_data.get("total_quantity_all", 0)
+        total_price_all = aggregated_data.get("total_price_all", 0)
 
         shop_name = request.query_params.get("shop", None)
         selected_shop = shop_name if shop_name in core_models.ShopName.values else "ALL"
-        if shop_name in core_models.ShopName.values:
-            print("shop_name", shop_name)
-            queryset = queryset.filter(product__shop_name=shop_name)
+
+        if selected_shop != "ALL":
+            queryset = ordered_queryset.filter(product__shop_name=shop_name)
+        else:
+            queryset = ordered_queryset
 
         # Get page number from request query params
         page_number = request.query_params.get("page", 1)
