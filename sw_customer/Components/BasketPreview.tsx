@@ -20,6 +20,7 @@ import {
   Tooltip,
   Divider,
   Image,
+  Loader,
 } from "@mantine/core";
 import {
   IconShoppingCart,
@@ -187,7 +188,7 @@ export default function BasketPreview() {
             Basket Preview
           </Title>
           <Text size="sm" c="dimmed">
-            Showing 10 latest items
+            {`${basketItems.loading ? "Loading" : "Showing"} 10 latest items`}
           </Text>
           <Divider my="xs" />
           <Stack>
@@ -249,7 +250,14 @@ export default function BasketPreview() {
       </Stack>
 
       {session ? (
-        basketItems.responseData?.data ? (
+        basketItems.loading ? (
+          <Paper>
+            <Stack align="center" m="xl">
+              <Loader />
+              <Text fw={650}>Loading basket items</Text>
+            </Stack>
+          </Paper>
+        ) : basketItems.responseData?.data ? (
           basketItems.responseData.data.map((item, index) => (
             <Paper shadow="xs" radius="xs" withBorder>
               <Flex
