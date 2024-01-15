@@ -126,6 +126,7 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             core_models.BasketItem.objects.filter(basket=basket)
             .select_related("product")
             .annotate(total_price=F("product__price") * F("quantity"))
+            .order_by("-product__updated_at")
         )
 
         # Group by shop name and aggregate total quantity and price

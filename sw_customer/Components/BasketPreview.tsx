@@ -186,6 +186,9 @@ export default function BasketPreview() {
           <Title order={3} mt="sm">
             Basket Preview
           </Title>
+          <Text size="sm" c="dimmed">
+            Showing 10 latest items
+          </Text>
           <Divider my="xs" />
           <Stack>
             <Group>
