@@ -79,7 +79,7 @@ export default function SearchResults({
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("query");
 
-  const { basketItems, isLargerThanLg } = useGlobalContext();
+  const { basketItems, isLargerThanSm } = useGlobalContext();
 
   // Combined state declaration
   const [loadingStates, setLoadingStates] = useState<LoadingStates>({
@@ -541,7 +541,7 @@ export default function SearchResults({
           currentProducts &&
           currentProducts.length === 0 && <>Sorry, there was nothing found!</>}
       </Stack>
-      <BasketPreview />
+      {isLargerThanSm && <BasketPreview />}
     </Flex>
   );
 }
