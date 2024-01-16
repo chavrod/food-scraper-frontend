@@ -63,7 +63,7 @@ export default function BasketPage() {
     setActivePage(page);
 
     // Scroll smoothly to the top of the page
-    window.scrollTo({ top: isLargerThanLg ? 0 : 320, behavior: "smooth" });
+    window.scrollTo({ top: isLargerThanLg ? 0 : 310, behavior: "smooth" });
 
     basketItems.request({ page: page, shop: filteredBasketShop });
   };
@@ -223,18 +223,18 @@ export default function BasketPage() {
   }
 
   return (
-    <>
+    <Flex
+      gap="md"
+      justify="center"
+      align="flex-start"
+      direction={isLargerThanLg ? "row-reverse" : "column"}
+      style={{ width: "100%" }}
+      mt="sm"
+    >
       {basketItems.loading ? (
-        <Flex
-          gap="md"
-          justify="center"
-          align="flex-start"
-          direction={isLargerThanLg ? "row-reverse" : "column"}
-          style={{ width: "100%" }}
-          mt="sm"
-        >
+        <>
           <Paper
-            maw={isLargerThanLg ? "auto" : 450}
+            maw={450}
             shadow="md"
             withBorder
             p="md"
@@ -298,7 +298,7 @@ export default function BasketPage() {
             </Group>
           </Paper>
 
-          <Grid gutter={0} mb={65}>
+          <Grid gutter={0} mb={65} maw={450}>
             {/* Shop filter skeleton */}
             <Paper withBorder>
               <Skeleton height={40} width={150}></Skeleton>
@@ -351,20 +351,13 @@ export default function BasketPage() {
               </Grid.Col>
             ))}
           </Grid>
-        </Flex>
+        </>
       ) : basketItems.responseData.data &&
         basketItems.responseData.data?.length > 0 ? (
-        <Flex
-          gap="md"
-          justify="center"
-          align="flex-start"
-          direction={isLargerThanLg ? "row-reverse" : "column"}
-          style={{ width: "100%" }}
-          mt="sm"
-        >
+        <>
           {basketItems.responseData.metaData && (
             <Paper
-              maw={isLargerThanLg ? "auto" : 450}
+              maw={450}
               shadow="md"
               withBorder
               p="md"
@@ -464,7 +457,7 @@ export default function BasketPage() {
             </Paper>
           )}
 
-          <Stack>
+          <Stack maw={450}>
             <Group maw={450} position="left">
               <Select
                 value={filteredBasketShop}
@@ -663,7 +656,7 @@ export default function BasketPage() {
               Empty basket
             </Button>
           </Stack>
-        </Flex>
+        </>
       ) : (
         <Stack
           align="center"
@@ -675,6 +668,6 @@ export default function BasketPage() {
           <Text>Your basket is empty</Text>
         </Stack>
       )}
-    </>
+    </Flex>
   );
 }
