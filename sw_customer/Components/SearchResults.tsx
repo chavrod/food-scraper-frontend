@@ -5,7 +5,6 @@ import { ReactElement, useState, useEffect, useId } from "react";
 import { useSession } from "next-auth/react";
 import normalizeUrl from "normalize-url";
 // External Styling
-import { useForm } from "@mantine/form";
 import {
   Loader,
   Grid,
@@ -43,6 +42,7 @@ import { Product } from "@/types/customer_types";
 // Intenral: Components
 import renderTime from "@/Components/RenderTimeNumber";
 import BasketPreview from "./BasketPreview";
+import SearchHeader from "./SearchHeader";
 // Intenral: API
 import basketItemsApi from "@/app/api/basketItemsApi";
 import useApi from "@/utils/useApi";
@@ -50,7 +50,7 @@ import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
 
 interface SearchResultsProps {
-  searchText?: string;
+  searchText: string | undefined;
   products?: Product[] | undefined;
   searchMetaData: SearchMetaData;
   averageScrapingTime: number | null;
@@ -76,8 +76,8 @@ export default function SearchResults({
   const { data: session } = useSession();
 
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const queryParam = searchParams.get("query");
+  // const searchParams = useSearchParams();
+  // const queryParam = searchParams.get("query");
 
   const { basketItems, isLargerThanSm } = useGlobalContext();
 
@@ -122,7 +122,7 @@ export default function SearchResults({
 
   useEffect(() => {
     console.log("AVERAGE SCRAPING TIME: ", averageScrapingTime);
-    if (currentAverageScrapingTime) {
+    if (currentAverageScrapingTime && searchText) {
       setLoadingState("loadingNew", true);
 
       const socket = new WebSocket("ws://localhost:8000/ws/scraped_result/");
@@ -132,7 +132,7 @@ export default function SearchResults({
 
         // Sending a message to the server after connection
         const messageData = {
-          query: form.values.query,
+          query: searchText,
           sender: "Client",
         };
 
@@ -169,17 +169,6 @@ export default function SearchResults({
     }
   }, [currentAverageScrapingTime]);
 
-  const form = useForm({
-    initialValues: {
-      query: searchText || "",
-      page: 1,
-    },
-
-    validate: {
-      query: (value: string) => (value.length <= 0 ? "Invalid name" : null),
-    },
-  });
-
   const handleFormSubmit = (values: { query: string; page: number }) => {
     router.push(`?query=${values.query}&page=${values.page}`);
 
@@ -197,7 +186,7 @@ export default function SearchResults({
 
     // Wait for the scroll to complete (you can adjust the timeout as needed)
     setTimeout(() => {
-      router.push(`?query=${queryParam}&page=${page}`);
+      router.push(`?query=${searchText}&page=${page}`);
     }, 500); // Adjust this time based on your scrolling speed
   };
 
@@ -268,36 +257,12 @@ export default function SearchResults({
       style={{ width: "100%" }}
     >
       {/* Main Content Area */}
-      <Stack align="center" spacing={0} mt="md" style={{ flexGrow: "1" }}>
-        <form onSubmit={form.onSubmit(handleFormSubmit)}>
-          <Flex
-            my="md"
-            gap="xs"
-            justify="center"
-            align="flex-start"
-            direction="row"
-            wrap="nowrap"
-          >
-            <TextInput
-              id="1"
-              withAsterisk
-              placeholder="Type a product name"
-              disabled={loadingStates.loading}
-              radius="lg"
-              {...form.getInputProps("query")}
-            />
-            <ActionIcon
-              type="submit"
-              variant="filled"
-              radius="lg"
-              size="lg"
-              color="cyan"
-              loading={loadingStates.loading}
-            >
-              <IconSearch size="1.3rem" />
-            </ActionIcon>
-          </Flex>
-        </form>
+      <Stack align="center" spacing={0} style={{ flexGrow: "1" }}>
+        <SearchHeader
+          searchText={searchText}
+          handleSubmit={handleFormSubmit}
+          loadingSearch={loadingStates.loading}
+        />
         {loadingStates.loading &&
         loadingStates.loadingNew &&
         !loadingStates.loadingCached ? (
@@ -530,7 +495,7 @@ export default function SearchResults({
           )
         )}
 
-        {queryParam &&
+        {searchText &&
           !loadingStates.loading &&
           currentProducts &&
           currentProducts.length === 0 && <>Sorry, there was nothing found!</>}
