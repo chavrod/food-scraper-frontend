@@ -165,7 +165,6 @@ export default function BasketPreview() {
         borderBottom: "1px solid #ADB5BD",
         minWidth: "300px",
         maxWidth: "400px",
-        marginLeft: "20px",
         marginRight: "20px",
       }}
     >

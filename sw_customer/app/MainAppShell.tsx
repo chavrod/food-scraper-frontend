@@ -156,142 +156,140 @@ export default function MainAppShell({
     }
   };
 
-  const headerHeight = isLargerThanSm ? 120 : 60;
-
   return (
     <AppShell
       styles={(theme) => ({
         main: {
-          paddingTop: headerHeight,
+          paddingTop: 80,
+          paddingLeft: 0,
+          paddingRight: 0,
         },
       })}
       header={
-        <Header height={headerHeight} p="xs">
-          <Stack>
-            <Group position="apart" spacing="xs" noWrap>
-              <Group>
-                <Link href="/">
-                  <img
-                    src="/shopping_wiz_logo.png"
-                    alt="Shopping Wiz logo"
-                    style={{ maxWidth: "9rem" }}
-                  />
-                </Link>
-              </Group>
-              <Group>
-                {isClient && session ? (
-                  <>
-                    <ActionIcon
-                      size={36.5}
-                      radius="md"
-                      sx={{
-                        "&:hover": {
-                          backgroundColor: "#3BC9DB",
-                        },
-                        backgroundColor:
-                          pathname === "/basket" ? "#3BC9DB" : "#E3FAFC",
-                        cursor: "pointer",
-                        width: "85px",
-                        borderWidth: 0,
-                      }}
-                      variant="filled"
-                      color="cyan.0"
-                      onClick={() => {}}
-                    >
-                      <Link href="/basket" style={{ textDecoration: "none" }}>
-                        <Badge
-                          leftSection={
-                            <IconShoppingCart
-                              size="1.3rem"
-                              stroke="0.12rem"
-                              color="#15AABF"
-                            />
-                          }
-                          radius="md"
-                          size="lg"
-                        >
-                          {session && basketQty
-                            ? basketQty > 99
-                              ? "99+"
-                              : basketQty
-                            : 0}
-                        </Badge>
+        <Header height={80} p="lg">
+          <Group position="apart" spacing="xs" noWrap>
+            <Group>
+              <Link href="/">
+                <img
+                  src="/shopping_wiz_logo.png"
+                  alt="Shopping Wiz logo"
+                  style={{ maxWidth: "9rem" }}
+                />
+              </Link>
+              {isClient && isLargerThanSm && (
+                <Group>
+                  {routes
+                    .filter((r) => r.navbar)
+                    .map((r, i) => (
+                      <Link
+                        key={i}
+                        href={r.link}
+                        style={{ textDecoration: "none" }}
+                      >
+                        <NavLink
+                          my={4}
+                          label={r.label}
+                          icon={<r.icon size="1.5rem" stroke={1.5} />}
+                          active={r.link === pathname}
+                          variant="filled"
+                        />
                       </Link>
-                    </ActionIcon>
-
-                    <Menu
-                      shadow="md"
-                      width={200}
-                      position="bottom-end"
-                      offset={3}
-                    >
-                      <Menu.Target>
-                        <Avatar color={session ? "cyan" : "gray"} radius="md">
-                          {session && session.user.username.length > 2 ? (
-                            session.user.username.slice(0, 2).toUpperCase()
-                          ) : (
-                            <IconUserCircle size="1.8rem" stroke="0.09rem" />
-                          )}
-                        </Avatar>
-                      </Menu.Target>
-
-                      <Menu.Dropdown>
-                        <Menu.Label>{session.user.email}</Menu.Label>
-                        <Menu.Item icon={<IconLifebuoy size={14} />}>
-                          Help
-                        </Menu.Item>
-                        <Menu.Item icon={<IconSettings size={14} />}>
-                          <Link
-                            href="/account-settings"
-                            style={{
-                              textDecoration: "none",
-                              color: "black",
-                            }}
-                          >
-                            Account Settings
-                          </Link>
-                        </Menu.Item>
-                        <Menu.Divider />
-                        <Menu.Item
-                          onClick={() => logout(session.refresh_token)}
-                          // onClick={() => signOut()}
-                          icon={<IconLogout size={14} />}
-                        >
-                          Log Out
-                        </Menu.Item>
-                      </Menu.Dropdown>
-                    </Menu>
-                  </>
-                ) : (
-                  <Group>
-                    <Button onClick={() => open()}> Log in</Button>
-                    <Button>Help</Button>
-                  </Group>
-                )}
-              </Group>
+                    ))}
+                </Group>
+              )}
             </Group>
-            {isClient && isLargerThanSm && (
-              <Group>
-                {routes
-                  .filter((r) => r.navbar)
-                  .map((r, i) => (
-                    <Link
-                      key={i}
-                      href={r.link}
-                      style={{ textDecoration: "none" }}
-                    >
-                      <NavLink
-                        my={4}
-                        label={r.label}
-                        icon={<r.icon size="1.5rem" stroke={1.5} />}
-                        active={r.link === pathname}
-                        variant="filled"
-                      />
+            <Group>
+              {isClient && session ? (
+                <>
+                  <ActionIcon
+                    size={36.5}
+                    radius="md"
+                    sx={{
+                      "&:hover": {
+                        backgroundColor: "#3BC9DB",
+                      },
+                      backgroundColor:
+                        pathname === "/basket" ? "#3BC9DB" : "#E3FAFC",
+                      cursor: "pointer",
+                      width: "85px",
+                      borderWidth: 0,
+                    }}
+                    variant="filled"
+                    color="cyan.0"
+                    onClick={() => {}}
+                  >
+                    <Link href="/basket" style={{ textDecoration: "none" }}>
+                      <Badge
+                        leftSection={
+                          <IconShoppingCart
+                            size="1.3rem"
+                            stroke="0.12rem"
+                            color="#15AABF"
+                          />
+                        }
+                        radius="md"
+                        size="lg"
+                      >
+                        {session && basketQty
+                          ? basketQty > 99
+                            ? "99+"
+                            : basketQty
+                          : 0}
+                      </Badge>
                     </Link>
-                  ))}
-              </Group>
-            )}
-          </Stack>
+                  </ActionIcon>
+
+                  <Menu
+                    shadow="md"
+                    width={200}
+                    position="bottom-end"
+                    offset={3}
+                  >
+                    <Menu.Target>
+                      <Avatar color={session ? "cyan" : "gray"} radius="md">
+                        {session && session.user.username.length > 2 ? (
+                          session.user.username.slice(0, 2).toUpperCase()
+                        ) : (
+                          <IconUserCircle size="1.8rem" stroke="0.09rem" />
+                        )}
+                      </Avatar>
+                    </Menu.Target>
+
+                    <Menu.Dropdown>
+                      <Menu.Label>{session.user.email}</Menu.Label>
+                      <Menu.Item icon={<IconLifebuoy size={14} />}>
+                        Help
+                      </Menu.Item>
+                      <Menu.Item icon={<IconSettings size={14} />}>
+                        <Link
+                          href="/account-settings"
+                          style={{
+                            textDecoration: "none",
+                            color: "black",
+                          }}
+                        >
+                          Account Settings
+                        </Link>
+                      </Menu.Item>
+                      <Menu.Divider />
+                      <Menu.Item
+                        onClick={() => logout(session.refresh_token)}
+                        // onClick={() => signOut()}
+                        icon={<IconLogout size={14} />}
+                      >
+                        Log Out
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </>
+              ) : (
+                <Group>
+                  <Button onClick={() => open()}> Log in</Button>
+                  <Button>Help</Button>
+                </Group>
+              )}
+            </Group>
+          </Group>
         </Header>
       }
       footer={

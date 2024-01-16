@@ -53,7 +53,7 @@ export default function SecurityPage() {
 
   return (
     <>
-      <Box maw="600px" mt="md">
+      <Box maw="600px" mt="md" px="lg">
         <Stack spacing={0} mb="lg">
           <Breadcrumbs separator="→" mt="xs">
             {items}

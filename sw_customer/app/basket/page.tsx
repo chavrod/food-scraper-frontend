@@ -230,6 +230,7 @@ export default function BasketPage() {
       direction={isLargerThanLg ? "row-reverse" : "column"}
       style={{ width: "100%" }}
       mt="sm"
+      px="lg"
     >
       {basketItems.loading ? (
         <>

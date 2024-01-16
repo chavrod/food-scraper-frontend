@@ -57,7 +57,7 @@ export default function EstimatePage() {
 
   return (
     <div>
-      <Stack spacing="xs" mb={80} mt="md">
+      <Stack spacing="xs" mb={80} mt="md" px="lg">
         <Title order={2}>Account Settings</Title>
         <Text mb="lg">{session?.user.email}</Text>
         <Grid
