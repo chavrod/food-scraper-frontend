@@ -173,7 +173,7 @@ export default function BasketPreview() {
         mb="md"
         style={{
           position: "sticky",
-          top: 120,
+          top: 80,
           zIndex: 10,
         }}
       >
