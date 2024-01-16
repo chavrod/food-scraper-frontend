@@ -1,6 +1,7 @@
 import { ReactElement } from "react";
-import { Paper, TextInput, Flex, ActionIcon } from "@mantine/core";
+import { Paper, TextInput, Flex, ActionIcon, Button } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useGlobalContext } from "@/Context/globalContext";
 import { IconSearch } from "@tabler/icons-react";
 
 interface SearchHeaderProps {
@@ -14,6 +15,8 @@ export default function SearchHeader({
   loadingSearch,
   searchText,
 }: SearchHeaderProps): ReactElement {
+  const { isLargerThanSm } = useGlobalContext();
+
   const form = useForm({
     initialValues: {
       query: searchText || "",
@@ -26,12 +29,23 @@ export default function SearchHeader({
   });
 
   return (
-    <Paper style={{ width: "100%" }}>
+    <Paper
+      radius={0}
+      mb="md"
+      style={{
+        position: "sticky",
+        top: 80,
+        zIndex: 10,
+        width: "100%",
+      }}
+      withBorder
+    >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Flex
           my="md"
-          gap="xs"
-          justify="center"
+          mx={isLargerThanSm ? "xl" : "xs"}
+          gap={0}
+          justify={isLargerThanSm ? "flex-start" : "center"}
           align="flex-start"
           direction="row"
           wrap="nowrap"
@@ -39,21 +53,30 @@ export default function SearchHeader({
           <TextInput
             id="1"
             withAsterisk
-            placeholder="Type a product name"
+            placeholder="What are you looking for?"
             disabled={loadingSearch}
-            radius="lg"
+            miw={isLargerThanSm ? 400 : 230}
+            size={isLargerThanSm ? "lg" : "md"}
+            radius={0}
+            icon={<IconSearch />}
             {...form.getInputProps("query")}
           />
-          <ActionIcon
+          <Button
+            radius={0}
             type="submit"
             variant="filled"
-            radius="lg"
-            size="lg"
             color="cyan"
+            size={isLargerThanSm ? "lg" : "md"}
             loading={loadingSearch}
+            style={{
+              borderTopLeftRadius: "0px",
+              borderBottomLeftRadius: "0px",
+              borderTopRightRadius: "6px",
+              borderBottomRightRadius: "6px",
+            }}
           >
-            <IconSearch size="1.3rem" />
-          </ActionIcon>
+            {!loadingSearch ? "Search" : ""}
+          </Button>
         </Flex>
       </form>
     </Paper>
