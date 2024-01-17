@@ -14,7 +14,7 @@ export default async function getData<D, P extends Params>({
   data: D | undefined;
   error: boolean | undefined;
 }> {
-  if (apiFunc === undefined) {
+  if (apiFunc === undefined || params.query === "") {
     return { data: undefined, error: undefined };
   }
 
