@@ -3,14 +3,16 @@ import SearchResults from "../Components/SearchResults";
 // Intenral Utils
 import getData from "@/app/api/getData";
 import customerApi from "@/app/api/customerApi";
-import {
-  Product,
-  ScrapeStats,
-  SearchParams,
-  SearchMetaData,
-} from "@/utils/types";
+import { ScrapeStats, SearchParams, SearchMetaData } from "@/utils/types";
+import { Product } from "@/types/customer_types";
 
 import "../styles/global.css";
+
+// TODO: Temporary
+type ProductData = {
+  results: Product[];
+  metadata: SearchMetaData;
+};
 
 export default async function Home(outerParams: {
   params: any;
@@ -22,31 +24,40 @@ export default async function Home(outerParams: {
     is_relevant_only: outerParams.searchParams?.is_relevant_only || true,
   };
 
-  const { data, error } = await getData({
+  const transformData = async (
+    res: Response
+  ): Promise<ProductData | ScrapeStats> => {
+    const jsonRes = await res.json();
+
+    if (res.status === 206) {
+      return { averageTimeSeconds: jsonRes.averageTimeSeconds };
+    } else {
+      const mappedData: ProductData = {
+        results: jsonRes.results,
+        metadata: {
+          currentPage: jsonRes.page,
+          totalPages: jsonRes.total_pages,
+          keyword: jsonRes.query,
+          isRelevantOnly: jsonRes.is_relevant_only,
+        },
+      };
+      return mappedData;
+    }
+  };
+
+  const { data } = await getData<
+    ProductData | ScrapeStats,
+    SearchParams
+  >({
     params: searchParams,
     apiFunc: customerApi.getProducts,
+    transformFunc: transformData,
   });
 
-  let products: Product[] | undefined;
-  let searchMetaData: SearchMetaData = {
-    currentPage: 0,
-    totalPages: 0,
-    keyword: "",
-    isRelevantOnly: true,
-  };
-  let scrapeStats: ScrapeStats = { averageTimeSeconds: null };
-
-  if (data && "results" in data && "metadata" in data) {
-    products = data.results;
-    searchMetaData = {
-      currentPage: data.metadata.currentPage,
-      totalPages: data.metadata.totalPages,
-      keyword: data.metadata.keyword,
-      isRelevantOnly: data.metadata.isRelevantOnly,
-    };
-  } else if (data && "averageTimeSeconds" in data) {
-    scrapeStats.averageTimeSeconds = data.averageTimeSeconds;
-  }
+  const products = data && "results" in data ? data.results : undefined;
+  const searchMetaData = data && "metadata" in data ? data.metadata : undefined;
+  const averageScrapingTime =
+    data && "averageTimeSeconds" in data ? data.averageTimeSeconds : undefined;
 
   return (
     <>
@@ -54,7 +65,7 @@ export default async function Home(outerParams: {
         searchText={searchParams.query}
         products={products}
         searchMetaData={searchMetaData}
-        averageScrapingTime={scrapeStats.averageTimeSeconds}
+        averageScrapingTime={averageScrapingTime}
       />
     </>
   );
