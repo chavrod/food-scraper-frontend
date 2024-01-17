@@ -28,14 +28,25 @@ class Customer(serializers.ModelSerializer):
 
 
 @ts_interface()
+class CachedProductsPageResult(serializers.Serializer):
+    name = serializers.CharField()
+    price = serializers.FloatField()
+    img_src = serializers.URLField(allow_null=True)
+    product_url = serializers.URLField(allow_null=True)
+    shop_name = serializers.ChoiceField(choices=core_models.ShopName.choices)
+
+
+@ts_interface()
 class CachedProductsPage(serializers.ModelSerializer):
     query = serializers.CharField(max_length=30, required=True)
     page = serializers.IntegerField(default=1)
     is_relevant_only = serializers.BooleanField(required=True)
+    total_pages = serializers.SerializerMethodField()
+    results = CachedProductsPageResult(many=True, required=False, default=list)
 
     class Meta:
         model = core_models.CachedProductsPage
-        exclude = []
+        exclude = ["id"]
 
     def to_internal_value(self, data):
         # Preprocess the 'page' value first
@@ -50,6 +61,10 @@ class CachedProductsPage(serializers.ModelSerializer):
         internal_value = super().to_internal_value(data)
 
         return internal_value
+
+    def get_total_pages(self, obj) -> int:
+        # Calculate total_pages here or pass it through context
+        return self.context.get("total_pages", 0)
 
 
 @ts_interface()

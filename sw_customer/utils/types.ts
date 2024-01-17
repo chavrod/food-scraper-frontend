@@ -15,7 +15,7 @@ export interface Product {
   name: string;
   price: number;
   imgSrc: string | undefined;
-  productUrl:  string | undefined;
+  productUrl: string | undefined;
   shopName: ShopName;
 }
 
@@ -33,5 +33,5 @@ export interface SearchMetaData {
 }
 
 export interface ScrapeStats {
-  averageTimeSeconds: number | null;
+  averageTimeSeconds: number;
 }

@@ -5,12 +5,20 @@ export interface Customer {
     user: number | string;
 }
 
+export interface CachedProductsPageResult {
+    name: string;
+    price: number;
+    img_src: string | null;
+    product_url: string | null;
+    shop_name: "ALDI" | "TESCO" | "SUPERVALU";
+}
+
 export interface CachedProductsPage {
-    id?: number;
     query: string;
     page?: number;
     is_relevant_only: boolean;
-    results?: any;
+    total_pages?: number;
+    results?: CachedProductsPageResult[];
     created?: string;
 }
 

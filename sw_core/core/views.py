@@ -42,7 +42,7 @@ class CachedProductsPageViewSet(
         # Check if we have cached data for this query
         cached_pages = self.get_queryset().filter(query=query_param).order_by("-page")
         if not cached_pages.exists():
-            print("RESULTS WERE NOT CACHED. STARTING THE SCRAPING....")
+            print("RESULTS WERE NOT CACHED. STARTING THE SCRAPING...")
             # Start the scraping process
             cache_data.delay(query_param, is_relevant_only_param)
 
@@ -66,13 +66,12 @@ class CachedProductsPageViewSet(
 
         # Now, retrieve the data for the specific page and return it
         cached_page_data = cached_pages.filter(page=page_param).first()
-        serializer = self.get_serializer(cached_page_data)
-        data = serializer.data
-
         total_pages = cached_pages.count()
 
-        # Append the current page and total pages to the response data
-        data.update({"total_pages": total_pages})
+        serializer = self.get_serializer(
+            cached_page_data, context={"total_pages": total_pages}
+        )
+        data = serializer.data
 
         return Response(data)
 
