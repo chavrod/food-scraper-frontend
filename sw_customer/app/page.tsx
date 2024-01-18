@@ -3,8 +3,10 @@ import SearchResults from "../Components/SearchResults";
 // Intenral Utils
 import getData from "@/app/api/getData";
 import customerApi from "@/app/api/customerApi";
-import { ScrapeStats, SearchMetaData } from "@/utils/types";
-import { CachedProductsPage } from "@/types/customer_types";
+import {
+  CachedProductsPage,
+  ScrapeStatsForCustomer,
+} from "@/types/customer_types";
 
 import "../styles/global.css";
 
@@ -25,31 +27,19 @@ export default async function Home({
     is_relevant_only: searchParams?.is_relevant_only || true,
   };
 
-  const transformData = async (
-    res: Response
-  ): Promise<CachedProductsPage | ScrapeStats> => {
-    const jsonRes = await res.json();
-
-    if (res.status === 206) {
-      return { averageTimeSeconds: jsonRes.averageTimeSeconds };
-    } else {
-      const mappedData: CachedProductsPage = jsonRes;
-      return mappedData;
-    }
-  };
-
   const { data } = await getData<
-    CachedProductsPage | ScrapeStats,
+    CachedProductsPage | ScrapeStatsForCustomer,
     SearchParams
   >({
     params: params,
     apiFunc: customerApi.getProducts,
-    transformFunc: transformData,
   });
 
   const cachedProductsPage = data && "results" in data ? data : undefined;
   const averageScrapingTime =
-    data && "averageTimeSeconds" in data ? data.averageTimeSeconds : undefined;
+    data && "average_time_seconds" in data
+      ? data.average_time_seconds
+      : undefined;
 
   return (
     <>
