@@ -42,24 +42,29 @@ class CachedProductsPageViewSet(
         # Check if we have cached data for this query
         cached_pages = self.get_queryset().filter(query=query_param).order_by("-page")
         if not cached_pages.exists():
-            print("RESULTS WERE NOT CACHED. STARTING THE SCRAPING...")
             # Start the scraping process
             cache_data.delay(query_param, is_relevant_only_param)
 
             # COUNT HERE
-            average_time = core_models.ScrapeSummaryTotal.objects.aggregate(
+            average_time_seconds = core_models.ScrapeSummaryTotal.objects.aggregate(
                 avg_time=Avg("total_execution_time")
             )["avg_time"]
             if (
-                average_time is None
+                average_time_seconds is None
             ):  # This handles the case when there are no records in ScrapeSummary
-                average_time = 30  # Default to 30 if no data exists
+                average_time_seconds = 30  # Default to 30 if no data exists
+
+            scrape_stats_for_customer_serializer = (
+                core_serializers.ScrapeStatsForCustomer(
+                    data={"average_time_seconds": average_time_seconds}
+                )
+            )
+            scrape_stats_for_customer_serializer.is_valid(raise_exception=True)
 
             return Response(
-                data={"averageTimeSeconds": average_time},
+                data=scrape_stats_for_customer_serializer.data,
                 status=status.HTTP_206_PARTIAL_CONTENT,
             )
-        print("FOUND CACHED RESULTS!!! SENDING RESPONSE....")
         # If requested page is greater than the greatest cached page, return the latest available page
         if page_param > cached_pages.first().page:
             page_param = cached_pages.first().page
@@ -139,6 +144,15 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             total_quantity=Sum("quantity"),
             total_price=Sum("total_price", output_field=FloatField()),
         )
+        # Transform the shop_breakdown QuerySet into a list of dictionaries
+        shop_breakdown_list = [
+            {
+                "name": item["product__shop_name"],
+                "total_price": item["total_price"],
+                "total_quantity": item["total_quantity"],
+            }
+            for item in shop_breakdown
+        ]
 
         # Calculating the total quantity and price across all items
         aggregated_data = shop_breakdown_queryset.aggregate(
@@ -162,18 +176,24 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         serializer = core_serializers.BasketItem(page_obj, many=True)
 
+        # Serialize the metadata
+        metadata_serializer = core_serializers.BasketItemMetadata(
+            data={
+                "total_items": queryset.count(),
+                "total_quantity": total_quantity_all,
+                "total_price": total_price_all,
+                "shop_breakdown": shop_breakdown_list,
+                "page": page_obj.number,
+                "total_pages": paginator.num_pages,
+                "selected_shop": selected_shop,
+            }
+        )
+        metadata_serializer.is_valid(raise_exception=True)
+
         return Response(
             {
                 "results": serializer.data,
-                "metadata": {
-                    "total_items": queryset.count(),
-                    "total_quantity": total_quantity_all,
-                    "total_price": total_price_all,
-                    "shop_breakdown": shop_breakdown,
-                    "page": page_obj.number,
-                    "total_pages": paginator.num_pages,
-                    "selected_shop": selected_shop,
-                },
+                "metadata": metadata_serializer.data,
             }
         )
 

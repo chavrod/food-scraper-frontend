@@ -31,9 +31,14 @@ class Customer(serializers.ModelSerializer):
 class CachedProductsPageResult(serializers.Serializer):
     name = serializers.CharField()
     price = serializers.FloatField()
-    img_src = serializers.URLField(allow_null=True)
-    product_url = serializers.URLField(allow_null=True)
+    img_src = serializers.CharField(allow_null=True)
+    product_url = serializers.CharField(allow_null=True)
     shop_name = serializers.ChoiceField(choices=core_models.ShopName.choices)
+
+
+@ts_interface()
+class ScrapeStatsForCustomer(serializers.Serializer):
+    average_time_seconds = serializers.FloatField()
 
 
 @ts_interface()
@@ -131,6 +136,26 @@ class BasketItem(serializers.ModelSerializer):
     class Meta:
         model = core_models.BasketItem
         fields = ["id", "product", "quantity"]
+
+
+@ts_interface()
+class BasketItemShopBreakdown(serializers.Serializer):
+    name = serializers.ChoiceField(
+        source="product__shop_name", choices=core_models.ShopName.choices
+    )
+    total_price = serializers.FloatField()
+    total_quantity = serializers.IntegerField()
+
+
+@ts_interface()
+class BasketItemMetadata(serializers.Serializer):
+    total_items = serializers.IntegerField()
+    total_quantity = serializers.IntegerField()
+    total_price = serializers.FloatField()
+    shop_breakdown = BasketItemShopBreakdown(many=True)
+    page = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+    selected_shop = serializers.ChoiceField(choices=core_models.ShopName.choices)
 
 
 @ts_interface()

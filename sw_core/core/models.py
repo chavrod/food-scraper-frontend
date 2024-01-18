@@ -15,6 +15,7 @@ class ShopName(models.TextChoices):
     ALDI = "ALDI"
     TESCO = "TESCO"
     SUPERVALU = "SUPERVALU"
+    ALL = "ALL"
 
 
 class ShopPageCount(models.IntegerChoices):

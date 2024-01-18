@@ -10,7 +10,11 @@ export interface CachedProductsPageResult {
     price: number;
     img_src: string | null;
     product_url: string | null;
-    shop_name: "ALDI" | "TESCO" | "SUPERVALU";
+    shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
+}
+
+export interface ScrapeStatsForCustomer {
+    average_time_seconds: number;
 }
 
 export interface CachedProductsPage {
@@ -28,7 +32,7 @@ export interface Product {
     price: number;
     img_src?: string | null;
     product_url?: string | null;
-    shop_name: "ALDI" | "TESCO" | "SUPERVALU";
+    shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
     created_at?: string;
     updated_at?: string;
 }
@@ -37,6 +41,22 @@ export interface BasketItem {
     id?: number;
     product?: Product;
     quantity?: number;
+}
+
+export interface BasketItemShopBreakdown {
+    name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
+    total_price: number;
+    total_quantity: number;
+}
+
+export interface BasketItemMetadata {
+    total_items: number;
+    total_quantity: number;
+    total_price: number;
+    shop_breakdown: BasketItemShopBreakdown[];
+    page: number;
+    total_pages: number;
+    selected_shop: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
 }
 
 export interface Basket {

@@ -31,7 +31,7 @@ import {
 } from "@tabler/icons-react";
 import { formatDateRelative } from "@/utils/datesUtil";
 // Internal: Types
-import { BasketItemShopBreakdown } from "@/types/customer_plus_types";
+import { BasketItemShopBreakdown } from "@/types/customer_types";
 // Intenral: API
 import basketItemsApi from "@/app/api/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
@@ -49,6 +49,8 @@ type ProductStateType = {
 export default function BasketPage() {
   const { data: session } = useSession();
   const { basketItems, isLargerThanLg } = useGlobalContext();
+
+  console.log(basketItems.responseData);
 
   const [filteredBasketShop, setFilteredBasketShop] = useState<string | null>(
     "ALL"
@@ -73,9 +75,7 @@ export default function BasketPage() {
   };
 
   const generateShopOptions = (shopBreakdown: BasketItemShopBreakdown[]) => {
-    const shopOptions = new Set(
-      shopBreakdown.map((shop) => shop.product__shop_name)
-    );
+    const shopOptions = new Set(shopBreakdown.map((shop) => shop.name));
     const options = Array.from(shopOptions).map((shopName) => ({
       value: shopName,
       label: shopName.charAt(0) + shopName.slice(1).toLowerCase(),
@@ -398,10 +398,7 @@ export default function BasketPage() {
                 {basketItems.responseData.metaData &&
                   basketItems.responseData.metaData.shop_breakdown?.map(
                     (shop, index) => (
-                      <Accordion.Item
-                        value={shop.product__shop_name}
-                        key={index}
-                      >
+                      <Accordion.Item value={shop.name} key={index}>
                         <Accordion.Control
                           disabled={isLargerThanLg}
                           style={{
@@ -412,8 +409,8 @@ export default function BasketPage() {
                         >
                           <Group position="apart">
                             <Text miw={80} align="left">
-                              {shop.product__shop_name.charAt(0).toUpperCase() +
-                                shop.product__shop_name.slice(1).toLowerCase()}
+                              {shop.name.charAt(0).toUpperCase() +
+                                shop.name.slice(1).toLowerCase()}
                             </Text>
 
                             {isLargerThanLg && (

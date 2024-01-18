@@ -2,14 +2,13 @@
 
 import React, { createContext, useContext, ReactNode } from "react";
 import { useMediaQuery } from "@mantine/hooks";
-import { BasketItem } from "@/types/customer_types";
-import { BasketItemMetaData } from "@/types/customer_plus_types";
+import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
 import useApi, { UseApiReturnType } from "@/utils/useApi";
 
 import basketItemsApi from "@/app/api/basketItemsApi";
 
 interface GlobalContextType {
-  basketItems: UseApiReturnType<BasketItem[], BasketItemMetaData>;
+  basketItems: UseApiReturnType<BasketItem[], BasketItemMetadata>;
   isLargerThanLg: boolean;
   isLargerThanSm: boolean;
 }
@@ -26,7 +25,7 @@ export const GlobalContext = createContext<GlobalContextType | undefined>(
 
 // Provide the context
 export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
-  const basketItems = useApi<BasketItem[], BasketItemMetaData>({
+  const basketItems = useApi<BasketItem[], BasketItemMetadata>({
     apiFunc: basketItemsApi.list,
     onSuccess: () => {},
   });
