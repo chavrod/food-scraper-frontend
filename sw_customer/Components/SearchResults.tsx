@@ -6,14 +6,12 @@ import { useSession } from "next-auth/react";
 import normalizeUrl from "normalize-url";
 // External Styling
 import {
-  Loader,
   Grid,
   Paper,
   Text,
   Group,
   Container,
   Stack,
-  TextInput,
   Button,
   Pagination,
   Skeleton,
@@ -21,39 +19,33 @@ import {
   Box,
   Space,
   Title,
-  Tabs,
-  Badge,
-  ActionIcon,
   Tooltip,
-  Divider,
 } from "@mantine/core";
 import {
   IconArrowBadgeRight,
   IconShoppingBagPlus,
-  IconSearch,
-  IconShoppingCart,
   IconCheck,
-  IconShoppingCartOff,
 } from "@tabler/icons-react";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 // Intenral: Utils
-import { SearchMetaData } from "@/utils/types";
-import { Product } from "@/types/customer_types";
+import {
+  Product,
+  CachedProductsPage,
+  CachedProductsPageResult,
+} from "@/types/customer_types";
 // Intenral: Components
 import renderTime from "@/Components/RenderTimeNumber";
 import BasketPreview from "./BasketPreview";
 import SearchHeader from "./SearchHeader";
 // Intenral: API
 import basketItemsApi from "@/app/api/basketItemsApi";
-import useApi from "@/utils/useApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
 
 interface SearchResultsProps {
   searchText: string | undefined;
-  products?: Product[] | undefined;
-  searchMetaData: SearchMetaData;
-  averageScrapingTime: number | null;
+  cachedProductsPage: CachedProductsPage | undefined;
+  averageScrapingTime: number | undefined;
 }
 
 type LoadingStates = {
@@ -69,8 +61,7 @@ type ProductStateType = {
 
 export default function SearchResults({
   searchText,
-  products,
-  searchMetaData,
+  cachedProductsPage,
   averageScrapingTime,
 }: SearchResultsProps): ReactElement {
   const { data: session } = useSession();
@@ -99,26 +90,31 @@ export default function SearchResults({
   const [currentAverageScrapingTime, setCurrentAverageScrapingTime] = useState<
     number | null
   >(averageScrapingTime || null);
-  const [currentProducts, setCurrentProducts] = useState<Product[] | null>(
-    products || null
-  );
+  const [currentProducts, setCurrentProducts] = useState<
+    CachedProductsPageResult[] | null
+  >(cachedProductsPage?.results || null);
   const [pages, setPages] = useState<{
     activePage: number | undefined;
     totalPages: number | undefined;
   }>({
-    activePage: searchMetaData?.currentPage || undefined,
-    totalPages: searchMetaData?.totalPages || undefined,
+    activePage: cachedProductsPage?.page || undefined,
+    totalPages: cachedProductsPage?.total_pages || undefined,
   });
 
   useEffect(() => {
-    if (products) setCurrentProducts(products);
+    if (cachedProductsPage?.results)
+      setCurrentProducts(cachedProductsPage?.results);
     if (averageScrapingTime) setCurrentAverageScrapingTime(averageScrapingTime);
-    if (searchMetaData.currentPage !== 0 && searchMetaData.totalPages !== 0)
+    if (
+      cachedProductsPage &&
+      cachedProductsPage?.page !== 0 &&
+      cachedProductsPage?.total_pages !== 0
+    )
       setPages({
-        activePage: searchMetaData.currentPage,
-        totalPages: searchMetaData.totalPages,
+        activePage: cachedProductsPage.page,
+        totalPages: cachedProductsPage.total_pages,
       });
-  }, [averageScrapingTime, products, searchMetaData]);
+  }, [averageScrapingTime, cachedProductsPage]);
 
   useEffect(() => {
     console.log("AVERAGE SCRAPING TIME: ", averageScrapingTime);
@@ -301,7 +297,7 @@ export default function SearchResults({
         ) : loadingStates.loading &&
           !loadingStates.loadingNew &&
           loadingStates.loadingCached ? (
-          <Grid gutter="md" justify="center">
+          <Grid gutter="md" justify="center" m="sm">
             {Array.from({ length: 24 }).map((_, index) => (
               <Grid.Col key={index} span={12} md={6} xl={4}>
                 <Paper
@@ -347,7 +343,14 @@ export default function SearchResults({
           currentProducts &&
           currentProducts.length > 0 && (
             <Stack align="center" spacing={0}>
-              <Grid gutter={0} justify="center">
+              <Group px="lg" align="left" style={{ width: "100%" }}>
+                {searchText && (
+                  <Title order={isLargerThanSm ? 1 : 3}>
+                    Results for "{searchText}"
+                  </Title>
+                )}
+              </Group>
+              <Grid gutter={0} justify="center" m="sm">
                 {currentProducts.map((product, index) => (
                   <Grid.Col key={index} span={12} md={6} xl={4}>
                     <Paper
