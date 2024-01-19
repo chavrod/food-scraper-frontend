@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReactElement, useState, useEffect, useId } from "react";
 import { useSession } from "next-auth/react";
@@ -26,7 +25,6 @@ import {
   IconShoppingBagPlus,
   IconCheck,
 } from "@tabler/icons-react";
-import { CountdownCircleTimer } from "react-countdown-circle-timer";
 // Intenral: Utils
 import {
   Product,
@@ -37,6 +35,8 @@ import {
 import renderTime from "@/Components/RenderTimeNumber";
 import BasketPreview from "./BasketPreview";
 import SearchHeader from "./SearchHeader";
+import CountdownCircle from "./CountdownCircle";
+import { ProductGridSkeleton } from "./Skeletons";
 // Intenral: API
 import basketItemsApi from "@/app/api/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
@@ -48,7 +48,7 @@ interface SearchResultsProps {
   averageScrapingTime: number | undefined;
 }
 
-type LoadingStates = {
+export type ItemsLoadingStates = {
   loading: boolean;
   loadingNew: boolean;
   loadingCached: boolean;
@@ -67,20 +67,21 @@ export default function SearchResults({
   const { data: session } = useSession();
 
   const router = useRouter();
-  // const searchParams = useSearchParams();
-  // const queryParam = searchParams.get("query");
 
   const { basketItems, isLargerThanSm } = useGlobalContext();
 
   // Combined state declaration
-  const [loadingStates, setLoadingStates] = useState<LoadingStates>({
+  const [loadingStates, setLoadingStates] = useState<ItemsLoadingStates>({
     loading: false,
     loadingNew: false,
     loadingCached: false,
   });
 
   // Function to update a specific loading state
-  const setLoadingState = (stateName: keyof LoadingStates, value: boolean) => {
+  const setLoadingState = (
+    stateName: keyof ItemsLoadingStates,
+    value: boolean
+  ) => {
     setLoadingStates((prevStates) => ({
       ...prevStates,
       [stateName]: value,
@@ -90,9 +91,11 @@ export default function SearchResults({
   const [currentAverageScrapingTime, setCurrentAverageScrapingTime] = useState<
     number | null
   >(averageScrapingTime || null);
+
   const [currentProducts, setCurrentProducts] = useState<
     CachedProductsPageResult[] | null
   >(cachedProductsPage?.results || null);
+
   const [pages, setPages] = useState<{
     activePage: number | undefined;
     totalPages: number | undefined;
@@ -239,7 +242,6 @@ export default function SearchResults({
       setProductStates((prevStates) => ({
         ...prevStates,
         loading: { ...prevStates.loading, [index]: false },
-        // Don't update the 'added' state if it was not successful
       }));
     }
   };
@@ -262,83 +264,14 @@ export default function SearchResults({
         {loadingStates.loading &&
         loadingStates.loadingNew &&
         !loadingStates.loadingCached ? (
-          <Paper shadow="md" radius="md" p="md">
-            <Stack mt={20} mb={5} align="center">
-              <Title align="center" w={300}>
-                {" "}
-                Searching supermarkets...
-              </Title>
-              {currentAverageScrapingTime && (
-                <Text align="center" color="dimmed" w={300}>
-                  Hang tight! We're checking supermarkets for up-to-date product
-                  data. So far, this has taken us{" "}
-                  {Math.ceil(currentAverageScrapingTime) + 10} seconds on
-                  average.
-                </Text>
-              )}
-
-              {currentAverageScrapingTime && (
-                <CountdownCircleTimer
-                  isPlaying={
-                    loadingStates.loading &&
-                    loadingStates.loadingNew &&
-                    !loadingStates.loadingCached
-                  }
-                  duration={Math.ceil(currentAverageScrapingTime) + 5}
-                  colors={["#0C8599", "#15AABF", "#0CA678", "#37B24D"]}
-                  colorsTime={[10, 7, 4, 0]}
-                  strokeWidth={20}
-                >
-                  {renderTime}
-                </CountdownCircleTimer>
-              )}
-            </Stack>
-          </Paper>
+          <CountdownCircle
+            currentAverageScrapingTime={currentAverageScrapingTime}
+            loadingStates={loadingStates}
+          />
         ) : loadingStates.loading &&
           !loadingStates.loadingNew &&
           loadingStates.loadingCached ? (
-          <Grid gutter="md" justify="center" m="sm">
-            {Array.from({ length: 24 }).map((_, index) => (
-              <Grid.Col key={index} span={12} md={6} xl={4}>
-                <Paper
-                  h="190px"
-                  shadow="md"
-                  withBorder
-                  p="sm"
-                  m="xs"
-                  radius="md"
-                >
-                  <Flex
-                    gap="md"
-                    justify="flex-start"
-                    align="flex-start"
-                    direction="row"
-                    wrap="nowrap"
-                  >
-                    <Stack align="center">
-                      <Skeleton height={80} width={80} />
-                      <Skeleton height={60} width={60} />
-                    </Stack>
-
-                    <Stack
-                      style={{
-                        width: "80%",
-                      }}
-                    >
-                      <Skeleton height={8} width={200} />
-                      <Skeleton height={8} width={160} />
-                      <Skeleton height={8} width={100} />
-                      <Space h={35} />
-                      <Group position="apart">
-                        <Skeleton height={25} width={35} />
-                        <Skeleton height={30} width={80} radius="lg" />
-                      </Group>
-                    </Stack>
-                  </Flex>
-                </Paper>
-              </Grid.Col>
-            ))}
-          </Grid>
+          <ProductGridSkeleton />
         ) : (
           currentProducts &&
           currentProducts.length > 0 && (
