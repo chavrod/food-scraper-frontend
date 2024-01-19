@@ -37,6 +37,10 @@ import basketItemsApi from "@/app/api/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
 import { useSession } from "next-auth/react";
+import {
+  BasketSummarySkeleton,
+  BasketItemsSkeleton,
+} from "@/Components/Skeletons";
 
 type ProductStateType = {
   loadingIncrease: Record<number, boolean>;
@@ -234,124 +238,8 @@ export default function BasketPage() {
     >
       {basketItems.loading ? (
         <>
-          <Paper
-            maw={450}
-            shadow="md"
-            withBorder
-            p="md"
-            radius="md"
-            mt="xs"
-            style={{ width: "100%" }}
-          >
-            <Title mb="xs" order={4} align="left">
-              Basket Summary by Shop
-            </Title>
-            {isLargerThanLg && (
-              <Group position="apart" noWrap>
-                <Text miw={120} ml={20} c="dimmed">
-                  Shop
-                </Text>
-                <Text mr={40} c="dimmed">
-                  Items
-                </Text>
-                <Text miw={90} mr={27} c="dimmed">
-                  Amount
-                </Text>
-              </Group>
-            )}
-            <Divider></Divider>
-
-            <Accordion
-              multiple
-              disableChevronRotation
-              chevron={isLargerThanLg ? "" : <IconPlus size="1rem" />}
-            >
-              {Array.from({ length: 3 }).map((_, index) => (
-                <Accordion.Item value={index.toString()} key={index}>
-                  <Accordion.Control
-                    disabled={isLargerThanLg}
-                    style={{
-                      color: "black",
-                      cursor: isLargerThanLg ? "default" : "auto",
-                      opacity: 1,
-                    }}
-                  >
-                    <Group position="apart">
-                      <Text miw={80} align="left">
-                        <Skeleton height={20} width={80} />
-                      </Text>
-
-                      {isLargerThanLg && <Skeleton height={20} width={40} />}
-                      <Skeleton height={20} width={60} />
-                    </Group>
-                  </Accordion.Control>
-                </Accordion.Item>
-              ))}
-            </Accordion>
-            <Divider color="dark"></Divider>
-            <Group mt="xs" position="apart">
-              <Text ml={21} weight={500} miw={80} align="left">
-                {isLargerThanLg ? "" : "Total"}
-              </Text>
-
-              {isLargerThanLg && <Skeleton height={20} width={40} />}
-              <Skeleton mr={59} height={20} width={60} />
-            </Group>
-          </Paper>
-
-          <Grid gutter={0} mb={65} maw={450}>
-            {/* Shop filter skeleton */}
-            <Paper withBorder>
-              <Skeleton height={40} width={150}></Skeleton>
-            </Paper>
-
-            {/* Basket items skeleton */}
-            {Array.from({ length: 8 }).map((_, index) => (
-              <Grid.Col key={index} span={12}>
-                <Paper
-                  maw={450}
-                  h="200px"
-                  shadow="md"
-                  withBorder
-                  p="md"
-                  my="xs"
-                  radius="md"
-                  style={{ width: "100%" }}
-                >
-                  <Group position="apart" noWrap>
-                    <Stack>
-                      <Skeleton height={50} width={50} />
-                      <Skeleton height={50} width={50} />
-                    </Stack>
-
-                    <Stack spacing={5}>
-                      <Box h={45}>
-                        <Skeleton height={20} width={150} />
-                        <Skeleton height={20} width={120} mt={5} />
-                      </Box>
-
-                      <Stack spacing={0} mt="lg">
-                        <Group noWrap>
-                          <Skeleton height={35} width={100} />
-                        </Group>
-                      </Stack>
-
-                      <Group noWrap mt="md">
-                        <Skeleton height={40} width={40} radius="lg" />
-                        <Skeleton height={15} width={30} />
-                        <Skeleton height={40} width={40} radius="lg" />
-                      </Group>
-                    </Stack>
-                    <Stack align="flex-end" justify="space-between">
-                      <Skeleton height={20} width={20} />
-
-                      <Skeleton height={40} width={50} mt={90} />
-                    </Stack>
-                  </Group>
-                </Paper>
-              </Grid.Col>
-            ))}
-          </Grid>
+          <BasketSummarySkeleton isLargerThanLg={isLargerThanLg} />
+          <BasketItemsSkeleton />
         </>
       ) : basketItems.responseData.data &&
         basketItems.responseData.data?.length > 0 ? (
