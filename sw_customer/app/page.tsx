@@ -27,7 +27,7 @@ export default async function Home({
     is_relevant_only: searchParams?.is_relevant_only || true,
   };
 
-  const { data } = await getData<
+  const { data, errorMessage } = await getData<
     CachedProductsPage | ScrapeStatsForCustomer,
     SearchParams
   >({
@@ -35,9 +35,10 @@ export default async function Home({
     apiFunc: customerApi.getProducts,
   });
 
-  const cachedProductsPage = data && "results" in data ? data : undefined;
+  const cachedProductsPage =
+    !errorMessage && data && "results" in data ? data : undefined;
   const averageScrapingTime =
-    data && "average_time_seconds" in data
+    !errorMessage && data && "average_time_seconds" in data
       ? data.average_time_seconds
       : undefined;
 
@@ -47,6 +48,7 @@ export default async function Home({
         searchText={searchParams.query}
         cachedProductsPage={cachedProductsPage}
         averageScrapingTime={averageScrapingTime}
+        errorMessage={errorMessage}
       />
     </>
   );

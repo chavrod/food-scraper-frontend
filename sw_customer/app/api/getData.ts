@@ -10,25 +10,27 @@ export default async function getData<D, P extends Params>({
   apiFunc,
 }: GetDataProps<D, P>): Promise<{
   data: D | undefined;
-  error: boolean | undefined;
+  errorMessage: string | undefined;
 }> {
   if (apiFunc === undefined || params.query === "") {
-    return { data: undefined, error: undefined };
+    return { data: undefined, errorMessage: undefined };
   }
 
   try {
     const res = await apiFunc(params);
 
     if (!res.ok) {
-      throw new Error(`HTTP error! Status: ${res.status}`);
+      const errorMessage = await res.json();
+
+      throw new Error(errorMessage);
     }
 
     const jsonRes: D = await res.json();
 
-    return { data: jsonRes, error: false };
+    return { data: jsonRes, errorMessage: undefined };
   } catch (error) {
-    console.error("There was an error with the API call:", error);
-    // Handle or re-throw the error based on your requirements
-    throw error;
+    const returnedError =
+      error instanceof Error ? error : new Error(String(error));
+    return { data: undefined, errorMessage: returnedError.message };
   }
 }

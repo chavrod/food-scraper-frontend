@@ -32,7 +32,6 @@ import {
   CachedProductsPageResult,
 } from "@/types/customer_types";
 // Intenral: Components
-import renderTime from "@/Components/RenderTimeNumber";
 import BasketPreview from "./BasketPreview";
 import SearchHeader from "./SearchHeader";
 import CountdownCircle from "./CountdownCircle";
@@ -41,11 +40,13 @@ import { ProductGridSkeleton } from "./Skeletons";
 import basketItemsApi from "@/app/api/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
+import notifyError from "@/utils/notifyError";
 
 interface SearchResultsProps {
   searchText: string | undefined;
   cachedProductsPage: CachedProductsPage | undefined;
   averageScrapingTime: number | undefined;
+  errorMessage: string | undefined;
 }
 
 export type ItemsLoadingStates = {
@@ -63,6 +64,7 @@ export default function SearchResults({
   searchText,
   cachedProductsPage,
   averageScrapingTime,
+  errorMessage,
 }: SearchResultsProps): ReactElement {
   const { data: session } = useSession();
 
@@ -105,6 +107,13 @@ export default function SearchResults({
   });
 
   useEffect(() => {
+    if (errorMessage) {
+      setLoadingState("loading", false);
+      setLoadingState("loadingCached", false);
+      setLoadingState("loadingNew", false);
+      notifyError(errorMessage);
+      return;
+    }
     if (cachedProductsPage?.results)
       setCurrentProducts(cachedProductsPage?.results);
     if (averageScrapingTime) setCurrentAverageScrapingTime(averageScrapingTime);
@@ -117,7 +126,7 @@ export default function SearchResults({
         activePage: cachedProductsPage.page,
         totalPages: cachedProductsPage.total_pages,
       });
-  }, [averageScrapingTime, cachedProductsPage]);
+  }, [averageScrapingTime, cachedProductsPage, errorMessage]);
 
   useEffect(() => {
     console.log("AVERAGE SCRAPING TIME: ", averageScrapingTime);
@@ -158,6 +167,7 @@ export default function SearchResults({
       };
 
       socket.onerror = (error) => {
+        notifyError("An error has occured.");
         console.error("WebSocket Error:", error);
       };
 
