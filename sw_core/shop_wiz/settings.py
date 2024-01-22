@@ -116,7 +116,8 @@ ROOT_URLCONF = "shop_wiz.urls"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ]
+    ],
+    "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
 }
 
 TEMPLATES = [
