@@ -1,6 +1,12 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ReactElement, useState, useEffect, useId } from "react";
+import {
+  PropsWithChildren,
+  ReactElement,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { useSession } from "next-auth/react";
 import normalizeUrl from "normalize-url";
 // External Styling
@@ -17,6 +23,7 @@ import {
   Box,
   Title,
   Tooltip,
+  Image,
 } from "@mantine/core";
 import {
   IconArrowBadgeRight,
@@ -249,6 +256,53 @@ export default function SearchResults({
     }
   };
 
+  const suggestedSearchOptions = [
+    { name: "Cheese", imgPath: "cheese.png" },
+    { name: "Avocado", imgPath: "avocado.png" },
+    { name: "Beef", imgPath: "beef.png" },
+    { name: "Chicken", imgPath: "chicken.png" },
+  ];
+
+  interface SuggestedSearchOptionCardProps extends PropsWithChildren {
+    query: string;
+  }
+
+  const SuggestedSearchOptionCard = ({
+    query,
+    ...props
+  }: SuggestedSearchOptionCardProps) => {
+    const [isPressed, setIsPressed] = useState(false);
+
+    const handlePress = () => {
+      setIsPressed(true);
+    };
+
+    const handleRelease = () => {
+      setIsPressed(false);
+      handleFormSubmit({ query: query, page: 1 });
+    };
+
+    return (
+      <Paper
+        className={`touchable-card ${isPressed ? "pressed" : ""}`}
+        h={isLargerThanSm ? 240 : 160}
+        w={isLargerThanSm ? 240 : 160}
+        shadow="lg"
+        withBorder
+        p={isLargerThanSm ? "lg" : "sm"}
+        radius="lg"
+        onTouchStart={handlePress}
+        onTouchEnd={handleRelease}
+        onMouseDown={handlePress}
+        onMouseUp={handleRelease}
+        onMouseLeave={handleRelease}
+        style={{ cursor: "pointer" }}
+      >
+        {props.children}
+      </Paper>
+    );
+  };
+
   return (
     <Flex
       justify="space-between" // Spaces children divs apart
@@ -266,6 +320,34 @@ export default function SearchResults({
             loadingStates.loadingNew || loadingStates.loadingCached
           }
         />
+        {!searchText &&
+          !loadingStates.loadingCached &&
+          !loadingStates.loadingNew &&
+          !currentProducts && (
+            <Stack mx="lg" align="left" spacing={0}>
+              <Title order={2} mb="md">
+                Suggested Searches
+              </Title>
+              <Grid>
+                {suggestedSearchOptions.map((option, index) => (
+                  <Grid.Col key={index} span={6} xl={3}>
+                    <SuggestedSearchOptionCard query={option.name}>
+                      <Stack align="center" spacing={0}>
+                        <Image
+                          src={option.imgPath}
+                          alt={option.name}
+                          width={isLargerThanSm ? 150 : 90}
+                        />
+                        <Text weight={500} fz="xl">
+                          {option.name}
+                        </Text>
+                      </Stack>
+                    </SuggestedSearchOptionCard>
+                  </Grid.Col>
+                ))}
+              </Grid>
+            </Stack>
+          )}
         {loadingStates.loadingNew && !loadingStates.loadingCached ? (
           <CountdownCircle
             currentAverageScrapingTime={currentAverageScrapingTime}

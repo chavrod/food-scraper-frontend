@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { ReactElement, useEffect } from "react";
 import { Paper, TextInput, Flex, ActionIcon, Button } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useGlobalContext } from "@/Context/globalContext";
@@ -27,6 +27,11 @@ export default function SearchHeader({
       query: (value: string) => (value.length <= 0 ? "Invalid name" : null),
     },
   });
+
+  // Effect to update form value when searchText prop changes
+  useEffect(() => {
+    form.setFieldValue("query", searchText || "");
+  }, [searchText]);
 
   return (
     <Paper

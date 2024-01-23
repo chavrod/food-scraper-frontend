@@ -175,7 +175,6 @@ export default function BasketPage() {
       setProductStates((prevStates) => ({
         ...prevStates,
         loadingIncrease: { ...prevStates.loadingIncrease, [index]: false },
-        // Don't update the 'added' state if it was not successful
       }));
     }
   };
