@@ -13,10 +13,8 @@ import {
   Stack,
   Button,
   Pagination,
-  Skeleton,
   Flex,
   Box,
-  Space,
   Title,
   Tooltip,
 } from "@mantine/core";
@@ -50,7 +48,6 @@ interface SearchResultsProps {
 }
 
 export type ItemsLoadingStates = {
-  loading: boolean;
   loadingNew: boolean;
   loadingCached: boolean;
 };
@@ -74,7 +71,6 @@ export default function SearchResults({
 
   // Combined state declaration
   const [loadingStates, setLoadingStates] = useState<ItemsLoadingStates>({
-    loading: false,
     loadingNew: false,
     loadingCached: false,
   });
@@ -108,7 +104,6 @@ export default function SearchResults({
 
   useEffect(() => {
     if (errorMessage) {
-      setLoadingState("loading", false);
       setLoadingState("loadingCached", false);
       setLoadingState("loadingNew", false);
       notifyError(errorMessage);
@@ -158,7 +153,6 @@ export default function SearchResults({
             activePage: 1,
             totalPages: responseData.total_pages,
           });
-          setLoadingState("loading", false);
           setLoadingState("loadingNew", false);
         } else {
           // TODO: Throw an error?
@@ -181,7 +175,8 @@ export default function SearchResults({
   const handleFormSubmit = (values: { query: string; page: number }) => {
     router.push(`?query=${values.query}&page=${values.page}`);
 
-    setLoadingState("loading", true);
+    setLoadingState("loadingCached", true);
+    setLoadingState("loadingNew", true);
   };
 
   const handlePageChange = (page: number) => {
@@ -190,7 +185,6 @@ export default function SearchResults({
     // Scroll smoothly to the top of the page
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    setLoadingState("loading", true);
     setLoadingState("loadingCached", true);
 
     // Wait for the scroll to complete (you can adjust the timeout as needed)
@@ -201,7 +195,6 @@ export default function SearchResults({
 
   useEffect(() => {
     if (!currentAverageScrapingTime && currentProducts) {
-      setLoadingState("loading", false);
       setLoadingState("loadingCached", false);
       setLoadingState("loadingNew", false);
     }
@@ -269,18 +262,16 @@ export default function SearchResults({
         <SearchHeader
           searchText={searchText}
           handleSubmit={handleFormSubmit}
-          loadingSearch={loadingStates.loading}
+          loadingSearch={
+            loadingStates.loadingNew || loadingStates.loadingCached
+          }
         />
-        {loadingStates.loading &&
-        loadingStates.loadingNew &&
-        !loadingStates.loadingCached ? (
+        {loadingStates.loadingNew && !loadingStates.loadingCached ? (
           <CountdownCircle
             currentAverageScrapingTime={currentAverageScrapingTime}
             loadingStates={loadingStates}
           />
-        ) : loadingStates.loading &&
-          !loadingStates.loadingNew &&
-          loadingStates.loadingCached ? (
+        ) : !loadingStates.loadingNew && loadingStates.loadingCached ? (
           <ProductGridSkeleton />
         ) : (
           currentProducts &&
@@ -442,7 +433,8 @@ export default function SearchResults({
         )}
 
         {searchText &&
-          !loadingStates.loading &&
+          !loadingStates.loadingNew &&
+          !loadingStates.loadingCached &&
           currentProducts &&
           currentProducts.length === 0 && <>Sorry, there was nothing found!</>}
       </Stack>
