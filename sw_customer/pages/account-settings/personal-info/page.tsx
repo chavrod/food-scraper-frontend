@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { Stack, Title, Divider, Breadcrumbs, Anchor, Box } from "@mantine/core";
 

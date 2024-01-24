@@ -1,5 +1,3 @@
-"use client";
-
 // External Styling
 import { Paper, Text, Stack, Title } from "@mantine/core";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
@@ -34,11 +32,7 @@ export default function CountdownCircle({
 
         {currentAverageScrapingTime && (
           <CountdownCircleTimer
-            isPlaying={
-              loadingStates.loading &&
-              loadingStates.loadingNew &&
-              !loadingStates.loadingCached
-            }
+            isPlaying={loadingStates.loadingNew && !loadingStates.loadingCached}
             duration={Math.ceil(currentAverageScrapingTime) + 5}
             colors={["#0C8599", "#15AABF", "#0CA678", "#37B24D"]}
             colorsTime={[10, 7, 4, 0]}

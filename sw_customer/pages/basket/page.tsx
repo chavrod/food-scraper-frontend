@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import {
   Text,
@@ -33,7 +31,7 @@ import { formatDateRelative } from "@/utils/datesUtil";
 // Internal: Types
 import { BasketItemShopBreakdown } from "@/types/customer_types";
 // Intenral: API
-import basketItemsApi from "@/app/api/basketItemsApi";
+import basketItemsApi from "@/pages/api/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
 import { useSession } from "next-auth/react";

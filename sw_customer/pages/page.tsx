@@ -1,8 +1,8 @@
 // Intenral Components
 import SearchResults from "../Components/SearchResults";
 // Intenral Utils
-import getData from "@/app/api/getData";
-import customerApi from "@/app/api/customerApi";
+import getData from "@/pages/api/getData";
+import customerApi from "@/pages/api/customerApi";
 import {
   CachedProductsPage,
   ScrapeStatsForCustomer,

@@ -1,4 +1,3 @@
-"use client";
 import Link from "next/link";
 
 import { useState } from "react";
@@ -31,7 +30,7 @@ import {
   IconSquareRoundedPlusFilled,
 } from "@tabler/icons-react";
 // Intenral: API
-import basketItemsApi from "@/app/api/basketItemsApi";
+import basketItemsApi from "@/pages/api/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
 

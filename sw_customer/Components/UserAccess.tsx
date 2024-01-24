@@ -1,4 +1,3 @@
-"use client";
 import { useState } from "react";
 // Internal: Components
 import LoginForm from "./LoginForm";

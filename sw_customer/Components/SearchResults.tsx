@@ -1,5 +1,4 @@
-"use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/router";
 import {
   PropsWithChildren,
   ReactElement,
@@ -42,7 +41,7 @@ import SearchHeader from "./SearchHeader";
 import CountdownCircle from "./CountdownCircle";
 import { ProductGridSkeleton } from "./Skeletons";
 // Intenral: API
-import basketItemsApi from "@/app/api/basketItemsApi";
+import basketItemsApi from "@/pages/api/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
 import notifyError from "@/utils/notifyError";

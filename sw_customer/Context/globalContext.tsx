@@ -1,11 +1,9 @@
-"use client";
-
 import React, { createContext, useContext, ReactNode } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
 import useApi, { UseApiReturnType } from "@/utils/useApi";
 
-import basketItemsApi from "@/app/api/basketItemsApi";
+import basketItemsApi from "@/pages/api/basketItemsApi";
 
 interface GlobalContextType {
   basketItems: UseApiReturnType<BasketItem[], BasketItemMetadata>;

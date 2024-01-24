@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { notifications } from "@mantine/notifications";
 import { Modal, Button, Text, Input, Stack, Group } from "@mantine/core";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
@@ -22,8 +21,6 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
-
-  const router = useRouter();
 
   const handleDelete = async () => {
     if (!accressToken) return;
