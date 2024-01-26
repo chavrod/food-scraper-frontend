@@ -3,7 +3,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
 import useApi, { UseApiReturnType } from "@/utils/useApi";
 
-import basketItemsApi from "@/pages/api/basketItemsApi";
+import basketItemsApi from "@/utils/basketItemsApi";
 
 interface GlobalContextType {
   basketItems: UseApiReturnType<BasketItem[], BasketItemMetadata>;

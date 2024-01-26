@@ -1,7 +1,5 @@
 import React, { useRef, useState } from "react";
 
-import "../styles/countDownClock.css";
-
 const renderTime = ({ remainingTime }: { remainingTime: number }) => {
   const currentTime = useRef<number | null>(remainingTime);
   const prevTime = useRef<number | null>(null);

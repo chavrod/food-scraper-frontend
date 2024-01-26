@@ -1,22 +1,21 @@
 import { ReactElement, useEffect } from "react";
 import { Paper, TextInput, Flex, ActionIcon, Button } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useGlobalContext } from "@/Context/globalContext";
 import { IconSearch } from "@tabler/icons-react";
 
 interface SearchHeaderProps {
   handleSubmit: (values: { query: string; page: number }) => void;
   loadingSearch: boolean;
   searchText: string | undefined;
+  isLargerThanSm: boolean;
 }
 
 export default function SearchHeader({
   handleSubmit,
   loadingSearch,
   searchText,
+  isLargerThanSm,
 }: SearchHeaderProps): ReactElement {
-  const { isLargerThanSm } = useGlobalContext();
-
   const form = useForm({
     initialValues: {
       query: searchText || "",

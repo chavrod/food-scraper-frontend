@@ -31,7 +31,7 @@ import { formatDateRelative } from "@/utils/datesUtil";
 // Internal: Types
 import { BasketItemShopBreakdown } from "@/types/customer_types";
 // Intenral: API
-import basketItemsApi from "@/pages/api/basketItemsApi";
+import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
 import { useSession } from "next-auth/react";
@@ -51,8 +51,6 @@ type ProductStateType = {
 export default function BasketPage() {
   const { data: session } = useSession();
   const { basketItems, isLargerThanLg } = useGlobalContext();
-
-  console.log(basketItems.responseData);
 
   const [filteredBasketShop, setFilteredBasketShop] = useState<string | null>(
     "ALL"

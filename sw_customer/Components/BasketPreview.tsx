@@ -30,7 +30,7 @@ import {
   IconSquareRoundedPlusFilled,
 } from "@tabler/icons-react";
 // Intenral: API
-import basketItemsApi from "@/pages/api/basketItemsApi";
+import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
 

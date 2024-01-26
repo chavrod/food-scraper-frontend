@@ -2,18 +2,17 @@
 import { Paper, Text, Stack, Title } from "@mantine/core";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 // Intenral: Utils
-import { ItemsLoadingStates } from "./SearchResults";
 // Intenral: Components
 import renderTime from "@/Components/RenderTimeNumber";
 
 interface CountdownCircleProps {
   currentAverageScrapingTime: number | null;
-  loadingStates: ItemsLoadingStates;
+  loading: boolean;
 }
 
 export default function CountdownCircle({
   currentAverageScrapingTime,
-  loadingStates,
+  loading,
 }: CountdownCircleProps) {
   return (
     <Paper shadow="md" radius="md" p="md">
@@ -32,7 +31,7 @@ export default function CountdownCircle({
 
         {currentAverageScrapingTime && (
           <CountdownCircleTimer
-            isPlaying={loadingStates.loadingNew && !loadingStates.loadingCached}
+            isPlaying={loading}
             duration={Math.ceil(currentAverageScrapingTime) + 5}
             colors={["#0C8599", "#15AABF", "#0CA678", "#37B24D"]}
             colorsTime={[10, 7, 4, 0]}
