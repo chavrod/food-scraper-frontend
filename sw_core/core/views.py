@@ -45,14 +45,7 @@ class CachedProductsPageViewSet(
             # Start the scraping process
             cache_data.delay(query_param, is_relevant_only_param)
 
-            # COUNT HERE
-            average_time_seconds = core_models.ScrapeSummaryTotal.objects.aggregate(
-                avg_time=Avg("total_execution_time")
-            )["avg_time"]
-            if (
-                average_time_seconds is None
-            ):  # This handles the case when there are no records in ScrapeSummary
-                average_time_seconds = 30  # Default to 30 if no data exists
+            average_time_seconds = 30
 
             scrape_stats_for_customer_serializer = (
                 core_serializers.ScrapeStatsForCustomer(
@@ -62,8 +55,7 @@ class CachedProductsPageViewSet(
             scrape_stats_for_customer_serializer.is_valid(raise_exception=True)
 
             return Response(
-                data=scrape_stats_for_customer_serializer.data,
-                status=status.HTTP_206_PARTIAL_CONTENT,
+                {"data": {}, "metadata": scrape_stats_for_customer_serializer.data}
             )
         # If requested page is greater than the greatest cached page, return the latest available page
         if page_param > cached_pages.first().page:
@@ -73,12 +65,23 @@ class CachedProductsPageViewSet(
         cached_page_data = cached_pages.filter(page=page_param).first()
         total_pages = cached_pages.count()
 
-        serializer = self.get_serializer(
-            cached_page_data, context={"total_pages": total_pages}
-        )
-        data = serializer.data
+        print("cached_page_data", cached_page_data)
 
-        return Response(data)
+        serializer = self.get_serializer(cached_page_data)
+        # Serialize the metadata
+        metadata_serializer = core_serializers.CachedProductsPageMetadata(
+            data={
+                "total_pages": total_pages,
+            }
+        )
+        metadata_serializer.is_valid(raise_exception=True)
+
+        return Response(
+            {
+                "data": serializer.data,
+                "metadata": metadata_serializer.data,
+            }
+        )
 
 
 class BasketViewSet(viewsets.GenericViewSet):
@@ -192,7 +195,7 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         return Response(
             {
-                "results": serializer.data,
+                "data": serializer.data,
                 "metadata": metadata_serializer.data,
             }
         )

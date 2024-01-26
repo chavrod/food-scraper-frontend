@@ -49,10 +49,9 @@ function useApi<T, M = any>({
 
       if (res.ok) {
         const jsonRes = await res.json();
-        console.log(jsonRes);
-        const { results, metadata } = jsonRes;
+        const { data, metadata } = jsonRes;
 
-        setResponseData({ data: results, metaData: metadata });
+        setResponseData({ data: data, metaData: metadata });
       } else {
         const errorData = await res.json();
 
