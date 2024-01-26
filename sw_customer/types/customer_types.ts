@@ -21,7 +21,6 @@ export interface CachedProductsPage {
     query: string;
     page?: number;
     is_relevant_only: boolean;
-    total_pages?: number;
     results?: CachedProductsPageResult[];
     created?: string;
 }
@@ -57,6 +56,10 @@ export interface BasketItemMetadata {
     page: number;
     total_pages: number;
     selected_shop: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
+}
+
+export interface CachedProductsPageMetadata {
+    total_pages: number;
 }
 
 export interface Basket {
