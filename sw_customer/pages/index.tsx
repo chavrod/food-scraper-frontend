@@ -1,11 +1,4 @@
-import {
-  PropsWithChildren,
-  ReactElement,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
-import Head from "next/head";
+import { PropsWithChildren, useState, useEffect } from "react";
 import {
   IconArrowBadgeRight,
   IconShoppingBagPlus,
@@ -28,14 +21,10 @@ import {
   Tooltip,
   Image,
 } from "@mantine/core";
-// Intenral Utils
-import getData from "@/utils/getData";
-import customerApi from "@/utils/productsPagesApi";
 import {
   CachedProductsPage,
   CachedProductsPageMetadata,
   ScrapeStatsForCustomer,
-  CachedProductsPageResult,
   Product,
 } from "@/types/customer_types";
 import { useSession } from "next-auth/react";
@@ -54,12 +43,6 @@ export interface SearchParams {
   query: string;
   page: string;
   // is_relevant_only: boolean;
-}
-interface SearchResultsProps {
-  searchText: string | undefined;
-  cachedProductsPage: CachedProductsPage | undefined;
-  averageScrapingTime: number | undefined;
-  errorMessage: string | undefined;
 }
 
 export type ItemsLoadingStates = {
