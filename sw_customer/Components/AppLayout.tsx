@@ -73,7 +73,10 @@ export default function MainAppShell({
   const [isRedirectToLogin, setIsRedirectToLogin] = useState(
     router.query["login"] === "open"
   );
-  const [callBackUrl, setCallBackUrl] = useState(router.query["callbackUrl"]);
+  const [callBackUrl, setCallBackUrl] = useState<string>(() => {
+    const queryParam = router.query["callbackUrl"] as string;
+    return queryParam || "";
+  });
 
   const [opened, { open, close }] = useDisclosure(false);
 
