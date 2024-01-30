@@ -300,7 +300,7 @@ export default function HomePage() {
             </Grid>
           </Stack>
         )}
-        {loadingNew ? (
+        {loadingNew && averageScrapingTime ? (
           <CountdownCircle
             currentAverageScrapingTime={averageScrapingTime}
             loading={loadingNew}
