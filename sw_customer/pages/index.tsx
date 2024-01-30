@@ -275,7 +275,7 @@ export default function HomePage() {
           loadingSearch={productsPage.loading}
           isLargerThanSm={isLargerThanSm}
         />
-        {!params.query && !productsPage.loading && !cachedProductsPage && (
+        {!params.query && !productsPage.loading && !cachedProductsPage ? (
           <Stack mx="lg" align="left" spacing={0}>
             <Title order={2} mb="md">
               Suggested Searches
@@ -299,8 +299,7 @@ export default function HomePage() {
               ))}
             </Grid>
           </Stack>
-        )}
-        {loadingNew && averageScrapingTime ? (
+        ) : loadingNew && averageScrapingTime ? (
           <CountdownCircle
             currentAverageScrapingTime={averageScrapingTime}
             loading={loadingNew}
