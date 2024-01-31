@@ -92,12 +92,10 @@ export default function HomePage() {
         | undefined)
     : undefined;
 
-  const handleFormSubmit = (values: { query: string; page: number }) => {
+  const handleFormSubmit = (values: { query: string; page: string }) => {
     router.push(`?query=${values.query}&page=${values.page}`);
-    productsPage.request({ query: values.query, page: 1 });
+    productsPage.request({ query: values.query, page: values.page });
   };
-
-  console.log(cachedProductsPageMetadata);
 
   const [pages, setPages] = useState<{
     activePage: number | undefined;
@@ -252,7 +250,7 @@ export default function HomePage() {
 
     const handleRelease = ({ send }: { send: boolean }) => {
       setIsPressed(false);
-      send && handleFormSubmit({ query: query, page: 1 });
+      send && handleFormSubmit({ query: query, page: "1" });
     };
 
     return (
@@ -288,6 +286,7 @@ export default function HomePage() {
       <Stack align="center" spacing={0} style={{ flexGrow: "1" }}>
         <SearchHeader
           searchText={params.query}
+          searchPage={params.page}
           handleSubmit={handleFormSubmit}
           loadingSearch={productsPage.loading}
           isLargerThanSm={isLargerThanSm}

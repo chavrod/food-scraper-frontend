@@ -1,12 +1,13 @@
-import { ReactElement, useEffect } from "react";
+import { useState, ReactElement, useEffect } from "react";
 import { Paper, TextInput, Flex, ActionIcon, Button } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconSearch } from "@tabler/icons-react";
 
 interface SearchHeaderProps {
-  handleSubmit: (values: { query: string; page: number }) => void;
+  handleSubmit: (values: { query: string; page: string }) => void;
   loadingSearch: boolean;
   searchText: string | undefined;
+  searchPage: string | undefined;
   isLargerThanSm: boolean;
 }
 
@@ -14,12 +15,13 @@ export default function SearchHeader({
   handleSubmit,
   loadingSearch,
   searchText,
+  searchPage,
   isLargerThanSm,
 }: SearchHeaderProps): ReactElement {
   const form = useForm({
     initialValues: {
       query: searchText || "",
-      page: 1,
+      page: searchPage || "1",
     },
 
     validate: {
@@ -27,10 +29,25 @@ export default function SearchHeader({
     },
   });
 
-  // Effect to update form value when searchText prop changes
+  // State to trigger form submission
+  const [shouldSubmit, setShouldSubmit] = useState(false);
+
+  // Update form value when searchText changes
   useEffect(() => {
-    form.setFieldValue("query", searchText || "");
+    if (searchText && searchPage) {
+      form.setFieldValue("query", searchText);
+      form.setFieldValue("page", searchPage);
+      setShouldSubmit(true); // Set flag to trigger form submission
+    }
   }, [searchText]);
+
+  // Submit form when shouldSubmit is true
+  useEffect(() => {
+    if (shouldSubmit) {
+      handleSubmit(form.values);
+      setShouldSubmit(false); // Reset flag after submission
+    }
+  }, [shouldSubmit]);
 
   return (
     <Paper
