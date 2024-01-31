@@ -21,6 +21,7 @@ import {
   Tooltip,
   Image,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import {
   CachedProductsPage,
   CachedProductsPageMetadata,
@@ -148,6 +149,22 @@ export default function HomePage() {
         console.log("MESSAGE RECEIVED");
         const responseData = JSON.parse(event.data);
 
+        if (responseData.query) {
+          notifications.show({
+            title: "Success!",
+            message: `We finished putting together results for ${responseData.query}`,
+            icon: <IconCheck size="1rem" />,
+            color: "green",
+            withBorder: true,
+          });
+          setTimeout(() => {
+            productsPage.request({ query: responseData.query, page: 1 });
+          }, 1000);
+        } else {
+          notifyError(
+            "Sorry, we were not able to get any results from your request."
+          );
+        }
         socket.close();
       };
 
