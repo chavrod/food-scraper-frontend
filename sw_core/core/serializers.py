@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+import re
 
 from django_typomatic import ts_interface, generate_ts
 
@@ -48,23 +48,22 @@ class CachedProductsPage(serializers.ModelSerializer):
     is_relevant_only = serializers.BooleanField(required=True)
     results = CachedProductsPageResult(many=True, required=False, default=list)
 
+    def validate_query(self, value):
+        """
+        Trim whitespaces, replace multiple spaces with a single space, and convert to lowercase.
+        """
+        # Remove leading and trailing whitespaces, replace multiple spaces with one, and convert to lowercase
+        cleaned_query = re.sub(r"\s+", " ", value.strip()).lower()
+
+        # Additional validation logic if needed
+        if not cleaned_query:
+            raise serializers.ValidationError("Query cannot be empty.")
+
+        return cleaned_query
+
     class Meta:
         model = core_models.CachedProductsPage
         exclude = ["id"]
-
-    def to_internal_value(self, data):
-        # Preprocess the 'page' value first
-        try:
-            page_value = int(data["page"])
-            if page_value != float(data["page"]) or page_value < 1:
-                raise ValueError
-        except (ValueError, TypeError, KeyError) as e:
-            data["page"] = 1
-            print(f"Error setting page value: {e}")
-
-        internal_value = super().to_internal_value(data)
-
-        return internal_value
 
 
 @ts_interface()

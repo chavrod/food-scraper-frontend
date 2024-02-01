@@ -27,6 +27,11 @@ export default function SearchHeader({
     validate: {
       query: (value: string) => (value.length <= 0 ? "Invalid name" : null),
     },
+
+    transformValues: (values) => ({
+      ...values,
+      query: values.query.replace(/\s+/g, " ").trim().toLowerCase(),
+    }),
   });
 
   // State to trigger form submission
