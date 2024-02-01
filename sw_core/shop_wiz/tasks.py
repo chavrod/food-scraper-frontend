@@ -18,8 +18,8 @@ User = get_user_model()
 
 @shared_task
 def delete_old_cached_products():
-    one_day_ago = timezone.now() - timedelta(days=1)
-    old_products = CachedProductsPage.objects.filter(created__lte=one_day_ago)
+    five_days_ago = timezone.now() - timedelta(days=5)
+    old_products = CachedProductsPage.objects.filter(created__lte=five_days_ago)
     count = old_products.count()
     old_products.delete()
     logger.info(f"Deleted {count} CachedProductsPage entries older than 1 day")
