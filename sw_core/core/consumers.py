@@ -50,7 +50,7 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
         await self.close()  # Close the connection
 
     async def check_for_entry(self, query, is_relevant_only):
-        retry_gap_seconds = 5
+        retry_gap_seconds = 3
         # Set for 3 minutes for now
         start_time = time.time()
         duration = 60 * 3
