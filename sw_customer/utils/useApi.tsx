@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
 // Internal
 import notifyError from "./notifyError";
 
@@ -11,6 +11,8 @@ interface useApiProps {
 }
 
 export interface UseApiReturnType<T, M> {
+  params: Params;
+  setParams: Dispatch<SetStateAction<Params>>;
   request: (additionalParams?: any) => Promise<void>;
   responseData: {
     data?: T;
@@ -33,19 +35,19 @@ function useApi<T, M = any>({
     {}
   );
 
-  const request = async (additionalParams = {}) => {
-    if (apiFunc === undefined) return;
+  const request = async () => {
+    if (apiFunc === undefined || params === undefined) return;
 
     setLoading(true);
 
     try {
-      const finalParams = { ...params, ...additionalParams };
-
       // Check if finalParams is not an empty object
-      const hasParams = Object.keys(finalParams).length > 0;
+      const hasParams = Object.keys({ ...params }).length > 0;
 
       // Call apiFunc with finalParams only if it's not empty
-      const res = hasParams ? await apiFunc(finalParams) : await apiFunc(null);
+      const res = hasParams
+        ? await apiFunc({ ...params })
+        : await apiFunc(null);
 
       if (res.ok) {
         const jsonRes = await res.json();
@@ -67,7 +69,13 @@ function useApi<T, M = any>({
     }
   };
 
-  return { request, responseData, loading, errors };
+  useEffect(() => {
+    if (params.query && params.query.trim() !== "") {
+      request();
+    }
+  }, [params]);
+
+  return { params, setParams, request, responseData, loading, errors };
 }
 
 export default useApi;

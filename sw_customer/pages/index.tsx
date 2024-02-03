@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { PropsWithChildren, useState, useEffect } from "react";
 import {
   IconArrowBadgeRight,
@@ -57,16 +58,11 @@ type ProductStateType = {
 };
 
 export default function HomePage() {
+  console.log("RENDERRRR");
   const { data: session } = useSession();
   const { basketItems, isLargerThanSm } = useGlobalContext();
 
   const router = useRouter();
-
-  // TODO: MAKE IT WORK WITH PARAMS TOO
-  let params: SearchParams = {
-    query: router.query.query?.toString() || "",
-    page: router.query.page?.toString() || "1",
-  };
 
   const productsPage = useApi<
     | [CachedProductsPage, CachedProductsPageMetadata]
@@ -76,6 +72,19 @@ export default function HomePage() {
     onSuccess: () => {},
   });
   const [loadingNew, setLoadingNew] = useState(false);
+
+  const searchQuery = router.query.query?.toString();
+  const searchPage = router.query.page?.toString();
+  useEffect(() => {
+    // Update productsPage params only if the 'query' param is present and not empty
+    if (searchQuery !== "") {
+      productsPage.setParams((currentParams) => ({
+        ...currentParams,
+        query: searchQuery,
+        page: searchPage || "1",
+      }));
+    }
+  }, [searchQuery, searchPage]);
 
   const averageScrapingTime =
     productsPage?.responseData?.metaData &&
@@ -94,39 +103,26 @@ export default function HomePage() {
 
   const handleFormSubmit = (values: { query: string; page: string }) => {
     router.push(`?query=${values.query}&page=${values.page}`);
-    productsPage.request({ query: values.query, page: values.page });
   };
 
-  const [pages, setPages] = useState<{
-    activePage: number | undefined;
-    totalPages: number | undefined;
-  }>({
-    activePage: undefined,
-    totalPages: undefined,
-  });
+  const [page, setPage] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    setPages({
-      activePage: cachedProductsPage?.page || undefined,
-      totalPages: cachedProductsPageMetadata?.total_pages || undefined,
-    });
+    setPage(cachedProductsPage?.page || undefined);
   }, [cachedProductsPage, cachedProductsPageMetadata]);
 
   const handlePageChange = (page: number) => {
-    setPages((prev) => ({ ...prev, activePage: page }));
-
+    setPage(page);
     // Scroll smoothly to the top of the page
     window.scrollTo({ top: 0, behavior: "smooth" });
-
     // Wait for the scroll to complete (you can adjust the timeout as needed)
     setTimeout(() => {
-      router.push(`?query=${params.query}&page=${page}`);
-      productsPage.request({ query: params.query, page: page });
+      router.push(`?query=${searchQuery}&page=${page}`);
     }, 500); // Adjust this time based on your scrolling speed
   };
 
   useEffect(() => {
-    if (averageScrapingTime && params.query) {
+    if (averageScrapingTime && searchQuery) {
       setLoadingNew(true);
 
       const socket = new WebSocket("ws://localhost:8000/ws/scraped_result/");
@@ -136,7 +132,7 @@ export default function HomePage() {
 
         // Sending a message to the server after connection
         const messageData = {
-          query: params.query,
+          query: searchQuery,
           sender: "Client",
         };
 
@@ -156,7 +152,7 @@ export default function HomePage() {
             withBorder: true,
           });
           setTimeout(() => {
-            productsPage.request({ query: responseData.query, page: 1 });
+            router.push(`?query=${responseData.query}&page=${1}`);
           }, 1000);
         } else {
           notifyError(
@@ -275,221 +271,233 @@ export default function HomePage() {
   };
 
   return (
-    <Flex
-      justify="space-between" // Spaces children divs apart
-      align="flex-start" // Aligns children divs at the top
-      direction="row"
-      wrap="nowrap"
-      style={{ width: "100%" }}
-    >
-      {/* Main Content Area */}
-      <Stack align="center" spacing={0} style={{ flexGrow: "1" }}>
-        <SearchHeader
-          searchText={params.query}
-          searchPage={params.page}
-          handleSubmit={handleFormSubmit}
-          loadingSearch={productsPage.loading}
-          isLargerThanSm={isLargerThanSm}
-        />
-        {!params.query && !productsPage.loading && !cachedProductsPage ? (
-          <Stack mx="lg" align="left" spacing={0}>
-            <Title order={2} mb="md">
-              Suggested Searches
-            </Title>
-            <Grid>
-              {suggestedSearchOptions.map((option, index) => (
-                <Grid.Col key={index} span={6} xl={3}>
-                  <SuggestedSearchOptionCard query={option.name}>
-                    <Stack align="center" spacing={0}>
-                      <Image
-                        src={option.imgPath}
-                        alt={option.name}
-                        width={isLargerThanSm ? 150 : 90}
-                      />
-                      <Text weight={500} fz="xl">
-                        {option.name}
-                      </Text>
-                    </Stack>
-                  </SuggestedSearchOptionCard>
-                </Grid.Col>
-              ))}
-            </Grid>
-          </Stack>
-        ) : loadingNew && averageScrapingTime ? (
-          <CountdownCircle
-            currentAverageScrapingTime={averageScrapingTime}
-            loading={loadingNew}
+    <>
+      <Head>
+        <title>Create Next App</title>
+        <meta name="description" content="Generated by create next app" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <Flex
+        justify="space-between" // Spaces children divs apart
+        align="flex-start" // Aligns children divs at the top
+        direction="row"
+        wrap="nowrap"
+        style={{ width: "100%" }}
+      >
+        {/* Main Content Area */}
+        <Stack align="center" spacing={0} style={{ flexGrow: "1" }}>
+          <SearchHeader
+            handleSubmit={handleFormSubmit}
+            loadingSearch={productsPage.loading}
+            isLargerThanSm={isLargerThanSm}
           />
-        ) : productsPage.loading ? (
-          <ProductGridSkeleton />
-        ) : (
-          cachedProductsPage?.results &&
-          cachedProductsPage.results.length > 0 && (
-            <Stack align="center" spacing={0}>
-              <Group px="lg" align="left" style={{ width: "100%" }}>
-                {params.query && (
-                  <Title order={isLargerThanSm ? 1 : 3}>
-                    Results for "{params.query}"
-                  </Title>
-                )}
-              </Group>
-              <Grid gutter={0} justify="center" m="sm">
-                {cachedProductsPage.results.map((product, index) => (
-                  <Grid.Col key={index} span={12} md={6} xl={4}>
-                    <Paper
-                      h="190px"
-                      shadow="md"
-                      withBorder
-                      p="sm"
-                      m="xs"
-                      radius="md"
-                    >
-                      <Group noWrap>
-                        <Stack align="center" spacing={0}>
-                          <Container
-                            w={100}
-                            h={100}
-                            style={{
-                              display: "flex",
-                              justifyContent: "center",
-                              alignItems: "center",
-                            }}
-                          >
-                            <img
-                              src={product.img_src || "no-product-image.jpeg"}
-                              alt={product.name}
-                              style={{ width: "5rem" }}
-                            />
-                          </Container>
-                          <Container
-                            w={100}
-                            h={60}
-                            style={{
-                              display: "flex",
-                              justifyContent: "center",
-                              alignItems: "center",
-                            }}
-                          >
-                            <img
-                              src={`/brand-logos/${product.shop_name}.jpeg`}
-                              alt={product.shop_name}
-                              style={{ width: "3rem" }}
-                            />
-                          </Container>
-                        </Stack>
-
-                        <Stack
-                          style={{
-                            width: "100%",
-                          }}
-                          justify="space-between"
-                        >
-                          <Box h={100}>
-                            <Text size={15} align="left" lineClamp={2}>
-                              {product.name}
-                            </Text>
-                            <Text fz="sm" c="dimmed">
-                              {product.shop_name.charAt(0).toUpperCase() +
-                                product.shop_name.slice(1).toLowerCase()}
-                            </Text>
-                            <Group spacing={0} align="center">
-                              <Text
-                                fz="md"
-                                c="cyan.7"
-                                sx={{
-                                  cursor: "pointer",
-                                  "&:hover": {
-                                    textDecoration: "underline",
-                                  },
-                                }}
-                                fw={700}
-                                component="a"
-                                href={
-                                  product.product_url ? product.product_url : ""
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                Go to source
-                              </Text>
-                              <IconArrowBadgeRight
-                                size={20}
-                                style={{ color: "#1098AD" }}
-                              />
-                            </Group>
-                          </Box>
-
-                          <Group spacing={0} h={40} position="apart">
-                            <Text align="center">
-                              {product.price
-                                ? `€${product.price.toFixed(2)}`
-                                : "Price not available"}
-                            </Text>
-                            <Tooltip
-                              label="Log in to Add"
-                              disabled={!!session}
-                              events={{
-                                hover: true,
-                                focus: false,
-                                touch: true,
-                              }}
-                            >
-                              <Button
-                                loading={productStates.loading[index]}
-                                variant="light"
-                                radius="xl"
-                                size="xs"
-                                leftIcon={
-                                  productStates.added[index] ? (
-                                    <IconCheck />
-                                  ) : (
-                                    <IconShoppingBagPlus />
-                                  )
-                                }
-                                color={
-                                  session
-                                    ? productStates.added[index]
-                                      ? "teal"
-                                      : "default"
-                                    : "gray.6"
-                                }
-                                onClick={() => {
-                                  session && handleAddToBasket(product, index);
-                                }}
-                              >
-                                {productStates.added[index] ? "Added!" : "Add"}
-                              </Button>
-                            </Tooltip>
-                          </Group>
-                        </Stack>
-                      </Group>
-                    </Paper>
+          {!searchQuery && !productsPage.loading && !cachedProductsPage ? (
+            <Stack mx="lg" align="left" spacing={0}>
+              <Title order={2} mb="md">
+                Suggested Searches
+              </Title>
+              <Grid>
+                {suggestedSearchOptions.map((option, index) => (
+                  <Grid.Col key={index} span={6} xl={3}>
+                    <SuggestedSearchOptionCard query={option.name}>
+                      <Stack align="center" spacing={0}>
+                        <Image
+                          src={option.imgPath}
+                          alt={option.name}
+                          width={isLargerThanSm ? 150 : 90}
+                        />
+                        <Text weight={500} fz="xl">
+                          {option.name}
+                        </Text>
+                      </Stack>
+                    </SuggestedSearchOptionCard>
                   </Grid.Col>
                 ))}
               </Grid>
-              {pages.totalPages && pages.totalPages > 0 ? (
-                <Pagination
-                  mb={30}
-                  py="xl"
-                  spacing={5}
-                  value={pages.activePage}
-                  onChange={(p) => handlePageChange(p)}
-                  total={pages.totalPages}
-                />
-              ) : null}
             </Stack>
-          )
-        )}
+          ) : loadingNew && averageScrapingTime ? (
+            <CountdownCircle
+              currentAverageScrapingTime={averageScrapingTime}
+              loading={loadingNew}
+            />
+          ) : productsPage.loading ? (
+            <ProductGridSkeleton />
+          ) : (
+            cachedProductsPage?.results &&
+            cachedProductsPage.results.length > 0 && (
+              <Stack align="center" spacing={0}>
+                <Group px="lg" align="left" style={{ width: "100%" }}>
+                  {searchQuery && (
+                    <Title order={isLargerThanSm ? 1 : 3}>
+                      Results for "{searchQuery}"
+                    </Title>
+                  )}
+                </Group>
+                <Grid gutter={0} justify="center" m="sm">
+                  {cachedProductsPage.results.map((product, index) => (
+                    <Grid.Col key={index} span={12} md={6} xl={4}>
+                      <Paper
+                        h="190px"
+                        shadow="md"
+                        withBorder
+                        p="sm"
+                        m="xs"
+                        radius="md"
+                      >
+                        <Group noWrap>
+                          <Stack align="center" spacing={0}>
+                            <Container
+                              w={100}
+                              h={100}
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <img
+                                src={product.img_src || "no-product-image.jpeg"}
+                                alt={product.name}
+                                style={{ width: "5rem" }}
+                              />
+                            </Container>
+                            <Container
+                              w={100}
+                              h={60}
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <img
+                                src={`/brand-logos/${product.shop_name}.jpeg`}
+                                alt={product.shop_name}
+                                style={{ width: "3rem" }}
+                              />
+                            </Container>
+                          </Stack>
 
-        {params.query &&
-          !productsPage.loading &&
-          !loadingNew &&
-          cachedProductsPage?.results &&
-          cachedProductsPage.results.length === 0 && (
-            <>Sorry, there was nothing found!</>
+                          <Stack
+                            style={{
+                              width: "100%",
+                            }}
+                            justify="space-between"
+                          >
+                            <Box h={100}>
+                              <Text size={15} align="left" lineClamp={2}>
+                                {product.name}
+                              </Text>
+                              <Text fz="sm" c="dimmed">
+                                {product.shop_name.charAt(0).toUpperCase() +
+                                  product.shop_name.slice(1).toLowerCase()}
+                              </Text>
+                              <Group spacing={0} align="center">
+                                <Text
+                                  fz="md"
+                                  c="cyan.7"
+                                  sx={{
+                                    cursor: "pointer",
+                                    "&:hover": {
+                                      textDecoration: "underline",
+                                    },
+                                  }}
+                                  fw={700}
+                                  component="a"
+                                  href={
+                                    product.product_url
+                                      ? product.product_url
+                                      : ""
+                                  }
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  Go to source
+                                </Text>
+                                <IconArrowBadgeRight
+                                  size={20}
+                                  style={{ color: "#1098AD" }}
+                                />
+                              </Group>
+                            </Box>
+
+                            <Group spacing={0} h={40} position="apart">
+                              <Text align="center">
+                                {product.price
+                                  ? `€${product.price.toFixed(2)}`
+                                  : "Price not available"}
+                              </Text>
+                              <Tooltip
+                                label="Log in to Add"
+                                disabled={!!session}
+                                events={{
+                                  hover: true,
+                                  focus: false,
+                                  touch: true,
+                                }}
+                              >
+                                <Button
+                                  loading={productStates.loading[index]}
+                                  variant="light"
+                                  radius="xl"
+                                  size="xs"
+                                  leftIcon={
+                                    productStates.added[index] ? (
+                                      <IconCheck />
+                                    ) : (
+                                      <IconShoppingBagPlus />
+                                    )
+                                  }
+                                  color={
+                                    session
+                                      ? productStates.added[index]
+                                        ? "teal"
+                                        : "default"
+                                      : "gray.6"
+                                  }
+                                  onClick={() => {
+                                    session &&
+                                      handleAddToBasket(product, index);
+                                  }}
+                                >
+                                  {productStates.added[index]
+                                    ? "Added!"
+                                    : "Add"}
+                                </Button>
+                              </Tooltip>
+                            </Group>
+                          </Stack>
+                        </Group>
+                      </Paper>
+                    </Grid.Col>
+                  ))}
+                </Grid>
+                {cachedProductsPage?.page &&
+                cachedProductsPageMetadata?.total_pages ? (
+                  <Pagination
+                    mb={30}
+                    py="xl"
+                    spacing={5}
+                    value={page}
+                    onChange={(p) => handlePageChange(p)}
+                    total={cachedProductsPageMetadata?.total_pages}
+                  />
+                ) : null}
+              </Stack>
+            )
           )}
-      </Stack>
-      {isLargerThanSm && <BasketPreview />}
-    </Flex>
+
+          {searchQuery &&
+            !productsPage.loading &&
+            !loadingNew &&
+            cachedProductsPage?.results &&
+            cachedProductsPage.results.length === 0 && (
+              <>Sorry, there was nothing found!</>
+            )}
+        </Stack>
+        {isLargerThanSm && <BasketPreview />}
+      </Flex>
+    </>
   );
 }
