@@ -1,12 +1,12 @@
+import "@/styles/global.css";
+import "@/styles/countDownClock.css";
+
 import type { AppProps } from "next/app";
 import { MantineProvider, ColorSchemeProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import MainAppShell from "@/Components/AppLayout";
 import { SessionProvider } from "../Components/Provider";
 import { GlobalProvider } from "@/Context/globalContext";
-
-import "../styles/global.css";
-import "../styles/countDownClock.css";
 
 export default function App({
   Component,
