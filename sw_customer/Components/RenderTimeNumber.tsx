@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 
-const renderTime = ({ remainingTime }: { remainingTime: number }) => {
+const useRenderTime = ({ remainingTime }: { remainingTime: number }) => {
   const currentTime = useRef<number | null>(remainingTime);
   const prevTime = useRef<number | null>(null);
   const isNewTimeFirstTick = useRef(false);
@@ -40,4 +40,4 @@ const renderTime = ({ remainingTime }: { remainingTime: number }) => {
   );
 };
 
-export default renderTime;
+export default useRenderTime;

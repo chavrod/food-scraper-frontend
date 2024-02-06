@@ -214,25 +214,26 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               style={{ color: "green", marginBottom: "10px" }}
             />
             <Title align="center" order={2}>
-              You're registered!
+              You are registered!
             </Title>
             <Text align="center">
-              We've sent a confirmation email to{" "}
+              We have sent a confirmation email to{" "}
               <strong>{form.values.email}</strong>. Please head to your inbox to
               verify.
             </Text>
 
             {!isEmailResend ? (
               <Text align="center">
-                Didn't get the email?{" "}
+                Didn&apos;t get the email?{" "}
                 <Anchor component="button" onClick={resendEmail} type="button">
                   Resend Activation Email
                 </Anchor>
               </Text>
             ) : (
               <Text align="center">
-                We've just sent you another email. If you still didn't receive
-                it, please contact us at <strong>help@shop-wiz.ie</strong>.
+                We&apos;ve just sent you another email. If you still didn&apos;t
+                receive it, please contact us at{" "}
+                <strong>help@shop-wiz.ie</strong>.
               </Text>
             )}
 

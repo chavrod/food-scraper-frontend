@@ -82,15 +82,15 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
             style={{ color: "green", marginBottom: "10px" }}
           />
           <Text align="center">
-            Your account has been successfully deleted. You'll be redirected to
-            the homepage.
+            Your account has been successfully deleted. You will be redirected
+            to the homepage.
           </Text>
         </Stack>
       ) : (
         <>
           <Text>
             Deleting your account is a permanent action and cannot be undone.
-            Please type "DELETE" below to confirm.
+            Please type &apos;DELETE&apos; below to confirm.
           </Text>
           <Input
             mt="sm"

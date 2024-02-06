@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
               >
                 <IconCircleCheckFilled size={80} style={{ color: "green" }} />
                 <Text align="center">
-                  We've sent a password reset email to{" "}
+                  We have sent a password reset email to{" "}
                   <strong>{form.values.email}</strong>. Please head to your
                   inbox.
                 </Text>

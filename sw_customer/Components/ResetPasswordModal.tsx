@@ -130,8 +130,8 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
               style={{ color: "green", marginBottom: "10px" }}
             />
             <Text align="center">
-              We've sent a password reset email to <strong>{userEmail}</strong>.
-              Please head to your inbox.
+              We&apos;ve sent a password reset email to{" "}
+              <strong>{userEmail}</strong>. Please head to your inbox.
             </Text>
           </Stack>
         ) : (

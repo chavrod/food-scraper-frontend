@@ -104,8 +104,8 @@ export default function SecurityPage() {
               </Popover.Target>
               <Popover.Dropdown>
                 <Text size="sm">
-                  You've signed up using a social login, so there's no need to
-                  change your password.
+                  You&apos;ve signed up using a social login, so there is no
+                  need to change your password.
                 </Text>
               </Popover.Dropdown>
             </Popover>

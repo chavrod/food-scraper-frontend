@@ -138,7 +138,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
               style={{ color: "green", marginBottom: "10px" }}
             />
             <Title align="center" order={2}>
-              You're Logged in!
+              You are Logged in!
             </Title>
           </Stack>
         </Center>
