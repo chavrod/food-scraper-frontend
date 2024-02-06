@@ -77,12 +77,8 @@ export default function HomePage() {
   const searchPage = router.query.page?.toString();
   useEffect(() => {
     // Update productsPage params only if the 'query' param is present and not empty
-    if (searchQuery !== "") {
-      productsPage.setParams((currentParams) => ({
-        ...currentParams,
-        query: searchQuery,
-        page: searchPage || "1",
-      }));
+    if (searchQuery) {
+      productsPage.request({ query: searchQuery, page: searchPage || "1" });
     }
   }, [searchQuery, searchPage]);
 
@@ -287,11 +283,11 @@ export default function HomePage() {
       >
         {/* Main Content Area */}
         <Stack align="center" spacing={0} style={{ flexGrow: "1" }}>
-          <SearchHeader
+          {/* <SearchHeader
             handleSubmit={handleFormSubmit}
             loadingSearch={productsPage.loading}
             isLargerThanSm={isLargerThanSm}
-          />
+          /> */}
           {!searchQuery && !productsPage.loading && !cachedProductsPage ? (
             <Stack mx="lg" align="left" spacing={0}>
               <Title order={2} mb="md">
@@ -330,7 +326,7 @@ export default function HomePage() {
                 <Group px="lg" align="left" style={{ width: "100%" }}>
                   {searchQuery && (
                     <Title order={isLargerThanSm ? 1 : 3}>
-                      Results for "{searchQuery}"
+                      Results for &apos;{searchQuery}&apos;
                     </Title>
                   )}
                 </Group>
