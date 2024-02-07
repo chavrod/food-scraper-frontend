@@ -18,6 +18,7 @@ export interface UseApiReturnType<T, M> {
   };
   loading: boolean;
   errors: any[];
+  page: number;
 }
 
 function useApi<T, M = any>({
@@ -29,6 +30,7 @@ function useApi<T, M = any>({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<any[]>([]);
 
+  const [page, setPage] = useState<number>(1);
   const [responseData, setResponseData] = useState<{ data?: T; metaData?: M }>(
     {}
   );
@@ -51,6 +53,9 @@ function useApi<T, M = any>({
         const { data, metadata } = jsonRes;
 
         setResponseData({ data: data, metaData: metadata });
+        if (metadata.page) {
+          setPage(metadata.page);
+        }
       } else {
         const errorData = await res.json();
 
@@ -66,7 +71,7 @@ function useApi<T, M = any>({
     }
   };
 
-  return { request, responseData, loading, errors };
+  return { page, request, responseData, loading, errors };
 }
 
 export default useApi;
