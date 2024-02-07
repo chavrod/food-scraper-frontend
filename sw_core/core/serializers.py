@@ -154,6 +154,7 @@ class BasketItemMetadata(serializers.Serializer):
 
 @ts_interface()
 class CachedProductsPageMetadata(serializers.Serializer):
+    page = serializers.IntegerField()
     total_pages = serializers.IntegerField()
 
 
