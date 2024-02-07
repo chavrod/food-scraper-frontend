@@ -59,6 +59,7 @@ export interface BasketItemMetadata {
 }
 
 export interface CachedProductsPageMetadata {
+    page: number;
     total_pages: number;
 }
 
