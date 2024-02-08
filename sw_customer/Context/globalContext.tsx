@@ -7,8 +7,6 @@ import basketItemsApi from "@/utils/basketItemsApi";
 
 interface GlobalContextType {
   basketItems: UseApiReturnType<BasketItem[], BasketItemMetadata>;
-  isLargerThanLg: boolean;
-  isLargerThanSm: boolean;
 }
 
 // Define the props for GlobalProvider
@@ -28,14 +26,8 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     onSuccess: () => {},
   });
 
-  const isLargerThanLg = useMediaQuery("(min-width: 1184px)");
-
-  const isLargerThanSm = useMediaQuery("(min-width: 768px)");
-
   return (
-    <GlobalContext.Provider
-      value={{ basketItems, isLargerThanLg, isLargerThanSm }}
-    >
+    <GlobalContext.Provider value={{ basketItems }}>
       {children}
     </GlobalContext.Provider>
   );
