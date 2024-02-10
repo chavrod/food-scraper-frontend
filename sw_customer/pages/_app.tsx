@@ -7,6 +7,7 @@ import { Notifications } from "@mantine/notifications";
 import MainAppShell from "@/Components/AppLayout";
 import { SessionProvider } from "../Components/Provider";
 import { GlobalProvider } from "@/Context/globalContext";
+import NoSsr from "@/utils/NoSsr";
 
 export default function App({
   Component,
@@ -43,7 +44,9 @@ export default function App({
           <GlobalProvider>
             <Notifications position="top-right" />
             <MainAppShell>
+              {/* <NoSsr> */}
               <Component {...pageProps} />
+              {/* </NoSsr> */}
             </MainAppShell>
           </GlobalProvider>
         </SessionProvider>
