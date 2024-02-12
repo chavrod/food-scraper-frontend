@@ -29,6 +29,7 @@ import {
   IconSquareRoundedMinus,
   IconSquareRoundedPlusFilled,
 } from "@tabler/icons-react";
+import { useMediaQuery } from "@mantine/hooks";
 // Intenral: API
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
@@ -43,8 +44,12 @@ type ProductStateType = {
 };
 
 export default function BasketPreview() {
+  const isLargerThanSm = useMediaQuery("(min-width: 768px)", undefined, {
+    getInitialValueInEffect: false,
+  });
+
   const { data: session } = useSession();
-  const { basketItems, isLargerThanLg } = useGlobalContext();
+  const { basketItems } = useGlobalContext();
 
   const handleSuccess = () => {
     basketItems.request({});
@@ -154,6 +159,10 @@ export default function BasketPreview() {
       loadingClearing: { ...prevStates.loadingClearing, [index]: false },
     }));
   };
+
+  if (!isLargerThanSm) {
+    return <></>;
+  }
 
   return (
     <Stack

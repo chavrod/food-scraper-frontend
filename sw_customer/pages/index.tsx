@@ -146,7 +146,9 @@ export default function HomePage() {
             />
           </NoSsr>
         </Stack>
-        <BasketPreview />
+        <NoSsr>
+          <BasketPreview />
+        </NoSsr>
       </Flex>
     </>
   );
