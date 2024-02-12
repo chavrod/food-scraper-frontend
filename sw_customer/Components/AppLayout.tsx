@@ -21,7 +21,7 @@ import {
   Badge,
   Button,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import {
   Icon,
   IconCalculator,
@@ -60,7 +60,12 @@ export default function MainAppShell({
 }) {
   const router = useRouter();
 
-  const { basketItems, isLargerThanSm } = useGlobalContext();
+  // const isLargerThanSm = useMediaQuery("(min-width: 768px)", undefined, {
+  //   getInitialValueInEffect: false,
+  // });
+  const isLargerThanSm = useMediaQuery("(min-width: 768px)");
+
+  const { basketItems } = useGlobalContext();
   const { metaData: basketItemsMetaData } = basketItems.responseData;
   const basketQty = basketItemsMetaData?.total_quantity || 0;
 

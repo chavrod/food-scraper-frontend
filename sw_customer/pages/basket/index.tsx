@@ -16,7 +16,6 @@ import {
   Flex,
   Pagination,
   Select,
-  Skeleton,
 } from "@mantine/core";
 import {
   IconShoppingCartOff,
@@ -27,6 +26,7 @@ import {
   IconSquareRoundedPlusFilled,
   IconCheck,
 } from "@tabler/icons-react";
+import { useMediaQuery } from "@mantine/hooks";
 import { formatDateRelative } from "@/utils/datesUtil";
 // Internal: Types
 import { BasketItemShopBreakdown } from "@/types/customer_types";
@@ -50,7 +50,11 @@ type ProductStateType = {
 
 export default function BasketPage() {
   const { data: session } = useSession();
-  const { basketItems, isLargerThanLg } = useGlobalContext();
+  const { basketItems } = useGlobalContext();
+  // const isLargerThanLg = useMediaQuery("(min-width: 1184px)", false, {
+  //   getInitialValueInEffect: false,
+  // });
+  const isLargerThanLg = useMediaQuery("(min-width: 1184px)");
 
   const [filteredBasketShop, setFilteredBasketShop] = useState<string | null>(
     "ALL"
