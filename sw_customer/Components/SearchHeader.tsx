@@ -1,26 +1,27 @@
 import { useState, ReactElement, useEffect } from "react";
 import { Paper, TextInput, Flex, ActionIcon, Button } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useMediaQuery } from "@mantine/hooks";
 import { IconSearch } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 
 interface SearchHeaderProps {
-  handleSubmit: (values: { query: string; page: string }) => void;
   loadingSearch: boolean;
-  isLargerThanSm: boolean;
 }
 
 export default function SearchHeader({
-  handleSubmit,
   loadingSearch,
-  isLargerThanSm,
 }: SearchHeaderProps): ReactElement {
+  const isLargerThanSm = useMediaQuery("(min-width: 768px)", undefined, {
+    getInitialValueInEffect: false,
+  });
+
   const router = useRouter();
 
   const form = useForm({
     initialValues: {
-      query: router.query.query?.toString() || "",
-      page: router.query.page?.toString() || "1",
+      query: "",
+      page: "1",
     },
 
     validate: {
@@ -33,25 +34,9 @@ export default function SearchHeader({
     }),
   });
 
-  // State to trigger form submission
-  // const [shouldSubmit, setShouldSubmit] = useState(false);
-
-  // // Update form value when searchText changes
-  // useEffect(() => {
-  //   if (searchText && searchPage) {
-  //     form.setFieldValue("query", searchText);
-  //     form.setFieldValue("page", searchPage);
-  //     setShouldSubmit(true); // Set flag to trigger form submission
-  //   }
-  // }, [searchText]);
-
-  // // Submit form when shouldSubmit is true
-  // useEffect(() => {
-  //   if (shouldSubmit) {
-  //     handleSubmit(form.values);
-  //     setShouldSubmit(false); // Reset flag after submission
-  //   }
-  // }, [shouldSubmit]);
+  const handleSubmit = (values: { query: string; page: string }) => {
+    router.push(`?query=${values.query}&page=${values.page}`);
+  };
 
   return (
     <Paper
