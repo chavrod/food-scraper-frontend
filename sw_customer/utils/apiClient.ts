@@ -1,9 +1,8 @@
-import { getSession } from "next-auth/react";
-
 async function request(
   endpoint: string,
   method = "GET",
-  data: {} | null = null
+  data: {} | null = null,
+  accessToken: string | null = null
 ) {
   const options: any = {
     method,
@@ -13,11 +12,9 @@ async function request(
     },
   };
 
-  const session = await getSession();
-  if (session?.access_token) {
-    options.headers.Authorization = `Bearer ${session.access_token}`;
+  if (accessToken) {
+    options.headers.Authorization = `Bearer ${accessToken}`;
   }
-
   if (data && Object.keys(data).length > 0) {
     options.body = JSON.stringify(data);
   }
@@ -31,15 +28,21 @@ async function request(
 }
 
 const apiClient = {
-  get: (endpoint: string, params?: { [key: string]: string | number }) => {
+  get: (
+    endpoint: string,
+    params?: { [key: string]: string | number },
+    accessToken?: string
+  ) => {
     if (params) {
       const queryString = new URLSearchParams(params as any).toString();
       endpoint = `${endpoint}?${queryString}`;
     }
-    return request(endpoint, "GET");
+    return request(endpoint, "GET", accessToken);
   },
-  post: (endpoint: string, data?: {}) => request(endpoint, "POST", data),
-  delete: (endpoint: string, data?: {}) => request(endpoint, "DELETE", data),
+  post: (endpoint: string, data?: {}, accessToken?: string) =>
+    request(endpoint, "POST", data, accessToken),
+  delete: (endpoint: string, data?: {}, accessToken?: string) =>
+    request(endpoint, "DELETE", data, accessToken),
 };
 
 export default apiClient;

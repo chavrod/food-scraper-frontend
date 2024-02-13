@@ -11,7 +11,7 @@ import {
 } from "@/types/customer_types";
 import BasketPreview from "@/Components/BasketPreview";
 import SearchHeader from "@/Components/SearchHeader";
-
+import { useSession } from "next-auth/react";
 import useApi from "@/utils/useApi";
 import productsPagesApi from "@/utils/productsPagesApi";
 import notifyError from "@/utils/notifyError";
@@ -31,12 +31,16 @@ export type ItemsLoadingStates = {
 export default function HomePage() {
   const router = useRouter();
 
+  const { data: session } = useSession();
+  const accessToken = session?.access_token;
+
   const productsPage = useApi<
     | [CachedProductsPage, CachedProductsPageMetadata]
     | [{}, ScrapeStatsForCustomer]
   >({
     apiFunc: productsPagesApi.get,
     onSuccess: () => {},
+    accessToken,
   });
   const [loadingNew, setLoadingNew] = useState(false);
 

@@ -5,9 +5,10 @@ import notifyError from "./notifyError";
 export type Params = { [name: string]: any };
 
 interface useApiProps {
-  apiFunc: (params: any | void) => Promise<Response>;
+  apiFunc: (params: any | void, accessToken?: string) => Promise<Response>;
   defaultParams?: Params;
   onSuccess: () => void;
+  accessToken?: string;
 }
 
 export interface UseApiReturnType<T, M> {
@@ -25,6 +26,7 @@ function useApi<T, M = any>({
   apiFunc,
   defaultParams = {},
   onSuccess,
+  accessToken,
 }: useApiProps): UseApiReturnType<T, M> {
   const [params, setParams] = useState(defaultParams);
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,9 @@ function useApi<T, M = any>({
       const hasParams = Object.keys(finalParams).length > 0;
 
       // Call apiFunc with finalParams only if it's not empty
-      const res = hasParams ? await apiFunc(finalParams) : await apiFunc(null);
+      const res = hasParams
+        ? await apiFunc(finalParams, accessToken)
+        : await apiFunc(null, accessToken);
 
       if (res.ok) {
         const jsonRes = await res.json();
