@@ -1,6 +1,4 @@
-import Head from "next/head";
-import dynamic from "next/dynamic";
-import React, { PropsWithChildren, useState, useEffect } from "react";
+import React, { PropsWithChildren, useState } from "react";
 import {
   IconArrowBadgeRight,
   IconShoppingBagPlus,
@@ -17,31 +15,23 @@ import {
   Stack,
   Button,
   Pagination,
-  Flex,
   Box,
   Title,
   Tooltip,
   Image,
 } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import { useMediaQuery } from "@mantine/hooks";
 import {
   CachedProductsPage,
   CachedProductsPageMetadata,
-  ScrapeStatsForCustomer,
   Product,
 } from "@/types/customer_types";
-import { useSession, getSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useGlobalContext } from "@/Context/globalContext";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
-import BasketPreview from "@/Components/BasketPreview";
-import SearchHeader from "@/Components/SearchHeader";
 import CountdownCircle from "@/Components/CountdownCircle";
 import { ProductGridSkeleton } from "@/Components/Skeletons";
-import useApi from "@/utils/useApi";
-import productsPagesApi from "@/utils/productsPagesApi";
-import notifyError from "@/utils/notifyError";
 
 export type ItemsLoadingStates = {
   loadingNew: boolean;
