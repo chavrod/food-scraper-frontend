@@ -36,6 +36,7 @@ class CachedProductsPageViewSet(
 
         query_param = serializer.validated_data["query"]
         page_param = serializer.validated_data["page"]
+
         # is_relevant_only_param = serializer.validated_data["is_relevant_only"]
         is_relevant_only_param = True
 
@@ -65,12 +66,12 @@ class CachedProductsPageViewSet(
         cached_page_data = cached_pages.filter(page=page_param).first()
         total_pages = cached_pages.count()
 
-        print("cached_page_data", cached_page_data)
-
         serializer = self.get_serializer(cached_page_data)
+
         # Serialize the metadata
         metadata_serializer = core_serializers.CachedProductsPageMetadata(
             data={
+                "page": cached_page_data.page,
                 "total_pages": total_pages,
             }
         )
