@@ -79,7 +79,7 @@ export default function HomePage() {
 
         // Sending a message to the server after connection
         const messageData = {
-          query: "searchQuery",
+          query: searchQuery,
           sender: "Client",
         };
 
