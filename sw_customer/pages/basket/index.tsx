@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import {
   Text,
   Stack,
@@ -49,6 +50,9 @@ type ProductStateType = {
 };
 
 export default function BasketPage() {
+  console.log("RENDER");
+  const router = useRouter();
+
   const { data: session } = useSession();
   const accessToken = session?.access_token;
 
@@ -58,26 +62,27 @@ export default function BasketPage() {
   // });
   const isLargerThanLg = useMediaQuery("(min-width: 1184px)");
 
-  const [filteredBasketShop, setFilteredBasketShop] = useState<string | null>(
-    "ALL"
-  );
+  const searchPage = router.query.page?.toString() || "1";
+  const searchShop = router.query.shop?.toString() || "ALL";
+
   const handleFilterByShop = (filter_option: string) => {
-    setFilteredBasketShop(filter_option);
-    basketItems.request({ shop: filter_option });
+    router.push(`?shop=${filter_option}&page=1`);
+    basketItems.request({ shop: filter_option, page: 1 });
   };
 
-  const [activePage, setActivePage] = useState(1);
   const handleBasketPageChange = (page: number) => {
-    setActivePage(page);
-
     // Scroll smoothly to the top of the page
     window.scrollTo({ top: isLargerThanLg ? 0 : 310, behavior: "smooth" });
 
-    basketItems.request({ page: page, shop: filteredBasketShop });
+    setTimeout(() => {
+      router.push(`?shop=${searchShop}&page=${page}`);
+      basketItems.request({ shop: searchShop, page: page });
+    }, 500);
   };
 
   const handleSuccess = () => {
-    basketItems.request({ shop: filteredBasketShop });
+    // router.push(`?shop=${searchShop}&page=${searchPage}`);
+    basketItems.request({ page: searchPage, shop: searchShop });
   };
 
   const generateShopOptions = (shopBreakdown: BasketItemShopBreakdown[]) => {
@@ -351,7 +356,7 @@ export default function BasketPage() {
           <Stack maw={450}>
             <Group maw={450} position="left">
               <Select
-                value={filteredBasketShop}
+                value={searchShop}
                 onChange={handleFilterByShop}
                 label="Selected shops"
                 placeholder="Pick one"
@@ -526,13 +531,14 @@ export default function BasketPage() {
               wrap="wrap"
               maw={450}
             >
-              {basketItems.responseData.metaData?.total_pages && (
-                <Pagination
-                  value={activePage}
-                  onChange={handleBasketPageChange}
-                  total={basketItems.responseData.metaData?.total_pages}
-                />
-              )}
+              {basketItems.responseData.metaData?.total_pages &&
+                basketItems.responseData.metaData.total_pages > 1 && (
+                  <Pagination
+                    value={basketItems.page}
+                    onChange={handleBasketPageChange}
+                    total={basketItems.responseData.metaData?.total_pages}
+                  />
+                )}
             </Flex>
 
             <Button
