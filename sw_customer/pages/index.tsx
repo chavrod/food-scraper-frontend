@@ -44,11 +44,11 @@ export default function HomePage() {
   });
   const [loadingNew, setLoadingNew] = useState(false);
 
-  const searchQuery = router.query.query?.toString();
-  const searchPage = router.query.page?.toString();
+  const searchQuery = router.query.query?.toString() || "";
+  const searchPage = router.query.page?.toString() || "1";
   useEffect(() => {
     if (searchQuery) {
-      productsPage.request({ query: searchQuery, page: searchPage || "1" });
+      productsPage.request({ query: searchQuery, page: searchPage });
     }
   }, [searchQuery, searchPage]);
 
