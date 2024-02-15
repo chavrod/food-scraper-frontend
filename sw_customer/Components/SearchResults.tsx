@@ -65,6 +65,8 @@ export default React.memo(function SearchResults({
   loadingNew,
 }: SearchResultsProps) {
   const { data: session } = useSession();
+  const accessToken = session?.access_token;
+
   const { basketItems } = useGlobalContext();
   const isLargerThanSm = useMediaQuery("(min-width: 768px)", undefined, {
     getInitialValueInEffect: false,
@@ -87,10 +89,10 @@ export default React.memo(function SearchResults({
 
   const { handleSubmit, loading: loadingSubmit } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
-
     onSuccess: () => {
       basketItems.request();
     },
+    accessToken,
   });
 
   const [productStates, setProductStates] = useState<ProductStateType>({

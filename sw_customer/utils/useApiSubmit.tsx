@@ -5,11 +5,16 @@ import { IconX, IconCheck } from "@tabler/icons-react";
 import notifyError from "./notifyError";
 
 interface useApiSubmitProps<T> {
-  apiFunc: (data: T, successMessage?: string) => Promise<Response>;
+  apiFunc: (accessToken: string | undefined, data: T) => Promise<Response>;
   onSuccess: () => void;
+  accessToken: string | undefined;
 }
 
-function useApiSubmit<T>({ apiFunc, onSuccess }: useApiSubmitProps<T>) {
+function useApiSubmit<T>({
+  apiFunc,
+  onSuccess,
+  accessToken,
+}: useApiSubmitProps<T>) {
   const [loading, setLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<any[]>([]);
 
@@ -19,7 +24,7 @@ function useApiSubmit<T>({ apiFunc, onSuccess }: useApiSubmitProps<T>) {
     setLoading(true);
 
     try {
-      const res = await apiFunc(data);
+      const res = await apiFunc(accessToken, data);
 
       if (res.ok) {
         await res.json();

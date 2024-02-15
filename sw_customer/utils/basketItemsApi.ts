@@ -1,18 +1,21 @@
 import apiClient from "./apiClient";
 
-const list = (params?: { [key: string]: string | number }) =>
-  apiClient.get("basket_items/", params);
+const list = (
+  accessToken: string | undefined,
+  params?: { [key: string]: string | number }
+) => apiClient.get("basket_items/", accessToken, params);
 
-const addItemQuantity = (data: {}) =>
-  apiClient.post("basket_items/add_item_quantity/", data);
+const addItemQuantity = (accessToken: string | undefined, data: {}) =>
+  apiClient.post("basket_items/add_item_quantity/", accessToken, data);
 
-const decreaseItemQuantity = (id: number) =>
-  apiClient.post(`basket_items/${id}/decrease_item_quantity/`);
+const decreaseItemQuantity = (accessToken: string | undefined, id: number) =>
+  apiClient.post(`basket_items/${id}/decrease_item_quantity/`, accessToken);
 
-const clearProductItems = (id: number) =>
-  apiClient.delete(`basket_items/${id}/remove_product_items/`);
+const clearProductItems = (accessToken: string | undefined, id: number) =>
+  apiClient.delete(`basket_items/${id}/remove_product_items/`, accessToken);
 
-const clearAll = () => apiClient.delete("basket_items/clear_all/");
+const clearAll = (accessToken: string | undefined) =>
+  apiClient.delete("basket_items/clear_all/", accessToken);
 
 const basketItemsApi = {
   list,

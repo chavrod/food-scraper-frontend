@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { useMediaQuery } from "@mantine/hooks";
 import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
 import useApi, { UseApiReturnType } from "@/utils/useApi";
+import { useSession } from "next-auth/react";
 
 import basketItemsApi from "@/utils/basketItemsApi";
 
@@ -21,9 +21,13 @@ export const GlobalContext = createContext<GlobalContextType | undefined>(
 
 // Provide the context
 export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
+  const { data: session } = useSession();
+  const accessToken = session?.access_token;
+
   const basketItems = useApi<BasketItem[], BasketItemMetadata>({
     apiFunc: basketItemsApi.list,
     onSuccess: () => {},
+    accessToken,
   });
 
   return (

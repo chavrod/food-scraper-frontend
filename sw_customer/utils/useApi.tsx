@@ -5,10 +5,13 @@ import notifyError from "./notifyError";
 export type Params = { [name: string]: any };
 
 interface useApiProps {
-  apiFunc: (params: any | void, accessToken?: string) => Promise<Response>;
+  apiFunc: (
+    accessToken: string | undefined,
+    params: any | void
+  ) => Promise<Response>;
   defaultParams?: Params;
   onSuccess: () => void;
-  accessToken?: string;
+  accessToken: string | undefined;
 }
 
 export interface UseApiReturnType<T, M> {
@@ -49,8 +52,8 @@ function useApi<T, M = any>({
 
       // Call apiFunc with finalParams only if it's not empty
       const res = hasParams
-        ? await apiFunc(finalParams, accessToken)
-        : await apiFunc(null, accessToken);
+        ? await apiFunc(accessToken, finalParams)
+        : await apiFunc(accessToken, null);
 
       if (res.ok) {
         const jsonRes = await res.json();

@@ -49,6 +49,8 @@ export default function BasketPreview() {
   });
 
   const { data: session } = useSession();
+  const accessToken = session?.access_token;
+
   const { basketItems } = useGlobalContext();
 
   const handleSuccess = () => {
@@ -68,6 +70,7 @@ export default function BasketPreview() {
     onSuccess: () => {
       handleSuccess();
     },
+    accessToken,
   });
 
   const handleDecreaseQuantity = async (itemId: number, index: number) => {
@@ -104,6 +107,7 @@ export default function BasketPreview() {
     onSuccess: () => {
       handleSuccess();
     },
+    accessToken,
   });
 
   const handleIncreaseQuantity = async (itemId: number, index: number) => {
@@ -144,6 +148,7 @@ export default function BasketPreview() {
     onSuccess: () => {
       handleSuccess();
     },
+    accessToken,
   });
 
   const clearProduct = async (itemId: number, name: string, index: number) => {

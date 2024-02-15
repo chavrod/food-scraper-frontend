@@ -1,8 +1,8 @@
 async function request(
   endpoint: string,
   method = "GET",
-  data: {} | null = null,
-  accessToken: string | null = null
+  accessToken: string | undefined,
+  data: {} | null = null
 ) {
   const options: any = {
     method,
@@ -30,8 +30,8 @@ async function request(
 const apiClient = {
   get: (
     endpoint: string,
-    params?: { [key: string]: string | number },
-    accessToken?: string
+    accessToken: string | undefined,
+    params?: { [key: string]: string | number }
   ) => {
     if (params) {
       const queryString = new URLSearchParams(params as any).toString();
@@ -39,10 +39,10 @@ const apiClient = {
     }
     return request(endpoint, "GET", accessToken);
   },
-  post: (endpoint: string, data?: {}, accessToken?: string) =>
-    request(endpoint, "POST", data, accessToken),
-  delete: (endpoint: string, data?: {}, accessToken?: string) =>
-    request(endpoint, "DELETE", data, accessToken),
+  post: (endpoint: string, accessToken: string | undefined, data?: {}) =>
+    request(endpoint, "POST", accessToken, data),
+  delete: (endpoint: string, accessToken: string | undefined, data?: {}) =>
+    request(endpoint, "DELETE", accessToken, data),
 };
 
 export default apiClient;

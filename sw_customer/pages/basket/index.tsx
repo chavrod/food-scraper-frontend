@@ -50,6 +50,8 @@ type ProductStateType = {
 
 export default function BasketPage() {
   const { data: session } = useSession();
+  const accessToken = session?.access_token;
+
   const { basketItems } = useGlobalContext();
   // const isLargerThanLg = useMediaQuery("(min-width: 1184px)", false, {
   //   getInitialValueInEffect: false,
@@ -109,6 +111,7 @@ export default function BasketPage() {
     onSuccess: () => {
       handleSuccess();
     },
+    accessToken,
   });
 
   const handleDecreaseQuantity = async (itemId: number, index: number) => {
@@ -145,6 +148,7 @@ export default function BasketPage() {
     onSuccess: () => {
       handleSuccess();
     },
+    accessToken,
   });
 
   const handleIncreaseQuantity = async (itemId: number, index: number) => {
@@ -184,6 +188,7 @@ export default function BasketPage() {
     onSuccess: () => {
       handleSuccess();
     },
+    accessToken,
   });
 
   const clearProduct = async (itemId: number, name: string, index: number) => {
@@ -206,6 +211,7 @@ export default function BasketPage() {
       onSuccess: () => {
         handleSuccess();
       },
+      accessToken,
     });
 
   const clearBasket = () => {
