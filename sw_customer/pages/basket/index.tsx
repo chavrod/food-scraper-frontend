@@ -531,14 +531,13 @@ export default function BasketPage() {
               wrap="wrap"
               maw={450}
             >
-              {basketItems.responseData.metaData?.total_pages &&
-                basketItems.responseData.metaData.total_pages > 1 && (
-                  <Pagination
-                    value={basketItems.page}
-                    onChange={handleBasketPageChange}
-                    total={basketItems.responseData.metaData?.total_pages}
-                  />
-                )}
+              {basketItems.pagination.totalPages > 1 && (
+                <Pagination
+                  value={basketItems.pagination.page}
+                  onChange={handleBasketPageChange}
+                  total={basketItems.pagination.totalPages}
+                />
+              )}
             </Flex>
 
             <Button

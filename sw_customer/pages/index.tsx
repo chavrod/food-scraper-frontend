@@ -12,7 +12,7 @@ import {
 import BasketPreview from "@/Components/BasketPreview";
 import SearchHeader from "@/Components/SearchHeader";
 import { useSession } from "next-auth/react";
-import useApi from "@/utils/useApi";
+import usePaginatedApi from "@/utils/usePaginatedApi";
 import productsPagesApi from "@/utils/productsPagesApi";
 import notifyError from "@/utils/notifyError";
 import SearchResults from "@/Components/SearchResults";
@@ -34,7 +34,7 @@ export default function HomePage() {
   const { data: session } = useSession();
   const accessToken = session?.access_token;
 
-  const productsPage = useApi<
+  const productsPage = usePaginatedApi<
     | [CachedProductsPage, CachedProductsPageMetadata]
     | [{}, ScrapeStatsForCustomer]
   >({
@@ -143,7 +143,8 @@ export default function HomePage() {
               searchQuery={searchQuery}
               productsPageLoading={productsPage.loading}
               cachedProductsPage={cachedProductsPage}
-              pageNumber={productsPage.page}
+              pageNumber={productsPage.pagination.page}
+              totalPages={productsPage.pagination.totalPages}
               cachedProductsPageMetadata={cachedProductsPageMetadata}
               averageScrapingTime={averageScrapingTime}
               loadingNew={loadingNew}

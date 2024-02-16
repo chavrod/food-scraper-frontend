@@ -22,10 +22,13 @@ export interface UseApiReturnType<T, M> {
   };
   loading: boolean;
   errors: any[];
-  page: number;
+  pagination: {
+    page: number;
+    totalPages: number;
+  };
 }
 
-function useApi<T, M = any>({
+function usePaginatedApi<T, M = any>({
   apiFunc,
   defaultParams = {},
   onSuccess,
@@ -35,7 +38,14 @@ function useApi<T, M = any>({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<any[]>([]);
 
-  const [page, setPage] = useState<number>(1);
+  // Combine page and totalPages into a single state object
+  const [pagination, setPagination] = useState<{
+    page: number;
+    totalPages: number;
+  }>({
+    page: 1,
+    totalPages: 0,
+  });
   const [responseData, setResponseData] = useState<{ data?: T; metaData?: M }>(
     {}
   );
@@ -60,9 +70,11 @@ function useApi<T, M = any>({
         const { data, metadata } = jsonRes;
 
         setResponseData({ data: data, metaData: metadata });
-        if (metadata.page) {
-          setPage(metadata.page);
-        }
+
+        setPagination({
+          page: metadata.page || 1,
+          totalPages: metadata.total_pages || 0,
+        });
       } else {
         const errorData = await res.json();
 
@@ -78,7 +90,7 @@ function useApi<T, M = any>({
     }
   };
 
-  return { page, request, responseData, loading, errors };
+  return { pagination, request, responseData, loading, errors };
 }
 
-export default useApi;
+export default usePaginatedApi;

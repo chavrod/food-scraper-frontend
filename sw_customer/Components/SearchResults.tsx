@@ -48,6 +48,7 @@ interface SearchResultsProps {
   productsPageLoading: boolean;
   cachedProductsPage: CachedProductsPage | undefined;
   pageNumber: number;
+  totalPages: number;
   cachedProductsPageMetadata: CachedProductsPageMetadata | undefined;
   averageScrapingTime: any;
   loadingNew: boolean;
@@ -60,6 +61,7 @@ export default React.memo(function SearchResults({
   productsPageLoading,
   cachedProductsPage,
   pageNumber,
+  totalPages,
   cachedProductsPageMetadata,
   averageScrapingTime,
   loadingNew,
@@ -361,14 +363,14 @@ export default React.memo(function SearchResults({
                 </Grid.Col>
               ))}
             </Grid>
-            {pageNumber && cachedProductsPageMetadata?.total_pages ? (
+            {totalPages > 1 ? (
               <Pagination
                 mb={30}
                 py="xl"
                 spacing={5}
                 value={pageNumber}
                 onChange={(p) => handlePageChange(p)}
-                total={cachedProductsPageMetadata?.total_pages}
+                total={totalPages}
               />
             ) : null}
           </Stack>

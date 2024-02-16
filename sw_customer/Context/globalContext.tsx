@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
-import useApi, { UseApiReturnType } from "@/utils/useApi";
+import usePaginatedApi, { UseApiReturnType } from "@/utils/usePaginatedApi";
 import { useSession } from "next-auth/react";
 
 import basketItemsApi from "@/utils/basketItemsApi";
@@ -24,7 +24,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
   const { data: session } = useSession();
   const accessToken = session?.access_token;
 
-  const basketItems = useApi<BasketItem[], BasketItemMetadata>({
+  const basketItems = usePaginatedApi<BasketItem[], BasketItemMetadata>({
     apiFunc: basketItemsApi.list,
     onSuccess: () => {},
     accessToken,
