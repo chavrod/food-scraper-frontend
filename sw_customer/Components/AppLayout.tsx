@@ -153,6 +153,7 @@ export default function MainAppShell({
     <AppShell
       styles={(theme) => ({
         main: {
+          backgroundColor: "#f1f3f5",
           paddingTop: 80,
           paddingLeft: 0,
           paddingRight: 0,
