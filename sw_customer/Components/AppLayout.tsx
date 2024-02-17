@@ -35,7 +35,7 @@ import {
   IconCompass,
   IconShoppingCart,
 } from "@tabler/icons-react";
-import { useSession } from "next-auth/react";
+import { useSessionContext } from "@/Context/SessionContext";
 // Internal: Components
 import UserAccess from "../Components/UserAccess";
 // Internal: Utils
@@ -85,7 +85,7 @@ export default function MainAppShell({
 
   const [opened, { open, close }] = useDisclosure(false);
 
-  const { data: session } = useSession();
+  const { session, isLoading } = useSessionContext();
 
   const routes: Route[] = [
     {

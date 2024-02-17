@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSessionContext } from "@/Context/SessionContext";
 import {
   Stack,
   Title,
@@ -27,7 +27,7 @@ export default function SecurityPage() {
     </Link>
   ));
 
-  const { data: session, update } = useSession();
+  const { session, isLoading } = useSessionContext();
 
   const accressToken = session?.access_token || null;
   const refreshToken = session?.refresh_token || null;

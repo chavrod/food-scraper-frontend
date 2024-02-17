@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import {
   Text,
@@ -35,7 +35,7 @@ import { BasketItemShopBreakdown } from "@/types/customer_types";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
-import { useSession } from "next-auth/react";
+import { useSessionContext } from "@/Context/SessionContext";
 import {
   BasketSummarySkeleton,
   BasketItemsSkeleton,
@@ -53,7 +53,7 @@ export default function BasketPage() {
   console.log("RENDER");
   const router = useRouter();
 
-  const { data: session } = useSession();
+  const { session, isLoading } = useSessionContext();
   const accessToken = session?.access_token;
 
   const { basketItems } = useGlobalContext();

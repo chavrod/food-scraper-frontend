@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Stack, Title, Text, Grid, Paper } from "@mantine/core";
 import { IconEye, IconId, IconShield } from "@tabler/icons-react";
 
-import { useSession } from "next-auth/react";
+import { useSessionContext } from "@/Context/SessionContext";
 
 interface AccountSettingsMainMenuCard extends PropsWithChildren {
   href: string;
@@ -51,7 +51,7 @@ const AccountSettingsMainMenuCard = ({
 };
 
 export default function EstimatePage() {
-  const { data: session } = useSession();
+  const { session, isLoading } = useSessionContext();
 
   return (
     <div>

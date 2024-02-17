@@ -5,8 +5,12 @@ import type { AppProps } from "next/app";
 import { MantineProvider, ColorSchemeProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import MainAppShell from "@/Components/AppLayout";
-import { SessionProvider } from "../Components/Provider";
+import { QueryClient, QueryClientProvider } from "react-query";
+// import { SessionProvider } from "../Components/Provider";
+import { SessionProvider } from "@/Context/SessionContext";
 import { GlobalProvider } from "@/Context/globalContext";
+
+const queryClient = new QueryClient();
 
 export default function App({
   Component,
@@ -39,14 +43,16 @@ export default function App({
           },
         }}
       >
-        <SessionProvider session={session}>
-          <GlobalProvider>
-            <Notifications position="top-right" />
-            <MainAppShell>
-              <Component {...pageProps} />
-            </MainAppShell>
-          </GlobalProvider>
-        </SessionProvider>
+        <QueryClientProvider client={queryClient}>
+          <SessionProvider>
+            <GlobalProvider>
+              <Notifications position="top-right" />
+              <MainAppShell>
+                <Component {...pageProps} />
+              </MainAppShell>
+            </GlobalProvider>
+          </SessionProvider>
+        </QueryClientProvider>
       </MantineProvider>
     </ColorSchemeProvider>
   );

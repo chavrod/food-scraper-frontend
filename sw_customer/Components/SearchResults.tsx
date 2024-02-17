@@ -26,7 +26,7 @@ import {
   CachedProductsPageMetadata,
   Product,
 } from "@/types/customer_types";
-import { useSession } from "next-auth/react";
+import { useSessionContext } from "@/Context/SessionContext";
 import { useGlobalContext } from "@/Context/globalContext";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
@@ -66,7 +66,7 @@ export default React.memo(function SearchResults({
   averageScrapingTime,
   loadingNew,
 }: SearchResultsProps) {
-  const { data: session } = useSession();
+  const { session, isLoading } = useSessionContext();
   const accessToken = session?.access_token;
 
   const { basketItems } = useGlobalContext();

@@ -11,7 +11,7 @@ import {
 } from "@/types/customer_types";
 import BasketPreview from "@/Components/BasketPreview";
 import SearchHeader from "@/Components/SearchHeader";
-import { useSession } from "next-auth/react";
+import { useSessionContext } from "@/Context/SessionContext";
 import usePaginatedApi from "@/utils/usePaginatedApi";
 import productsPagesApi from "@/utils/productsPagesApi";
 import notifyError from "@/utils/notifyError";
@@ -31,7 +31,8 @@ export type ItemsLoadingStates = {
 export default function HomePage() {
   const router = useRouter();
 
-  const { data: session } = useSession();
+  const { session, isLoading } = useSessionContext();
+  console.log("session: ", session);
   const accessToken = session?.access_token;
 
   const productsPage = usePaginatedApi<

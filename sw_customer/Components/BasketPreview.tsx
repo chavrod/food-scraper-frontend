@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSessionContext } from "@/Context/SessionContext";
 
 // External Styling
 
@@ -48,7 +48,7 @@ export default function BasketPreview() {
     getInitialValueInEffect: false,
   });
 
-  const { data: session } = useSession();
+  const { session, isLoading } = useSessionContext();
   const accessToken = session?.access_token;
 
   const { basketItems } = useGlobalContext();
