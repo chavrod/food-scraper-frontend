@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode, useEffect } from "react";
 import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
 import usePaginatedApi, { UseApiReturnType } from "@/utils/usePaginatedApi";
 import { useSessionContext } from "@/Context/SessionContext";
@@ -29,6 +29,12 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     onSuccess: () => {},
     accessToken,
   });
+
+  useEffect(() => {
+    if (session) {
+      basketItems.request();
+    }
+  }, [session]);
 
   return (
     <GlobalContext.Provider value={{ basketItems }}>
