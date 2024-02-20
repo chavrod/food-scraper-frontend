@@ -32,7 +32,7 @@ export default function HomePage() {
   const router = useRouter();
 
   const { session, isLoading } = useSessionContext();
-  console.log("session: ", session);
+  console.log("session ", session);
   const accessToken = session?.access_token;
 
   const productsPage = usePaginatedApi<
@@ -100,7 +100,7 @@ export default function HomePage() {
             withBorder: true,
           });
           setTimeout(() => {
-            router.push(`?query=${responseData.query}&page=${1}`);
+            productsPage.request({ query: responseData.query, page: 1 });
           }, 1000);
         } else {
           notifyError(
