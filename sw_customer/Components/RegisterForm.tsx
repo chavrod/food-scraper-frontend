@@ -130,8 +130,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       const csrfToken = await getCSRF();
       if (!csrfToken) return;
 
-      console.log("csrfToken: ", csrfToken);
-
       const response = await fetch(
         process.env.NEXT_PUBLIC_API_URL + "auth/send-validation-email/",
         {
