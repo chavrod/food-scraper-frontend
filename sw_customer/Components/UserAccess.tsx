@@ -20,6 +20,7 @@ import {
 } from "@tabler/icons-react";
 // External: Logic
 import { signIn } from "next-auth/react";
+import { useQueryClient } from "react-query";
 
 interface LoginFormProps {
   isEmailConfirmed: boolean;
@@ -30,6 +31,8 @@ const UserAccess: React.FC<LoginFormProps> = ({
   isEmailConfirmed,
   handleLoginSucess,
 }) => {
+  const queryClient = useQueryClient();
+
   const [isLoginFormVisible, setIsLoginFormVisible] = useState(true);
   const [isAuthSuccess, setIsAuthSuccess] = useState(false);
 
@@ -37,6 +40,8 @@ const UserAccess: React.FC<LoginFormProps> = ({
 
   const handleAuthSuccess = () => {
     setIsAuthSuccess(true);
+
+    queryClient.invalidateQueries("session");
 
     if (isLoginFormVisible) {
       setTimeout(() => {
