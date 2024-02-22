@@ -1,7 +1,9 @@
 import re
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
+from core.models import Customer, Basket
 
 
 class MyAccountAdapter(DefaultAccountAdapter):
@@ -45,3 +47,15 @@ class MyAccountAdapter(DefaultAccountAdapter):
             )
 
         return super().clean_password(password, user)
+
+
+class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
+    def save_user(self, request, sociallogin, form):
+        user = super(CustomSocialAccountAdapter, self).save_user(
+            request, sociallogin, form
+        )
+
+        customer = Customer.objects.create(user=user)
+        Basket.objects.create(customer=customer)
+
+        return user

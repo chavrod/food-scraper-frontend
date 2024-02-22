@@ -270,6 +270,7 @@ REST_AUTH = {
     "USER_DETAILS_SERIALIZER": "authentication.serializers.CustomUserDetailsSerializer",
 }
 
+SOCIALACCOUNT_ADAPTER = "authentication.adapters.CustomSocialAccountAdapter"
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
