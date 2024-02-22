@@ -1,7 +1,8 @@
 from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
 
-from django.db.models import Avg, Sum, F, FloatField
+from django.db.models import Avg, Sum, F, FloatField, Value, IntegerField
+from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 
@@ -145,8 +146,14 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         # Group by shop name and aggregate total quantity and price
         shop_breakdown = shop_breakdown_queryset.values("product__shop_name").annotate(
-            total_quantity=Sum("quantity"),
-            total_price=Sum("total_price", output_field=FloatField()),
+            total_quantity=Coalesce(
+                Sum("quantity", output_field=IntegerField()),
+                Value(0, output_field=IntegerField()),
+            ),
+            total_price=Coalesce(
+                Sum("total_price", output_field=FloatField()),
+                Value(0, output_field=FloatField()),
+            ),
         )
         # Transform the shop_breakdown QuerySet into a list of dictionaries
         shop_breakdown_list = [
@@ -160,7 +167,14 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         # Calculating the total quantity and price across all items
         aggregated_data = shop_breakdown_queryset.aggregate(
-            total_quantity_all=Sum("quantity"), total_price_all=Sum("total_price")
+            total_quantity_all=Coalesce(
+                Sum("quantity", output_field=IntegerField()),
+                Value(0, output_field=IntegerField()),
+            ),
+            total_price_all=Coalesce(
+                Sum("total_price", output_field=FloatField()),
+                Value(0, output_field=FloatField()),
+            ),
         )
         total_quantity_all = aggregated_data.get("total_quantity_all", 0)
         total_price_all = aggregated_data.get("total_price_all", 0)
