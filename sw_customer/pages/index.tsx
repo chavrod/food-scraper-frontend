@@ -32,7 +32,6 @@ export default function HomePage() {
   const router = useRouter();
 
   const { session, isLoading } = useSessionContext();
-  console.log("session ", session);
   const accessToken = session?.access_token;
 
   const productsPage = usePaginatedApi<

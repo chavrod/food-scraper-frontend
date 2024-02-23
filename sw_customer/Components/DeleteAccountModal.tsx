@@ -39,8 +39,6 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
         }
       );
 
-      console.log(response);
-
       if (response.ok) {
         setLoading(false);
         setIsDeleted(true);
