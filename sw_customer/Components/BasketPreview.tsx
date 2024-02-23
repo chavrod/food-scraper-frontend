@@ -157,7 +157,10 @@ export default function BasketPreview() {
       loadingClearing: { ...prevStates.loadingClearing, [index]: true },
     }));
 
-    await submitRemoveProductItems(itemId, `Removed ${name} from basket.`);
+    await submitRemoveProductItems(itemId, {
+      title: `Removed items`,
+      body: `Removed all ${name} from basket.`,
+    });
 
     setProductStates((prevStates) => ({
       ...prevStates,

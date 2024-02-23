@@ -201,7 +201,10 @@ export default function Basket() {
       loadingClearing: { ...prevStates.loadingClearing, [index]: true },
     }));
 
-    await submitRemoveProductItems(itemId, `Removed ${name} from basket.`);
+    await submitRemoveProductItems(itemId, {
+      title: `Removed items`,
+      body: `Removed all ${name} from basket.`,
+    });
 
     setProductStates((prevStates) => ({
       ...prevStates,
@@ -220,10 +223,10 @@ export default function Basket() {
 
   const clearBasket = () => {
     const data = "";
-    submitclearAllProductItems(
-      data,
-      `Removed all items from basket from basket.`
-    );
+    submitclearAllProductItems(data, {
+      title: "Cleared basket",
+      body: "Removed all items from basket ",
+    });
   };
 
   if (!session) {

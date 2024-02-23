@@ -18,7 +18,13 @@ function useApiSubmit<T>({
   const [loading, setLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<any[]>([]);
 
-  const handleSubmit = async (data: T, successMessage?: string) => {
+  const handleSubmit = async (
+    data: T,
+    successMessage?: {
+      title: string;
+      body: string;
+    }
+  ) => {
     if (apiFunc === undefined) return;
 
     setLoading(true);
@@ -30,8 +36,8 @@ function useApiSubmit<T>({
         await res.json();
         if (successMessage) {
           notifications.show({
-            title: "Success!",
-            message: successMessage,
+            title: successMessage.title,
+            message: successMessage.body,
             icon: <IconCheck size="1rem" />,
             color: "green",
             withBorder: true,

@@ -113,10 +113,10 @@ export default React.memo(function SearchResults({
       product.img_src = normalizeUrl(product.img_src);
     }
 
-    const wasSuccessful = await handleSubmit(
-      product,
-      `Added ${product.name} to basket.`
-    );
+    const wasSuccessful = await handleSubmit(product, {
+      title: "Added item",
+      body: `${product.name} added to basket.`,
+    });
     // Update states based on whether adding to basket was successful
     if (wasSuccessful) {
       setProductStates((prevStates) => ({
