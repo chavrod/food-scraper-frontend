@@ -44,14 +44,14 @@ class ScrapeSummaryTotal(models.Model):
     query = models.CharField(max_length=30)
     is_relevant_only = models.BooleanField()
     total_results_count = models.IntegerField(validators=[MinValueValidator(0)])
-    total_execution_time = models.DecimalField(max_digits=10, decimal_places=2)
+    total_execution_time = models.DecimalField(max_digits=100, decimal_places=2)
     created = models.DateTimeField(auto_now_add=True)
 
 
 class ScrapeSummaryPerShop(models.Model):
     shop = models.CharField(max_length=30, choices=ShopName.choices)
     results_count = models.IntegerField(validators=[MinValueValidator(0)])
-    execution_time = models.DecimalField(max_digits=10, decimal_places=2)
+    execution_time = models.DecimalField(max_digits=100, decimal_places=2)
     created = models.DateTimeField(auto_now_add=True)
     summary_total = models.ForeignKey(
         ScrapeSummaryTotal, on_delete=models.CASCADE, related_name="shop_summaries"
@@ -60,7 +60,7 @@ class ScrapeSummaryPerShop(models.Model):
 
 class Product(models.Model):
     name = models.CharField(max_length=100)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=100, decimal_places=2)
     img_src = models.URLField(blank=True, null=True)
     product_url = models.URLField(blank=True, null=True)
     shop_name = models.CharField(max_length=50, choices=ShopName.choices)

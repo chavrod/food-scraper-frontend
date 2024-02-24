@@ -30,7 +30,9 @@ class Customer(serializers.ModelSerializer):
 @ts_interface()
 class CachedProductsPageResult(serializers.Serializer):
     name = serializers.CharField()
-    price = serializers.FloatField()
+    price = serializers.DecimalField(
+        max_digits=100, decimal_places=2, coerce_to_string=False
+    )
     img_src = serializers.CharField(allow_null=True)
     product_url = serializers.CharField(allow_null=True)
     shop_name = serializers.ChoiceField(choices=core_models.ShopName.choices)
@@ -38,7 +40,9 @@ class CachedProductsPageResult(serializers.Serializer):
 
 @ts_interface()
 class ScrapeStatsForCustomer(serializers.Serializer):
-    average_time_seconds = serializers.FloatField()
+    average_time_seconds = serializers.DecimalField(
+        max_digits=100, decimal_places=0, coerce_to_string=False
+    )
 
 
 @ts_interface()
@@ -137,7 +141,9 @@ class BasketItemShopBreakdown(serializers.Serializer):
     name = serializers.ChoiceField(
         source="product__shop_name", choices=core_models.ShopName.choices
     )
-    total_price = serializers.FloatField()
+    total_price = serializers.DecimalField(
+        max_digits=100, decimal_places=2, coerce_to_string=False
+    )
     total_quantity = serializers.IntegerField()
 
 
@@ -145,7 +151,9 @@ class BasketItemShopBreakdown(serializers.Serializer):
 class BasketItemMetadata(serializers.Serializer):
     total_items = serializers.IntegerField()
     total_quantity = serializers.IntegerField()
-    total_price = serializers.FloatField()
+    total_price = serializers.DecimalField(
+        max_digits=100, decimal_places=2, coerce_to_string=False
+    )
     shop_breakdown = BasketItemShopBreakdown(many=True)
     page = serializers.IntegerField()
     total_pages = serializers.IntegerField()

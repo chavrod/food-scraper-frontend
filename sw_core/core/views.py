@@ -1,7 +1,8 @@
 from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
 
-from django.db.models import Avg, Sum, F, FloatField, Value, IntegerField
+from django.db.models import Avg, Sum, F, Value, IntegerField, DecimalField
+from decimal import Decimal, ROUND_HALF_UP
 from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -151,15 +152,20 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                 Value(0, output_field=IntegerField()),
             ),
             total_price=Coalesce(
-                Sum("total_price", output_field=FloatField()),
-                Value(0, output_field=FloatField()),
+                Sum(
+                    "total_price",
+                    output_field=DecimalField(max_digits=100, decimal_places=2),
+                ),
+                Value(0, output_field=DecimalField(max_digits=100, decimal_places=2)),
             ),
         )
         # Transform the shop_breakdown QuerySet into a list of dictionaries
         shop_breakdown_list = [
             {
                 "name": item["product__shop_name"],
-                "total_price": item["total_price"],
+                "total_price": item["total_price"].quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP
+                ),
                 "total_quantity": item["total_quantity"],
             }
             for item in shop_breakdown
@@ -172,8 +178,11 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                 Value(0, output_field=IntegerField()),
             ),
             total_price_all=Coalesce(
-                Sum("total_price", output_field=FloatField()),
-                Value(0, output_field=FloatField()),
+                Sum(
+                    "total_price",
+                    output_field=DecimalField(max_digits=100, decimal_places=2),
+                ),
+                Value(0, output_field=DecimalField(max_digits=100, decimal_places=2)),
             ),
         )
         total_quantity_all = aggregated_data.get("total_quantity_all", 0)
@@ -199,7 +208,9 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             data={
                 "total_items": queryset.count(),
                 "total_quantity": total_quantity_all,
-                "total_price": total_price_all,
+                "total_price": total_price_all.quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP
+                ),
                 "shop_breakdown": shop_breakdown_list,
                 "page": page_obj.number,
                 "total_pages": paginator.num_pages,
