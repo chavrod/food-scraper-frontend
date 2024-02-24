@@ -269,10 +269,11 @@ export default function BasketPreview() {
           <Paper>
             <Stack align="center" m="xl">
               <Loader />
-              <Text fw={650}>Loading basket items</Text>
+              <Text fw={500}>Loading basket items</Text>
             </Stack>
           </Paper>
-        ) : basketItems.responseData?.data ? (
+        ) : basketItems.responseData?.data &&
+          basketItems.responseData?.data.length > 0 ? (
           basketItems.responseData.data.map((item, index) => (
             <Paper key={index} shadow="xs" radius="xs" withBorder>
               <Flex
@@ -386,7 +387,7 @@ export default function BasketPreview() {
                 <IconShoppingCart size="2.3rem" color="white" stroke="0.1rem" />
               </div>
 
-              <Text fw={650}>Basket is emtpy</Text>
+              <Text fw={500}>Basket is emtpy</Text>
             </Stack>
           </Paper>
         )
@@ -411,7 +412,7 @@ export default function BasketPreview() {
               />
             </div>
 
-            <Text fw={650}>Log in to access the basket</Text>
+            <Text fw={500}>Log in to access the basket</Text>
           </Stack>
         </Paper>
       )}

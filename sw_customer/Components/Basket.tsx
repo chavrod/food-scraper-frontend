@@ -242,9 +242,21 @@ export default function Basket() {
     <Flex
       gap="md"
       justify="center"
-      align="flex-start"
-      direction={isLargerThanLg ? "row-reverse" : "column"}
-      style={{ width: "100%" }}
+      align={
+        basketItems.responseData.data &&
+        basketItems.responseData.data?.length === 0
+          ? "center"
+          : "flex-start"
+      }
+      direction={
+        basketItems.responseData.data &&
+        basketItems.responseData.data?.length === 0
+          ? "row"
+          : isLargerThanLg
+          ? "row-reverse"
+          : "column"
+      }
+      style={{ width: "100%", height: "100%" }}
       mt="sm"
       px="lg"
     >
@@ -544,6 +556,7 @@ export default function Basket() {
 
             <Button
               onClick={clearBasket}
+              color="red"
               variant="outline"
               maw={450}
               fullWidth
