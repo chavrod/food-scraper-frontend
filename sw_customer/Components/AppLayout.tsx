@@ -69,19 +69,25 @@ export default function MainAppShell({
   const { metaData: basketItemsMetaData } = basketItems.responseData;
   const basketQty = basketItemsMetaData?.total_quantity || 0;
 
-  const [isEmailConfirmed, setIsEmailConfirmed] = useState(
-    router.query["login"] === "successful-email-confirmation"
-  );
-  const [isPasswordReset, setIsPasswordReset] = useState(
-    router.query["password-reset"] === "successful-password-reset"
-  );
-  const [isRedirectToLogin, setIsRedirectToLogin] = useState(
-    router.query["login"] === "open"
-  );
-  const [callBackUrl, setCallBackUrl] = useState<string>(() => {
-    const queryParam = router.query["callbackUrl"] as string;
-    return queryParam || "";
-  });
+  const [isEmailConfirmed, setIsEmailConfirmed] = useState(false);
+  const [isRedirectToLogin, setIsRedirectToLogin] = useState(false);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
+
+  useEffect(() => {
+    // Check for 'login' query parameter
+    const loginQuery = router.query["login"];
+    setIsEmailConfirmed(loginQuery === "successful-email-confirmation");
+    setIsRedirectToLogin(loginQuery === "open");
+
+    // Check for 'password-reset' query parameter
+    const passwordResetQuery = router.query["password-reset"];
+    setIsPasswordReset(passwordResetQuery === "successful-password-reset");
+  }, [router.query]);
+
+  // const [callBackUrl, setCallBackUrl] = useState<string>(() => {
+  //   const queryParam = router.query["callbackUrl"] as string;
+  //   return queryParam || "";
+  // });
 
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -136,11 +142,13 @@ export default function MainAppShell({
   const handleLoginSucess = () => {
     close();
 
-    if (callBackUrl) {
-      const decodedCallbackUrl = decodeURIComponent(callBackUrl);
+    // if (callBackUrl) {
+    //   console.log("callBackUrl: ", callBackUrl);
+    //   const decodedCallbackUrl = decodeURIComponent(callBackUrl);
 
-      router.push(decodedCallbackUrl);
-    }
+    //   console.log("decodedCallbackUrl: ", decodedCallbackUrl);
+    //   router.push(decodedCallbackUrl);
+    // }
   };
 
   return (
