@@ -161,7 +161,7 @@ export default React.memo(function SearchResults({
 
     const handleRelease = ({ send }: { send: boolean }) => {
       setIsPressed(false);
-      send && handleFormSubmit({ query: query, page: "1" });
+      send && handleFormSubmit({ query: query.toLowerCase(), page: "1" });
     };
 
     return (

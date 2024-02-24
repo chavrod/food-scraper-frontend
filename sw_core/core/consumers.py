@@ -1,5 +1,6 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+import re
 import asyncio
 import json
 import time
@@ -20,19 +21,21 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
 
         query = text_data_json["query"].rstrip()
+        # Remove leading and trailing whitespaces, replace multiple spaces with one, and convert to lowercase
+        cleaned_query = re.sub(r"\s+", " ", query.strip()).lower()
         is_relevant_only = True
         sender = text_data_json["sender"]
 
-        print("RECEIVED MESSAGE FROM CLIENT: ", query, is_relevant_only)
+        print("RECEIVED MESSAGE FROM CLIENT: ", cleaned_query, is_relevant_only)
 
-        cached_page_exists = await self.check_for_entry(query, is_relevant_only)
+        cached_page_exists = await self.check_for_entry(cleaned_query, is_relevant_only)
 
         # Check if entry_data was found and send relevant information
         if cached_page_exists:
             await self.send(
                 text_data=json.dumps(
                     {
-                        "query": query,
+                        "query": cleaned_query,
                         "sender": "Server",
                     }
                 )

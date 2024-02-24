@@ -44,7 +44,7 @@ export default function HomePage() {
   });
   const [loadingNew, setLoadingNew] = useState(false);
 
-  const searchQuery = router.query.query?.toString() || "";
+  const searchQuery = router.query.query?.toString().toLowerCase() || "";
   const searchPage = router.query.page?.toString() || "1";
   useEffect(() => {
     if (searchQuery) {
