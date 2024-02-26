@@ -1,11 +1,14 @@
+from decimal import Decimal, ROUND_HALF_UP
+from datetime import timedelta
+
 from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
-
 from django.db.models import Avg, Sum, F, Value, IntegerField, DecimalField
-from decimal import Decimal, ROUND_HALF_UP
 from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.utils import timezone
+from django.core.cache import cache
 
 from rest_framework import status, viewsets, mixins
 from rest_framework.response import Response
@@ -16,6 +19,8 @@ from tasks.cache_data import cache_data
 import core.serializers as core_serializers
 import core.models as core_models
 import core.pagination as core_paginaton
+
+from shop_wiz.settings import CACHE_SHOP_SCRAPE_EXECUTION_SECONDS
 
 
 @csrf_protect
@@ -45,10 +50,27 @@ class CachedProductsPageViewSet(
         # Check if we have cached data for this query
         cached_pages = self.get_queryset().filter(query=query_param).order_by("-page")
         if not cached_pages.exists():
-            # Start the scraping process
-            cache_data.delay(query_param, is_relevant_only_param)
+            cache_key = f"scrape_query_{query_param}"
+            last_update = cache.get(cache_key)
 
-            average_time_seconds = 30
+            average_time_seconds = CACHE_SHOP_SCRAPE_EXECUTION_SECONDS
+
+            if last_update and timezone.now() - last_update < timedelta(
+                seconds=CACHE_SHOP_SCRAPE_EXECUTION_SECONDS
+            ):
+                elapsed_time = timezone.now() - last_update
+                elapsed_seconds = elapsed_time.total_seconds()
+                average_time_seconds = Decimal(int(max(0, elapsed_seconds)))
+                pass
+            else:
+                # Start the scraping process and set the cache
+                cache_data.delay(query_param, is_relevant_only_param)
+                cache.set(
+                    cache_key,
+                    timezone.now(),
+                    timeout=CACHE_SHOP_SCRAPE_EXECUTION_SECONDS,
+                )
+                print(f"SETTING NEW CACHE FOR {cache_key}")
 
             scrape_stats_for_customer_serializer = (
                 core_serializers.ScrapeStatsForCustomer(

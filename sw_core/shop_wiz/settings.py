@@ -220,8 +220,18 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # EMAIL_USE_TLS = True
 # DEFAULT_FROM_EMAIL = "Shop Wiz <shop-wiz@shop-wiz.ie>"
 
-# REDIS config
-CELERY_BROKER_URL = "redis://localhost:6379"
+# CACHE
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+    }
+}
+
+CACHE_SHOP_SCRAPE_EXECUTION_SECONDS = 45
+
+# CELERY config
+CELERY_BROKER_URL = "redis://127.0.0.1:6379"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
