@@ -44,7 +44,6 @@ export default function SecurityPage() {
   const [opened, { open, close }] = useDisclosure(false);
 
   const handleModalClose = () => {
-    if (modalMode !== "delete_account") update();
     setModalMode("");
     close();
   };
