@@ -23,9 +23,8 @@ export default function CountdownCircle({
         </Title>
         {currentAverageScrapingTime && (
           <Text align="center" color="dimmed" w={300}>
-            Hang tight! We are checking supermarkets for up-to-date product
-            data. So far, this has taken us{" "}
-            {Math.ceil(currentAverageScrapingTime) + 10} seconds on average.
+            Almost there! Gathering fresh supermarket data. Max{" "}
+            {Math.ceil(currentAverageScrapingTime)} seconds left.
           </Text>
         )}
 
