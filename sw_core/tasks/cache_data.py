@@ -1,6 +1,7 @@
 import os
 import sys
 import django
+from decimal import Decimal, ROUND_HALF_UP
 
 sys.path.append("/Users/dmitry/projects/shopping_wiz/sw_core")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shop_wiz.settings")
@@ -220,7 +221,10 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                     )
                     if price_element:
                         price_text = price_element.text_content().strip() or ""
-                        product["price"] = float(re.sub(r"[^\d.]+", "", price_text))
+                        cleaned_price_text = re.sub(r"[^\d.]+", "", price_text)
+                        product["price"] = (
+                            float(cleaned_price_text) if cleaned_price_text else 0
+                        )
 
                     # Get the product image source
                     img_element = prod.query_selector(
@@ -244,6 +248,10 @@ def scrape_tesco(query: str, is_relevant_only: bool):
 
                     # If product has name and price, add to the list
                     if product["name"] and product["price"] > 0:
+                        price_decimal = Decimal(product["price"]).quantize(
+                            Decimal("0.01"), rounding=ROUND_HALF_UP
+                        )
+                        product["price"] = f"{price_decimal:.2f}"
                         products.append(product)
 
                 current_page += 1
@@ -360,6 +368,10 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                             product["product_url"] = full_url
 
                     if product["name"] and product["price"] > 0:
+                        price_decimal = Decimal(product["price"]).quantize(
+                            Decimal("0.01"), rounding=ROUND_HALF_UP
+                        )
+                        product["price"] = f"{price_decimal:.2f}"
                         products.append(product)
 
                 current_page += 1
@@ -497,6 +509,10 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                             product["product_url"] = internal_url_path
 
                     if product["name"] and product["price"] > 0:
+                        price_decimal = Decimal(product["price"]).quantize(
+                            Decimal("0.01"), rounding=ROUND_HALF_UP
+                        )
+                        product["price"] = f"{price_decimal:.2f}"
                         products.append(product)
 
                 current_page += 1

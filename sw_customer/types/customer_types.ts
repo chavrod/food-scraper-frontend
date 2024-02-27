@@ -7,7 +7,7 @@ export interface Customer {
 
 export interface CachedProductsPageResult {
     name: string;
-    price: number;
+    price: string;
     img_src: string | null;
     product_url: string | null;
     shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
