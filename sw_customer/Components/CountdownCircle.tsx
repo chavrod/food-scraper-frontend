@@ -23,15 +23,14 @@ export default function CountdownCircle({
         </Title>
         {currentAverageScrapingTime && (
           <Text align="center" color="dimmed" w={300}>
-            Almost there! Gathering fresh supermarket data. Max{" "}
-            {Math.ceil(currentAverageScrapingTime)} seconds left.
+            Almost there! Gathering fresh supermarket data. Max seconds left...
           </Text>
         )}
 
         {currentAverageScrapingTime && (
           <CountdownCircleTimer
             isPlaying={loading}
-            duration={Math.ceil(currentAverageScrapingTime) + 5}
+            duration={Math.ceil(currentAverageScrapingTime)}
             colors={["#0C8599", "#15AABF", "#0CA678", "#37B24D"]}
             colorsTime={[10, 7, 4, 0]}
             strokeWidth={20}
