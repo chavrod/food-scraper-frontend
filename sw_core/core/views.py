@@ -60,7 +60,8 @@ class CachedProductsPageViewSet(
             ):
                 elapsed_time = timezone.now() - last_update
                 elapsed_seconds = elapsed_time.total_seconds()
-                average_time_seconds = Decimal(int(max(0, elapsed_seconds)))
+                seconds_left = average_time_seconds - elapsed_seconds
+                average_time_seconds = Decimal(int(max(0, seconds_left)))
                 pass
             else:
                 # Start the scraping process and set the cache
