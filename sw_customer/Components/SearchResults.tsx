@@ -317,8 +317,8 @@ export default React.memo(function SearchResults({
 
                         <Group spacing={0} h={40} position="apart">
                           <Text align="center">
-                            {!isNaN(parseFloat(product.price))
-                              ? `€${parseFloat(product.price)}`
+                            {product.price
+                              ? `€${product.price.toFixed(2)}`
                               : "Price not available"}
                           </Text>
                           <Tooltip

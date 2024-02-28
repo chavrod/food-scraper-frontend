@@ -30,7 +30,7 @@ class Customer(serializers.ModelSerializer):
 @ts_interface()
 class CachedProductsPageResult(serializers.Serializer):
     name = serializers.CharField()
-    price = serializers.CharField()
+    price = serializers.FloatField()
     img_src = serializers.CharField(allow_null=True)
     product_url = serializers.CharField(allow_null=True)
     shop_name = serializers.ChoiceField(choices=core_models.ShopName.choices)

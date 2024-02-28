@@ -223,7 +223,9 @@ def scrape_tesco(query: str, is_relevant_only: bool):
                         price_text = price_element.text_content().strip() or ""
                         cleaned_price_text = re.sub(r"[^\d.]+", "", price_text)
                         product["price"] = (
-                            float(cleaned_price_text) if cleaned_price_text else 0
+                            round(float(cleaned_price_text), 2)
+                            if cleaned_price_text
+                            else 0
                         )
 
                     # Get the product image source
@@ -248,10 +250,6 @@ def scrape_tesco(query: str, is_relevant_only: bool):
 
                     # If product has name and price, add to the list
                     if product["name"] and product["price"] > 0:
-                        price_decimal = Decimal(product["price"]).quantize(
-                            Decimal("0.01"), rounding=ROUND_HALF_UP
-                        )
-                        product["price"] = f"{price_decimal:.2f}"
                         products.append(product)
 
                 current_page += 1
@@ -355,7 +353,9 @@ def scrape_aldi(query: str, is_relevant_only: bool):
 
                     price_text = price_element.text_content()
                     price_match = re.search(r"(\d+\.\d+)", price_text)
-                    product["price"] = float(price_match.group(1)) if price_match else 0
+                    product["price"] = (
+                        round(float(price_match.group(1)), 2) if price_match else 0
+                    )
 
                     product["img_src"] = image_element.get_attribute("src") or None
 
@@ -368,10 +368,6 @@ def scrape_aldi(query: str, is_relevant_only: bool):
                             product["product_url"] = full_url
 
                     if product["name"] and product["price"] > 0:
-                        price_decimal = Decimal(product["price"]).quantize(
-                            Decimal("0.01"), rounding=ROUND_HALF_UP
-                        )
-                        product["price"] = f"{price_decimal:.2f}"
                         products.append(product)
 
                 current_page += 1
@@ -495,7 +491,7 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
 
                     # Extracting the float value from the price text
                     match = re.search(r"(\d+\.\d+)", price_text) if price_text else None
-                    product["price"] = float(match.group(1)) if match else 0
+                    product["price"] = round(float(match.group(1)), 2) if match else 0
 
                     product["img_src"] = (
                         image_element.get_attribute("src") if image_element else None
@@ -509,10 +505,6 @@ def scrape_supervalu(query: str, is_relevant_only: bool):
                             product["product_url"] = internal_url_path
 
                     if product["name"] and product["price"] > 0:
-                        price_decimal = Decimal(product["price"]).quantize(
-                            Decimal("0.01"), rounding=ROUND_HALF_UP
-                        )
-                        product["price"] = f"{price_decimal:.2f}"
                         products.append(product)
 
                 current_page += 1
