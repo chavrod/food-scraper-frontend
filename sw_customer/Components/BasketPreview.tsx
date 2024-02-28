@@ -275,7 +275,7 @@ export default function BasketPreview() {
         ) : basketItems.responseData?.data &&
           basketItems.responseData?.data.length > 0 ? (
           basketItems.responseData.data.map((item, index) => (
-            <Paper key={index} shadow="xs" radius="xs" withBorder>
+            <Paper key={index} shadow="xs" radius="xs" maw={300} withBorder>
               <Flex
                 justify="center"
                 align="flex-start"
