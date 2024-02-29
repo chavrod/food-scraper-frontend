@@ -167,16 +167,9 @@ export default function MainAppShell({
             <Group>
               <Link href="/">
                 <img
-                  src="/app-logo-logo.jpg"
-                  alt="Shopping Wiz"
-                  style={{ maxWidth: "9rem", maxHeight: "3rem" }}
-                />
-              </Link>
-              <Link href="/">
-                <img
-                  src="/app-logo-name.jpg"
-                  alt="Logo"
-                  style={{ maxWidth: "9rem", maxHeight: "3rem" }}
+                  src="/shopping_wiz_logo.png"
+                  alt="Shopping Wiz logo"
+                  style={{ maxWidth: "9rem" }}
                 />
               </Link>
 
@@ -215,7 +208,8 @@ export default function MainAppShell({
                       backgroundColor:
                         router.pathname === "/basket" ? "#3BC9DB" : "#E3FAFC",
                       cursor: "pointer",
-                      width: "85px",
+                      width: isLargerThanSm ? "85px" : "60px",
+
                       borderWidth: 0,
                     }}
                     variant="filled"
