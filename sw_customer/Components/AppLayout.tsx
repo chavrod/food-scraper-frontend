@@ -167,11 +167,19 @@ export default function MainAppShell({
             <Group>
               <Link href="/">
                 <img
-                  src="/shopping_wiz_logo.png"
-                  alt="Shopping Wiz logo"
-                  style={{ maxWidth: "9rem" }}
+                  src="/app-logo-logo.jpg"
+                  alt="Shopping Wiz"
+                  style={{ maxWidth: "9rem", maxHeight: "3rem" }}
                 />
               </Link>
+              <Link href="/">
+                <img
+                  src="/app-logo-name.jpg"
+                  alt="Logo"
+                  style={{ maxWidth: "9rem", maxHeight: "3rem" }}
+                />
+              </Link>
+
               {isLargerThanSm && (
                 <Group>
                   {routes
