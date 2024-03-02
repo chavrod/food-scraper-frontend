@@ -1,5 +1,5 @@
 import os
-
+from django.conf import settings
 from celery import Celery
 
 # Set the default Django settings module for the 'celery' program.
@@ -12,6 +12,9 @@ app = Celery("shop_wiz")
 # - namespace='CELERY' means all celery-related configuration keys
 #   should have a `CELERY_` prefix.
 app.config_from_object("django.conf:settings", namespace="CELERY")
+
+# Explicitly set the timezone
+app.conf.timezone = settings.TIME_ZONE
 
 # Load task modules from all registered Django apps.
 app.autodiscover_tasks()
