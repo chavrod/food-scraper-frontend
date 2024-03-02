@@ -69,7 +69,7 @@ export default function SecurityPage() {
           {!isSocialAccountConnected ? (
             <Text
               fz="lg"
-              c={"cyan.7"}
+              c={"brand.7"}
               fw={700}
               sx={{
                 cursor: "pointer",

@@ -428,7 +428,7 @@ export default function Basket() {
                         <Group spacing={0} align="center">
                           <Text
                             fz="md"
-                            c="cyan.7"
+                            c="brand.7"
                             sx={{
                               cursor: "pointer",
                               "&:hover": {
@@ -472,7 +472,7 @@ export default function Basket() {
                             loading={productStates.loadingDecrease[index]}
                             size="xl"
                             color={
-                              productStates.decreased[index] ? "teal" : "cyan"
+                              productStates.decreased[index] ? "teal" : "brand"
                             }
                             variant="transparent"
                             onClick={() => {
@@ -491,7 +491,7 @@ export default function Basket() {
                             loading={productStates.loadingIncrease[index]}
                             size="xl"
                             color={
-                              productStates.increased[index] ? "teal" : "cyan"
+                              productStates.increased[index] ? "teal" : "brand"
                             }
                             variant="transparent"
                             onClick={() => {

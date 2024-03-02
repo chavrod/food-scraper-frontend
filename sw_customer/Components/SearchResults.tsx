@@ -291,7 +291,7 @@ export default React.memo(function SearchResults({
                           <Group spacing={0} align="center">
                             <Text
                               fz="md"
-                              c="cyan.7"
+                              c="brand.7"
                               sx={{
                                 cursor: "pointer",
                                 "&:hover": {

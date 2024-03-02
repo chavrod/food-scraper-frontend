@@ -75,7 +75,7 @@ export default function SearchHeader({
             radius={0}
             type="submit"
             variant="filled"
-            color="cyan"
+            color="brand"
             size={isLargerThanSm ? "lg" : "md"}
             loading={loadingSearch}
             style={{

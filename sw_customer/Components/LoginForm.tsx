@@ -113,7 +113,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 mt="xs"
                 align="right"
                 size="sm"
-                c={"cyan.9"}
+                c={"brand.9"}
                 sx={{
                   cursor: "pointer",
                   "&:hover": {

@@ -324,7 +324,7 @@ export default function BasketPreview() {
                     <ActionIcon
                       loading={productStates.loadingDecrease[index]}
                       size="xl"
-                      color={productStates.decreased[index] ? "teal" : "cyan"}
+                      color={productStates.decreased[index] ? "teal" : "brand"}
                       variant="transparent"
                       onClick={() => {
                         item?.id && handleDecreaseQuantity(item.id, index);
@@ -340,7 +340,7 @@ export default function BasketPreview() {
                     <ActionIcon
                       loading={productStates.loadingIncrease[index]}
                       size="xl"
-                      color={productStates.increased[index] ? "teal" : "cyan"}
+                      color={productStates.increased[index] ? "teal" : "brand"}
                       variant="transparent"
                       onClick={() => {
                         item?.id && handleIncreaseQuantity(item.id, index);

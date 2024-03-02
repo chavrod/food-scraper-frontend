@@ -39,7 +39,21 @@ export default function App({
           withNormalizeCSS
           theme={{
             colorScheme,
-            primaryColor: "cyan",
+            colors: {
+              brand: [
+                "#E3FAFC",
+                "#C5F6FA",
+                "#99E9F2",
+                "#66D9E8",
+                "#3BC9DB",
+                "#22B8CF",
+                "#15AABF",
+                "#1098AD",
+                "#0C8599",
+                "#0B7285",
+              ],
+            },
+            primaryColor: "brand",
 
             shadows: {
               md: "1px 1px 3px rgba(0, 0, 0, .25)",

@@ -226,7 +226,7 @@ export default function MainAppShell({
                       borderWidth: 0,
                     }}
                     variant="filled"
-                    color="cyan.0"
+                    color="brand.0"
                     onClick={() => {}}
                   >
                     <Link href="/basket" style={{ textDecoration: "none" }}>
@@ -257,7 +257,7 @@ export default function MainAppShell({
                     offset={3}
                   >
                     <Menu.Target>
-                      <Avatar color={session ? "cyan" : "gray"} radius="md">
+                      <Avatar color={session ? "brand" : "gray"} radius="md">
                         {session && session.user.username.length > 2 ? (
                           session.user.username.slice(0, 2).toUpperCase()
                         ) : (
