@@ -20,6 +20,7 @@ import {
   Title,
   Badge,
   Button,
+  Indicator,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import {
@@ -34,6 +35,8 @@ import {
   IconCircleCheckFilled,
   IconCompass,
   IconShoppingCart,
+  IconShoppingCartFilled,
+  IconBasket,
 } from "@tabler/icons-react";
 import { useSessionContext } from "@/Context/SessionContext";
 // Internal: Components
@@ -50,6 +53,8 @@ interface Route {
   navbar: boolean;
   isLoggedInVisible: boolean;
   isLoggedOutVisible: boolean;
+  showStats: boolean;
+  stat?: string | number;
   onClick: boolean | (() => void);
 }
 
@@ -99,10 +104,24 @@ export default function MainAppShell({
       label: "Explore",
       icon: IconCompass,
       footer: true,
-      navbar: true,
+      navbar: false,
       isLoggedInVisible: true,
       isLoggedOutVisible: true,
       onClick: false,
+      showStats: false,
+    },
+
+    {
+      link: "/basket",
+      label: "Basket",
+      icon: IconShoppingCart,
+      footer: true,
+      navbar: true,
+      isLoggedInVisible: true,
+      isLoggedOutVisible: false,
+      onClick: false,
+      showStats: true,
+      stat: session && basketQty ? (basketQty > 99 ? "99+" : basketQty) : 0,
     },
 
     {
@@ -110,10 +129,11 @@ export default function MainAppShell({
       label: "Estimate",
       icon: IconCalculator,
       footer: true,
-      navbar: true,
+      navbar: false,
       isLoggedInVisible: true,
       isLoggedOutVisible: true,
       onClick: false,
+      showStats: false,
     },
     {
       link: "/login",
@@ -126,16 +146,18 @@ export default function MainAppShell({
       onClick: () => {
         open();
       },
+      showStats: false,
     },
     {
       link: "/track",
       label: "Track",
       icon: IconChartHistogram,
       footer: true,
-      navbar: true,
+      navbar: false,
       isLoggedInVisible: true,
       isLoggedOutVisible: false,
       onClick: false,
+      showStats: false,
     },
   ];
 
@@ -185,7 +207,8 @@ export default function MainAppShell({
                   }}
                 />
               </Link>
-
+            </Group>
+            <Group>
               {isLargerThanSm && (
                 <Group>
                   {routes
@@ -196,103 +219,68 @@ export default function MainAppShell({
                         href={r.link}
                         style={{ textDecoration: "none" }}
                       >
-                        <NavLink
-                          my={4}
-                          label={r.label}
-                          icon={<r.icon size="1.5rem" stroke={1.5} />}
-                          active={r.link === router.pathname}
-                          variant="filled"
-                        />
+                        <Indicator
+                          disabled={!r.showStats}
+                          label={r.stat}
+                          size={18}
+                          offset={1}
+                          color="red"
+                        >
+                          <NavLink
+                            my={4}
+                            label={r.label}
+                            icon={<r.icon size="1.5rem" stroke={1.5} />}
+                            active={true}
+                            variant={
+                              r.link === router.pathname ? "filled" : "light"
+                            }
+                          />
+                        </Indicator>
                       </Link>
                     ))}
                 </Group>
               )}
-            </Group>
-            <Group>
               {session ? (
-                <>
-                  <ActionIcon
-                    size={36.5}
-                    radius="md"
-                    sx={{
-                      "&:hover": {
-                        backgroundColor: "#3BC9DB",
-                      },
-                      backgroundColor:
-                        router.pathname === "/basket" ? "#3BC9DB" : "#E3FAFC",
-                      cursor: "pointer",
-                      width: isLargerThanSm ? "85px" : "60px",
+                <Menu shadow="md" width={200} position="bottom-end" offset={3}>
+                  <Menu.Target>
+                    <Avatar
+                      color={session ? "brand" : "gray"}
+                      radius={isLargerThanSm ? "" : "sm"}
+                    >
+                      {session && session.user.username.length > 2 ? (
+                        session.user.username.slice(0, 2).toUpperCase()
+                      ) : (
+                        <IconUserCircle size="1.8rem" stroke="0.09rem" />
+                      )}
+                    </Avatar>
+                  </Menu.Target>
 
-                      borderWidth: 0,
-                    }}
-                    variant="filled"
-                    color="brand.0"
-                    onClick={() => {}}
-                  >
-                    <Link href="/basket" style={{ textDecoration: "none" }}>
-                      <Badge
-                        leftSection={
-                          <IconShoppingCart
-                            size="1.3rem"
-                            stroke="0.12rem"
-                            color="#15AABF"
-                          />
-                        }
-                        radius="md"
-                        size="lg"
+                  <Menu.Dropdown>
+                    <Menu.Label>{session.user.email}</Menu.Label>
+                    <Menu.Item icon={<IconLifebuoy size={14} />}>
+                      Help
+                    </Menu.Item>
+                    <Menu.Item icon={<IconSettings size={14} />}>
+                      <Link
+                        href="/account-settings"
+                        style={{
+                          textDecoration: "none",
+                          color: "black",
+                        }}
                       >
-                        {session && basketQty
-                          ? basketQty > 99
-                            ? "99+"
-                            : basketQty
-                          : 0}
-                      </Badge>
-                    </Link>
-                  </ActionIcon>
-
-                  <Menu
-                    shadow="md"
-                    width={200}
-                    position="bottom-end"
-                    offset={3}
-                  >
-                    <Menu.Target>
-                      <Avatar color={session ? "brand" : "gray"} radius="md">
-                        {session && session.user.username.length > 2 ? (
-                          session.user.username.slice(0, 2).toUpperCase()
-                        ) : (
-                          <IconUserCircle size="1.8rem" stroke="0.09rem" />
-                        )}
-                      </Avatar>
-                    </Menu.Target>
-
-                    <Menu.Dropdown>
-                      <Menu.Label>{session.user.email}</Menu.Label>
-                      <Menu.Item icon={<IconLifebuoy size={14} />}>
-                        Help
-                      </Menu.Item>
-                      <Menu.Item icon={<IconSettings size={14} />}>
-                        <Link
-                          href="/account-settings"
-                          style={{
-                            textDecoration: "none",
-                            color: "black",
-                          }}
-                        >
-                          Account Settings
-                        </Link>
-                      </Menu.Item>
-                      <Menu.Divider />
-                      <Menu.Item
-                        onClick={() => logout(session.refresh_token)}
-                        // onClick={() => signOut()}
-                        icon={<IconLogout size={14} />}
-                      >
-                        Log Out
-                      </Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
-                </>
+                        Account Settings
+                      </Link>
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item
+                      onClick={() => logout(session.refresh_token)}
+                      // onClick={() => signOut()}
+                      icon={<IconLogout size={14} />}
+                    >
+                      Log Out
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
               ) : (
                 <Group>
                   <Button onClick={() => open()}> Log in</Button>
@@ -319,14 +307,25 @@ export default function MainAppShell({
                   typeof r.onClick === "function" ? (
                     // When onClick is a function
                     <Stack key={i} align="center" spacing={0}>
-                      <ActionIcon
-                        onClick={r.onClick}
-                        style={{ cursor: "pointer" }}
-                        variant="subtle"
-                        color={r.link === router.pathname ? "primary" : "gray"}
+                      <Indicator
+                        disabled={!r.showStats}
+                        label={r.stat}
+                        size={18}
+                        offset={1}
+                        color="red"
                       >
-                        <r.icon />
-                      </ActionIcon>
+                        <ActionIcon
+                          onClick={r.onClick}
+                          style={{ cursor: "pointer" }}
+                          variant="subtle"
+                          color={
+                            r.link === router.pathname ? "primary" : "gray"
+                          }
+                        >
+                          <r.icon />
+                        </ActionIcon>
+                      </Indicator>
+
                       <Text color="dimmed" fz="xs">
                         {r.label}
                       </Text>
@@ -339,14 +338,22 @@ export default function MainAppShell({
                       style={{ textDecoration: "none" }}
                     >
                       <Stack align="center" spacing={0}>
-                        <ActionIcon
-                          variant="subtle"
-                          color={
-                            r.link === router.pathname ? "primary" : "gray"
-                          }
+                        <Indicator
+                          disabled={!r.showStats}
+                          label={r.stat}
+                          size={18}
+                          offset={1}
+                          color="red"
                         >
-                          <r.icon />
-                        </ActionIcon>
+                          <ActionIcon
+                            variant="subtle"
+                            color={
+                              r.link === router.pathname ? "primary" : "gray"
+                            }
+                          >
+                            <r.icon />
+                          </ActionIcon>
+                        </Indicator>
                         <Text color="dimmed" fz="xs">
                           {r.label}
                         </Text>
