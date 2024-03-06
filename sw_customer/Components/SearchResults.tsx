@@ -189,7 +189,7 @@ export default React.memo(function SearchResults({
     <>
       {!searchQuery && !productsPageLoading && !cachedProductsPage ? (
         <Stack mx="lg" align="left" spacing={0}>
-          <Title order={2} mb="md">
+          <Title order={2} mt="md" mb="md">
             Suggested Searches
           </Title>
           <Grid>
