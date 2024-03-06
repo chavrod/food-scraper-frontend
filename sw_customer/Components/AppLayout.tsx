@@ -18,7 +18,6 @@ import {
   Paper,
   Box,
   Title,
-  Badge,
   Button,
   Indicator,
 } from "@mantine/core";
@@ -31,12 +30,10 @@ import {
   IconLifebuoy,
   IconLogout,
   IconSettings,
-  IconLogin,
   IconCircleCheckFilled,
   IconCompass,
   IconShoppingCart,
-  IconShoppingCartFilled,
-  IconBasket,
+  IconSearch,
 } from "@tabler/icons-react";
 import { useSessionContext } from "@/Context/SessionContext";
 // Internal: Components
@@ -44,6 +41,8 @@ import UserAccess from "../Components/UserAccess";
 // Internal: Utils
 import { logout } from "@/utils/auth";
 import { useGlobalContext } from "@/Context/globalContext";
+import NoSsr from "@/utils/NoSsr";
+import SearchHeader from "./SearchHeader";
 
 interface Route {
   link: string;
@@ -173,6 +172,11 @@ export default function MainAppShell({
     // }
   };
 
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const handleHideSearchBar = () => {
+    setIsSearchBarVisible(false);
+  };
+
   return (
     <AppShell
       styles={(theme) => ({
@@ -187,26 +191,43 @@ export default function MainAppShell({
         <Header height={80} p="lg">
           <Group position="apart" spacing="xs" noWrap>
             <Group>
-              <Link href="/">
-                <img
-                  src="/app-logo-logo.jpg"
-                  alt="Shopping Wiz"
-                  style={{
-                    maxWidth: "9rem",
-                    maxHeight: "3rem",
-                  }}
+              {!(isSearchBarVisible && !isLargerThanSm) && (
+                <>
+                  {" "}
+                  <Link href="/">
+                    <img
+                      src="/app-logo-logo.jpg"
+                      alt="Shopping Wiz"
+                      style={{
+                        maxWidth: "9rem",
+                        maxHeight: "3rem",
+                      }}
+                    />
+                  </Link>
+                  <Link href="/">
+                    <img
+                      src="/app-logo-name.jpg"
+                      alt="Logo"
+                      style={{
+                        maxWidth: isLargerThanSm ? "9rem" : "6rem",
+                        maxHeight: "3rem",
+                      }}
+                    />
+                  </Link>
+                </>
+              )}
+
+              {isLargerThanSm || isSearchBarVisible ? (
+                <SearchHeader
+                  isLargerThanSm={isLargerThanSm}
+                  isSearchBarVisible={isSearchBarVisible}
+                  handleHideSearchBar={handleHideSearchBar}
                 />
-              </Link>
-              <Link href="/">
-                <img
-                  src="/app-logo-name.jpg"
-                  alt="Logo"
-                  style={{
-                    maxWidth: isLargerThanSm ? "9rem" : "6rem",
-                    maxHeight: "3rem",
-                  }}
-                />
-              </Link>
+              ) : (
+                <ActionIcon type="submit" variant="transparent">
+                  <IconSearch onClick={() => setIsSearchBarVisible(true)} />
+                </ActionIcon>
+              )}
             </Group>
             <Group>
               {isLargerThanSm && (
@@ -240,52 +261,61 @@ export default function MainAppShell({
                     ))}
                 </Group>
               )}
-              {session ? (
-                <Menu shadow="md" width={200} position="bottom-end" offset={3}>
-                  <Menu.Target>
-                    <Avatar
-                      color={session ? "brand" : "gray"}
-                      radius={isLargerThanSm ? "" : "sm"}
-                    >
-                      {session && session.user.username.length > 2 ? (
-                        session.user.username.slice(0, 2).toUpperCase()
-                      ) : (
-                        <IconUserCircle size="1.8rem" stroke="0.09rem" />
-                      )}
-                    </Avatar>
-                  </Menu.Target>
-
-                  <Menu.Dropdown>
-                    <Menu.Label>{session.user.email}</Menu.Label>
-                    <Menu.Item icon={<IconLifebuoy size={14} />}>
-                      Help
-                    </Menu.Item>
-                    <Menu.Item icon={<IconSettings size={14} />}>
-                      <Link
-                        href="/account-settings"
-                        style={{
-                          textDecoration: "none",
-                          color: "black",
-                        }}
+              {!(isSearchBarVisible && !isLargerThanSm) ? (
+                session ? (
+                  <Menu
+                    shadow="md"
+                    width={200}
+                    position="bottom-end"
+                    offset={3}
+                  >
+                    <Menu.Target>
+                      <Avatar
+                        color={session ? "brand" : "gray"}
+                        radius={isLargerThanSm ? "" : "sm"}
                       >
-                        Account Settings
-                      </Link>
-                    </Menu.Item>
-                    <Menu.Divider />
-                    <Menu.Item
-                      onClick={() => logout(session.refresh_token)}
-                      // onClick={() => signOut()}
-                      icon={<IconLogout size={14} />}
-                    >
-                      Log Out
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
+                        {session && session.user.username.length > 2 ? (
+                          session.user.username.slice(0, 2).toUpperCase()
+                        ) : (
+                          <IconUserCircle size="1.8rem" stroke="0.09rem" />
+                        )}
+                      </Avatar>
+                    </Menu.Target>
+
+                    <Menu.Dropdown>
+                      <Menu.Label>{session.user.email}</Menu.Label>
+                      <Menu.Item icon={<IconLifebuoy size={14} />}>
+                        Help
+                      </Menu.Item>
+                      <Menu.Item icon={<IconSettings size={14} />}>
+                        <Link
+                          href="/account-settings"
+                          style={{
+                            textDecoration: "none",
+                            color: "black",
+                          }}
+                        >
+                          Account Settings
+                        </Link>
+                      </Menu.Item>
+                      <Menu.Divider />
+                      <Menu.Item
+                        onClick={() => logout(session.refresh_token)}
+                        // onClick={() => signOut()}
+                        icon={<IconLogout size={14} />}
+                      >
+                        Log Out
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                ) : (
+                  <Group>
+                    <Button onClick={() => open()}> Log in</Button>
+                    {/* <Button>Help</Button> */}
+                  </Group>
+                )
               ) : (
-                <Group>
-                  <Button onClick={() => open()}> Log in</Button>
-                  <Button>Help</Button>
-                </Group>
+                <></>
               )}
             </Group>
           </Group>

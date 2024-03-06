@@ -132,7 +132,6 @@ export default function HomePage() {
       >
         <Stack align="center" spacing={0} style={{ flexGrow: "1" }}>
           <NoSsr>
-            <SearchHeader loadingSearch={productsPage.loading} />
             <SearchResults
               searchQuery={searchQuery}
               productsPageLoading={productsPage.loading}
