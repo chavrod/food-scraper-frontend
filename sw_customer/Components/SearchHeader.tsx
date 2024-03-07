@@ -1,7 +1,6 @@
 import { ReactElement } from "react";
-import { Paper, TextInput, Flex, ActionIcon, Group } from "@mantine/core";
+import { TextInput, ActionIcon, Group } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useMediaQuery } from "@mantine/hooks";
 import { IconSearch, IconX } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 
@@ -35,7 +34,16 @@ export default function SearchHeader({
   });
 
   const handleSubmit = (values: { query: string; page: string }) => {
-    router.push(`?query=${values.query}&page=${values.page}`);
+    const searchParams = `?query=${values.query}&page=${values.page}`;
+
+    // Check if the current pathname is not the index page
+    if (router.pathname !== "/") {
+      // Navigate to the index page with the search parameters
+      router.push(`/${searchParams}`);
+    } else {
+      // If already on the index page, just push the search parameters
+      router.push(searchParams);
+    }
   };
 
   return (
