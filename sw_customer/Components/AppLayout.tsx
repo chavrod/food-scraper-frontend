@@ -189,8 +189,20 @@ export default function MainAppShell({
       })}
       header={
         <Header height={80} p="lg">
-          <Group position="apart" spacing="xs" noWrap>
-            <Group>
+          <Group
+            position="apart"
+            spacing="xs"
+            noWrap
+            style={{
+              width: "100%",
+            }}
+          >
+            <Group
+              style={{
+                width:
+                  isSearchBarVisible && !isLargerThanSm ? "100%" : undefined,
+              }}
+            >
               {!(isSearchBarVisible && !isLargerThanSm) && (
                 <>
                   {" "}
@@ -229,40 +241,40 @@ export default function MainAppShell({
                 </ActionIcon>
               )}
             </Group>
-            <Group>
-              {isLargerThanSm && (
-                <Group>
-                  {routes
-                    .filter((r) => r.navbar)
-                    .map((r, i) => (
-                      <Link
-                        key={i}
-                        href={r.link}
-                        style={{ textDecoration: "none" }}
-                      >
-                        <Indicator
-                          disabled={!r.showStats}
-                          label={r.stat}
-                          size={18}
-                          offset={1}
-                          color="red"
+            {!(isSearchBarVisible && !isLargerThanSm) && (
+              <Group>
+                {isLargerThanSm && (
+                  <Group>
+                    {routes
+                      .filter((r) => r.navbar)
+                      .map((r, i) => (
+                        <Link
+                          key={i}
+                          href={r.link}
+                          style={{ textDecoration: "none" }}
                         >
-                          <NavLink
-                            my={4}
-                            label={r.label}
-                            icon={<r.icon size="1.5rem" stroke={1.5} />}
-                            active={true}
-                            variant={
-                              r.link === router.pathname ? "filled" : "light"
-                            }
-                          />
-                        </Indicator>
-                      </Link>
-                    ))}
-                </Group>
-              )}
-              {!(isSearchBarVisible && !isLargerThanSm) ? (
-                session ? (
+                          <Indicator
+                            disabled={!r.showStats}
+                            label={r.stat}
+                            size={18}
+                            offset={1}
+                            color="red"
+                          >
+                            <NavLink
+                              my={4}
+                              label={r.label}
+                              icon={<r.icon size="1.5rem" stroke={1.5} />}
+                              active={true}
+                              variant={
+                                r.link === router.pathname ? "filled" : "light"
+                              }
+                            />
+                          </Indicator>
+                        </Link>
+                      ))}
+                  </Group>
+                )}
+                {session ? (
                   <Menu
                     shadow="md"
                     width={200}
@@ -313,11 +325,9 @@ export default function MainAppShell({
                     <Button onClick={() => open()}> Log in</Button>
                     {/* <Button>Help</Button> */}
                   </Group>
-                )
-              ) : (
-                <></>
-              )}
-            </Group>
+                )}
+              </Group>
+            )}
           </Group>
         </Header>
       }

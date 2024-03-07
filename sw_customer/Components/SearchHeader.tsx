@@ -39,29 +39,44 @@ export default function SearchHeader({
   };
 
   return (
-    <Paper>
-      <Group>
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <TextInput
-            id="1"
-            placeholder="Search..."
-            maw={isLargerThanSm ? 300 : 150}
-            size={isLargerThanSm ? "lg" : "md"}
-            radius="xl"
-            rightSection={
-              <ActionIcon type="submit" variant="transparent">
-                <IconSearch />
-              </ActionIcon>
-            }
-            {...form.getInputProps("query")}
-          />
-        </form>
-        {!isLargerThanSm && isSearchBarVisible && (
-          <ActionIcon>
-            <IconX onClick={handleHideSearchBar} />
-          </ActionIcon>
-        )}
-      </Group>
-    </Paper>
+    <Group
+      style={{
+        width: isSearchBarVisible && !isLargerThanSm ? "100%" : undefined,
+      }}
+      noWrap
+    >
+      <form
+        onSubmit={form.onSubmit(handleSubmit)}
+        style={{
+          width: isSearchBarVisible && !isLargerThanSm ? "100%" : undefined,
+        }}
+      >
+        <TextInput
+          id="1"
+          placeholder="Search..."
+          style={{
+            width: isLargerThanSm
+              ? 250
+              : isSearchBarVisible
+              ? "100%"
+              : undefined, // Add this line
+          }}
+          size={isLargerThanSm ? "lg" : "md"}
+          radius="xl"
+          rightSection={
+            <ActionIcon type="submit" variant="transparent">
+              <IconSearch />
+            </ActionIcon>
+          }
+          {...form.getInputProps("query")}
+          error={undefined}
+        />
+      </form>
+      {!isLargerThanSm && isSearchBarVisible && (
+        <ActionIcon>
+          <IconX onClick={handleHideSearchBar} />
+        </ActionIcon>
+      )}
+    </Group>
   );
 }
