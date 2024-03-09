@@ -177,6 +177,13 @@ export default function MainAppShell({
     setIsSearchBarVisible(false);
   };
 
+  const handleImageClick = async () => {
+    await router.push("/");
+    if (router.pathname === "/") {
+      router.reload();
+    }
+  };
+
   return (
     <AppShell
       styles={(theme) => ({
@@ -205,27 +212,27 @@ export default function MainAppShell({
             >
               {!(isSearchBarVisible && !isLargerThanSm) && (
                 <>
-                  {" "}
-                  <Link href="/">
-                    <img
-                      src="/app-logo-logo.jpg"
-                      alt="Shopping Wiz"
-                      style={{
-                        maxWidth: "9rem",
-                        maxHeight: "3rem",
-                      }}
-                    />
-                  </Link>
-                  <Link href="/">
-                    <img
-                      src="/app-logo-name.jpg"
-                      alt="Logo"
-                      style={{
-                        maxWidth: isLargerThanSm ? "9rem" : "6rem",
-                        maxHeight: "3rem",
-                      }}
-                    />
-                  </Link>
+                  <img
+                    src="/app-logo-logo.jpg"
+                    alt="Shopping Wiz"
+                    style={{
+                      maxWidth: "9rem",
+                      maxHeight: "3rem",
+                      cursor: "pointer",
+                    }}
+                    onClick={handleImageClick}
+                  />
+
+                  <img
+                    src="/app-logo-name.jpg"
+                    alt="Logo"
+                    style={{
+                      maxWidth: isLargerThanSm ? "9rem" : "6rem",
+                      maxHeight: "3rem",
+                      cursor: "pointer",
+                    }}
+                    onClick={handleImageClick}
+                  />
                 </>
               )}
 
