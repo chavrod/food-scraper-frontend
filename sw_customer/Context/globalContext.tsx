@@ -2,11 +2,22 @@ import React, { createContext, useContext, ReactNode, useEffect } from "react";
 import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
 import usePaginatedApi, { UseApiReturnType } from "@/utils/usePaginatedApi";
 import { useSessionContext } from "@/Context/SessionContext";
+import {
+  CachedProductsPage,
+  CachedProductsPageMetadata,
+  ScrapeStatsForCustomer,
+} from "@/types/customer_types";
+import productsPagesApi from "@/utils/productsPagesApi";
 
 import basketItemsApi from "@/utils/basketItemsApi";
 
 interface GlobalContextType {
   basketItems: UseApiReturnType<BasketItem[], BasketItemMetadata>;
+  productsPage: UseApiReturnType<
+    | [CachedProductsPage, CachedProductsPageMetadata]
+    | [{}, ScrapeStatsForCustomer],
+    any
+  >;
 }
 
 // Define the props for GlobalProvider
@@ -36,8 +47,17 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     }
   }, [session]);
 
+  const productsPage = usePaginatedApi<
+    | [CachedProductsPage, CachedProductsPageMetadata]
+    | [{}, ScrapeStatsForCustomer]
+  >({
+    apiFunc: productsPagesApi.get,
+    onSuccess: () => {},
+    accessToken,
+  });
+
   return (
-    <GlobalContext.Provider value={{ basketItems }}>
+    <GlobalContext.Provider value={{ basketItems, productsPage }}>
       {children}
     </GlobalContext.Provider>
   );
