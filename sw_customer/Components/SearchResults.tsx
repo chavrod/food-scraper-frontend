@@ -288,31 +288,27 @@ export default React.memo(function SearchResults({
                             {product.shop_name.charAt(0).toUpperCase() +
                               product.shop_name.slice(1).toLowerCase()}
                           </Text>
-                          <Group spacing={0} align="center">
-                            <Text
-                              fz="md"
-                              c="brand.7"
-                              sx={{
-                                cursor: "pointer",
-                                "&:hover": {
-                                  textDecoration: "underline",
-                                },
-                              }}
-                              fw={700}
-                              component="a"
-                              href={
-                                product.product_url ? product.product_url : ""
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Go to source
-                            </Text>
-                            <IconArrowBadgeRight
-                              size={20}
-                              style={{ color: "#1098AD" }}
-                            />
-                          </Group>
+
+                          <Text
+                            fz="md"
+                            c="brand.7"
+                            sx={{
+                              cursor: "pointer",
+                              "&:hover": {
+                                textDecoration: "underline",
+                              },
+                            }}
+                            fw={700}
+                            component="a"
+                            href={
+                              product.product_url ? product.product_url : ""
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            lineClamp={2}
+                          >
+                            Go to source ❯
+                          </Text>
                         </Box>
 
                         <Group spacing={0} h={40} position="apart">

@@ -195,147 +195,144 @@ export default function MainAppShell({
         },
       })}
       header={
-        <Header height={80} p="lg">
+        <Header
+          height={80}
+          p="lg"
+          style={{
+            overflowX: "auto",
+            overflow: "hidden",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            width: "100%",
+            height: "100%",
+          }}
+        >
           <Group
-            position="apart"
-            spacing="xs"
-            noWrap
             style={{
-              width: "100%",
+              width: isSearchBarVisible && !isLargerThanSm ? "100%" : undefined,
             }}
           >
-            <Group
-              style={{
-                width:
-                  isSearchBarVisible && !isLargerThanSm ? "100%" : undefined,
-              }}
-            >
-              {!(isSearchBarVisible && !isLargerThanSm) && (
-                <>
-                  <img
-                    src="/app-logo-logo.jpg"
-                    alt="Shopping Wiz"
-                    style={{
-                      maxWidth: "9rem",
-                      maxHeight: "3rem",
-                      cursor: "pointer",
-                    }}
-                    onClick={handleImageClick}
-                  />
-
-                  <img
-                    src="/app-logo-name.jpg"
-                    alt="Logo"
-                    style={{
-                      maxWidth: isLargerThanSm ? "9rem" : "6rem",
-                      maxHeight: "3rem",
-                      cursor: "pointer",
-                    }}
-                    onClick={handleImageClick}
-                  />
-                </>
-              )}
-
-              {isLargerThanSm || isSearchBarVisible ? (
-                <SearchHeader
-                  isLargerThanSm={isLargerThanSm}
-                  isSearchBarVisible={isSearchBarVisible}
-                  handleHideSearchBar={handleHideSearchBar}
-                />
-              ) : (
-                <ActionIcon type="submit" variant="transparent">
-                  <IconSearch onClick={() => setIsSearchBarVisible(true)} />
-                </ActionIcon>
-              )}
-            </Group>
             {!(isSearchBarVisible && !isLargerThanSm) && (
-              <Group>
-                {isLargerThanSm && (
-                  <Group>
-                    {routes
-                      .filter((r) => r.navbar)
-                      .map((r, i) => (
-                        <Link
-                          key={i}
-                          href={r.link}
-                          style={{ textDecoration: "none" }}
-                        >
-                          <Indicator
-                            disabled={!r.showStats}
-                            label={r.stat}
-                            size={18}
-                            offset={1}
-                            color="red"
-                          >
-                            <NavLink
-                              my={4}
-                              label={r.label}
-                              icon={<r.icon size="1.5rem" stroke={1.5} />}
-                              active={true}
-                              variant={
-                                r.link === router.pathname ? "filled" : "light"
-                              }
-                            />
-                          </Indicator>
-                        </Link>
-                      ))}
-                  </Group>
-                )}
-                {session ? (
-                  <Menu
-                    shadow="md"
-                    width={200}
-                    position="bottom-end"
-                    offset={3}
-                  >
-                    <Menu.Target>
-                      <Avatar
-                        color={session ? "brand" : "gray"}
-                        radius={isLargerThanSm ? "" : "sm"}
-                      >
-                        {session && session.user.username.length > 2 ? (
-                          session.user.username.slice(0, 2).toUpperCase()
-                        ) : (
-                          <IconUserCircle size="1.8rem" stroke="0.09rem" />
-                        )}
-                      </Avatar>
-                    </Menu.Target>
+              <>
+                <img
+                  src="/app-logo-logo.jpg"
+                  alt="Shopping Wiz"
+                  style={{
+                    maxWidth: "9rem",
+                    maxHeight: "3rem",
+                    cursor: "pointer",
+                  }}
+                  onClick={handleImageClick}
+                />
 
-                    <Menu.Dropdown>
-                      <Menu.Label>{session.user.email}</Menu.Label>
-                      <Menu.Item icon={<IconLifebuoy size={14} />}>
-                        Help
-                      </Menu.Item>
-                      <Menu.Item icon={<IconSettings size={14} />}>
-                        <Link
-                          href="/account-settings"
-                          style={{
-                            textDecoration: "none",
-                            color: "black",
-                          }}
-                        >
-                          Account Settings
-                        </Link>
-                      </Menu.Item>
-                      <Menu.Divider />
-                      <Menu.Item
-                        onClick={() => logout(session.refresh_token)}
-                        // onClick={() => signOut()}
-                        icon={<IconLogout size={14} />}
-                      >
-                        Log Out
-                      </Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
-                ) : (
-                  <Group>
-                    <Button onClick={() => open()}> Log in</Button>
-                    {/* <Button>Help</Button> */}
-                  </Group>
-                )}
-              </Group>
+                <img
+                  src="/app-logo-name.jpg"
+                  alt="Logo"
+                  style={{
+                    maxWidth: isLargerThanSm ? "9rem" : "6rem",
+                    maxHeight: "3rem",
+                    cursor: "pointer",
+                  }}
+                  onClick={handleImageClick}
+                />
+              </>
+            )}
+
+            {isLargerThanSm || isSearchBarVisible ? (
+              <SearchHeader
+                isLargerThanSm={isLargerThanSm}
+                isSearchBarVisible={isSearchBarVisible}
+                handleHideSearchBar={handleHideSearchBar}
+              />
+            ) : (
+              <ActionIcon type="submit" variant="transparent">
+                <IconSearch onClick={() => setIsSearchBarVisible(true)} />
+              </ActionIcon>
             )}
           </Group>
+          {!(isSearchBarVisible && !isLargerThanSm) && (
+            <Group>
+              {isLargerThanSm && (
+                <Group>
+                  {routes
+                    .filter((r) => r.navbar)
+                    .map((r, i) => (
+                      <Link
+                        key={i}
+                        href={r.link}
+                        style={{ textDecoration: "none" }}
+                      >
+                        <Indicator
+                          disabled={!r.showStats}
+                          label={r.stat}
+                          size={18}
+                          offset={1}
+                          color="red"
+                        >
+                          <NavLink
+                            my={4}
+                            label={r.label}
+                            icon={<r.icon size="1.5rem" stroke={1.5} />}
+                            active={true}
+                            variant={
+                              r.link === router.pathname ? "filled" : "light"
+                            }
+                          />
+                        </Indicator>
+                      </Link>
+                    ))}
+                </Group>
+              )}
+              {session ? (
+                <Menu shadow="md" width={200} position="bottom-end" offset={3}>
+                  <Menu.Target>
+                    <Avatar
+                      color={session ? "brand" : "gray"}
+                      radius={isLargerThanSm ? "" : "sm"}
+                    >
+                      {session && session.user.username.length > 2 ? (
+                        session.user.username.slice(0, 2).toUpperCase()
+                      ) : (
+                        <IconUserCircle size="1.8rem" stroke="0.09rem" />
+                      )}
+                    </Avatar>
+                  </Menu.Target>
+
+                  <Menu.Dropdown>
+                    <Menu.Label>{session.user.email}</Menu.Label>
+                    <Menu.Item icon={<IconLifebuoy size={14} />}>
+                      Help
+                    </Menu.Item>
+                    <Menu.Item icon={<IconSettings size={14} />}>
+                      <Link
+                        href="/account-settings"
+                        style={{
+                          textDecoration: "none",
+                          color: "black",
+                        }}
+                      >
+                        Account Settings
+                      </Link>
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item
+                      onClick={() => logout(session.refresh_token)}
+                      // onClick={() => signOut()}
+                      icon={<IconLogout size={14} />}
+                    >
+                      Log Out
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              ) : (
+                <Group>
+                  <Button onClick={() => open()}> Log in</Button>
+                  {/* <Button>Help</Button> */}
+                </Group>
+              )}
+            </Group>
+          )}
         </Header>
       }
       footer={
