@@ -32,6 +32,7 @@ import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import CountdownCircle from "@/Components/CountdownCircle";
 import { ProductGridSkeleton } from "@/Components/Skeletons";
+import SearchIntro from "./SearchIntro";
 
 export type ItemsLoadingStates = {
   loadingNew: boolean;
@@ -188,30 +189,32 @@ export default React.memo(function SearchResults({
   return (
     <>
       {!searchQuery && !productsPageLoading && !cachedProductsPage ? (
-        <Stack mx="lg" align="left" spacing={0}>
-          <Title order={2} my="md">
-            Suggested Searches
-          </Title>
-          <Grid>
-            {suggestedSearchOptions.map((option, index) => (
-              <Grid.Col key={index} span={6} xl={3}>
-                <SuggestedSearchOptionCard query={option.name}>
-                  <Stack align="center" spacing={0}>
-                    <Image
-                      src={option.imgPath}
-                      alt={option.name}
-                      width={isLargerThanSm ? 150 : 90}
-                    />
-                    <Text weight={500} fz="xl">
-                      {option.name}
-                    </Text>
-                  </Stack>
-                </SuggestedSearchOptionCard>
-              </Grid.Col>
-            ))}
-          </Grid>
-        </Stack>
-      ) : loadingNew && averageScrapingTime ? (
+        <SearchIntro />
+      ) : // <Stack mx="lg" align="left" spacing={0}>
+      //   <Title order={2} my="md">
+      //     Suggested Searches
+      //   </Title>
+      //   <Grid>
+      //     {suggestedSearchOptions.map((option, index) => (
+      //       <Grid.Col key={index} span={6} xl={3}>
+      //         <SuggestedSearchOptionCard query={option.name}>
+      //           <Stack align="center" spacing={0}>
+      //             <Image
+      //               src={option.imgPath}
+      //               alt={option.name}
+      //               width={isLargerThanSm ? 150 : 90}
+      //             />
+      //             <Text weight={500} fz="xl">
+      //               {option.name}
+      //             </Text>
+      //           </Stack>
+      //         </SuggestedSearchOptionCard>
+      //       </Grid.Col>
+      //     ))}
+      //   </Grid>
+      // </Stack>
+
+      loadingNew && averageScrapingTime ? (
         <CountdownCircle
           currentAverageScrapingTime={averageScrapingTime}
           loading={loadingNew}

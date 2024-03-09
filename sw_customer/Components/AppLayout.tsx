@@ -69,7 +69,7 @@ export default function MainAppShell({
   // });
   const isLargerThanSm = useMediaQuery("(min-width: 768px)");
 
-  const { basketItems } = useGlobalContext();
+  const { basketItems, productsPage } = useGlobalContext();
   const { metaData: basketItemsMetaData } = basketItems.responseData;
   const basketQty = basketItemsMetaData?.total_quantity || 0;
 
@@ -184,11 +184,31 @@ export default function MainAppShell({
     }
   };
 
+  console.log('router.pathname === "/"', router.pathname === "/");
+  console.log("!productsPage.loading", !productsPage.loading);
+
+  console.log(
+    "!productsPage?.responseData?.data",
+    !productsPage?.responseData?.data
+  );
+
   return (
     <AppShell
       styles={(theme) => ({
         main: {
+          backgroundImage:
+            router.pathname === "/" &&
+            !productsPage.loading &&
+            !productsPage?.responseData?.data
+              ? "url(landing-background.webp)"
+              : "",
+          backgroundPosition: "center center",
+          "@media (max-width: 768px)": {
+            backgroundPosition: "top center",
+            backgroundSize: "cover",
+          },
           backgroundColor: "#f1f3f5",
+          // backgroundColor: "#b2d1d6",
           paddingTop: 80,
           paddingLeft: 0,
           paddingRight: 0,
