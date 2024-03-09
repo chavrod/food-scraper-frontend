@@ -199,8 +199,6 @@ export default function MainAppShell({
           height={80}
           p="lg"
           style={{
-            overflowX: "auto",
-            overflow: "hidden",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
@@ -211,7 +209,9 @@ export default function MainAppShell({
           <Group
             style={{
               width: isSearchBarVisible && !isLargerThanSm ? "100%" : undefined,
+              overflow: "hidden",
             }}
+            mah={60}
           >
             {!(isSearchBarVisible && !isLargerThanSm) && (
               <>
