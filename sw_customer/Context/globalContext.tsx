@@ -18,6 +18,9 @@ interface GlobalContextType {
     | [{}, ScrapeStatsForCustomer],
     any
   >;
+  averageScrapingTime: any;
+  cachedProductsPage: CachedProductsPage | undefined;
+  cachedProductsPageMetadata: CachedProductsPageMetadata | undefined;
 }
 
 // Define the props for GlobalProvider
@@ -56,8 +59,32 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     accessToken,
   });
 
+  const averageScrapingTime =
+    productsPage?.responseData?.metaData &&
+    "average_time_seconds" in productsPage?.responseData?.metaData
+      ? productsPage?.responseData?.metaData.average_time_seconds
+      : undefined;
+
+  const cachedProductsPage = !averageScrapingTime
+    ? (productsPage?.responseData?.data as CachedProductsPage | undefined)
+    : undefined;
+
+  const cachedProductsPageMetadata = !averageScrapingTime
+    ? (productsPage?.responseData?.metaData as
+        | CachedProductsPageMetadata
+        | undefined)
+    : undefined;
+
   return (
-    <GlobalContext.Provider value={{ basketItems, productsPage }}>
+    <GlobalContext.Provider
+      value={{
+        basketItems,
+        productsPage,
+        averageScrapingTime,
+        cachedProductsPage,
+        cachedProductsPageMetadata,
+      }}
+    >
       {children}
     </GlobalContext.Provider>
   );
