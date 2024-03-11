@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { useState, useEffect } from "react";
 import { IconCheck } from "@tabler/icons-react";
 import { useRouter } from "next/router";
@@ -7,18 +6,14 @@ import { notifications } from "@mantine/notifications";
 import {
   CachedProductsPage,
   CachedProductsPageMetadata,
-  ScrapeStatsForCustomer,
 } from "@/types/customer_types";
 import BasketPreview from "@/Components/BasketPreview";
-import SearchHeader from "@/Components/SearchHeader";
 import { useSessionContext } from "@/Context/SessionContext";
-import usePaginatedApi from "@/utils/usePaginatedApi";
-import productsPagesApi from "@/utils/productsPagesApi";
 import notifyError from "@/utils/notifyError";
 import SearchResults from "@/Components/SearchResults";
 import NoSsr from "@/utils/NoSsr";
 import { useGlobalContext } from "@/Context/globalContext";
-import SearchIntro from "@/Components/SearchIntro";
+import { title } from "process";
 
 export interface SearchParams {
   query: string;
@@ -36,7 +31,12 @@ export default function HomePage() {
   const { session, isLoading } = useSessionContext();
   const accessToken = session?.access_token;
 
-  const { productsPage } = useGlobalContext();
+  const {
+    productsPage,
+    averageScrapingTime,
+    cachedProductsPage,
+    cachedProductsPageMetadata,
+  } = useGlobalContext();
 
   const [loadingNew, setLoadingNew] = useState(false);
 
@@ -47,22 +47,6 @@ export default function HomePage() {
       productsPage.request({ query: searchQuery, page: searchPage });
     }
   }, [searchQuery, searchPage]);
-
-  const averageScrapingTime =
-    productsPage?.responseData?.metaData &&
-    "average_time_seconds" in productsPage?.responseData?.metaData
-      ? productsPage?.responseData?.metaData.average_time_seconds
-      : undefined;
-
-  const cachedProductsPage = !averageScrapingTime
-    ? (productsPage?.responseData?.data as CachedProductsPage | undefined)
-    : undefined;
-
-  const cachedProductsPageMetadata = !averageScrapingTime
-    ? (productsPage?.responseData?.metaData as
-        | CachedProductsPageMetadata
-        | undefined)
-    : undefined;
 
   useEffect(() => {
     if (averageScrapingTime && searchQuery) {
@@ -86,6 +70,8 @@ export default function HomePage() {
         console.log("MESSAGE RECEIVED");
         const responseData = JSON.parse(event.data);
 
+        console.log("responseData: ", responseData);
+
         if (responseData.query) {
           notifications.show({
             title: "Success!",
@@ -98,16 +84,24 @@ export default function HomePage() {
             productsPage.request({ query: responseData.query, page: 1 });
           }, 1000);
         } else {
-          notifyError(
-            "Sorry, we were not able to get any results from your request."
-          );
+          const error_msg =
+            responseData.message ||
+            "Sorry, we were not able to get any results from your request.";
+          notifyError({
+            title: "Something went wrong, redirecting to home page...",
+            message: error_msg,
+          });
+          router.push("/");
         }
         socket.close();
       };
 
       socket.onerror = (error) => {
-        notifyError("An error has occured.");
-        console.error("WebSocket Error:", error);
+        notifyError({
+          title: "Something went wrong, redirecting to home page...",
+          message: "Lost connection.",
+        });
+        router.push("/");
       };
 
       // Cleanup the socket connection on component unmount
