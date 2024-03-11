@@ -80,11 +80,11 @@ function usePaginatedApi<T, M = any>({
 
         Object.entries(errorData).forEach(([key, value]) => {
           const errorMessage = Array.isArray(value) ? value.join(", ") : value;
-          notifyError(`${key}: ${errorMessage}`);
+          notifyError({ message: `${key}: ${errorMessage}` });
         });
       }
     } catch (err) {
-      notifyError("Network or server error");
+      notifyError({ message: "Network or server error" });
     } finally {
       setLoading(false);
     }
