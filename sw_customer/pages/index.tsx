@@ -3,17 +3,11 @@ import { IconCheck } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { Stack, Flex } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import {
-  CachedProductsPage,
-  CachedProductsPageMetadata,
-} from "@/types/customer_types";
 import BasketPreview from "@/Components/BasketPreview";
-import { useSessionContext } from "@/Context/SessionContext";
 import notifyError from "@/utils/notifyError";
 import SearchResults from "@/Components/SearchResults";
 import NoSsr from "@/utils/NoSsr";
 import { useGlobalContext } from "@/Context/globalContext";
-import { title } from "process";
 
 export interface SearchParams {
   query: string;
@@ -27,9 +21,6 @@ export type ItemsLoadingStates = {
 
 export default function HomePage() {
   const router = useRouter();
-
-  const { session, isLoading } = useSessionContext();
-  const accessToken = session?.access_token;
 
   const {
     productsPage,
