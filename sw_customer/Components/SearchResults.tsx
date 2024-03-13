@@ -1,9 +1,5 @@
 import React, { PropsWithChildren, useState } from "react";
-import {
-  IconArrowBadgeRight,
-  IconShoppingBagPlus,
-  IconCheck,
-} from "@tabler/icons-react";
+import { IconShoppingBagPlus, IconCheck } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import normalizeUrl from "normalize-url";
 import {
@@ -18,7 +14,6 @@ import {
   Box,
   Title,
   Tooltip,
-  Image,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import {
@@ -139,82 +134,15 @@ export default React.memo(function SearchResults({
     }
   };
 
-  const suggestedSearchOptions = [
-    { name: "Cheese", imgPath: "cheese.png" },
-    { name: "Avocado", imgPath: "avocado.png" },
-    { name: "Beef", imgPath: "beef.png" },
-    { name: "Chicken", imgPath: "chicken.png" },
-  ];
-
   interface SuggestedSearchOptionCardProps extends PropsWithChildren {
     query: string;
   }
-
-  const SuggestedSearchOptionCard = ({
-    query,
-    ...props
-  }: SuggestedSearchOptionCardProps) => {
-    const [isPressed, setIsPressed] = useState(false);
-
-    const handlePress = () => {
-      setIsPressed(true);
-    };
-
-    const handleRelease = ({ send }: { send: boolean }) => {
-      setIsPressed(false);
-      send && handleFormSubmit({ query: query.toLowerCase(), page: "1" });
-    };
-
-    return (
-      <Paper
-        className={`touchable-card ${isPressed ? "pressed" : ""}`}
-        h={isLargerThanSm ? 240 : 160}
-        w={isLargerThanSm ? 240 : 160}
-        shadow="lg"
-        withBorder
-        p={isLargerThanSm ? "lg" : "sm"}
-        radius="lg"
-        onTouchStart={handlePress}
-        onMouseDown={handlePress}
-        onTouchEnd={() => handleRelease({ send: true })}
-        onMouseUp={() => handleRelease({ send: true })}
-        onMouseLeave={() => handleRelease({ send: false })}
-        style={{ cursor: "pointer" }}
-      >
-        {props.children}
-      </Paper>
-    );
-  };
 
   return (
     <>
       {!searchQuery && !productsPageLoading && !cachedProductsPage ? (
         <SearchIntro />
-      ) : // <Stack mx="lg" align="left" spacing={0}>
-      //   <Title order={2} my="md">
-      //     Suggested Searches
-      //   </Title>
-      //   <Grid>
-      //     {suggestedSearchOptions.map((option, index) => (
-      //       <Grid.Col key={index} span={6} xl={3}>
-      //         <SuggestedSearchOptionCard query={option.name}>
-      //           <Stack align="center" spacing={0}>
-      //             <Image
-      //               src={option.imgPath}
-      //               alt={option.name}
-      //               width={isLargerThanSm ? 150 : 90}
-      //             />
-      //             <Text weight={500} fz="xl">
-      //               {option.name}
-      //             </Text>
-      //           </Stack>
-      //         </SuggestedSearchOptionCard>
-      //       </Grid.Col>
-      //     ))}
-      //   </Grid>
-      // </Stack>
-
-      loadingNew && averageScrapingTime ? (
+      ) : loadingNew && averageScrapingTime ? (
         <CountdownCircle
           currentAverageScrapingTime={averageScrapingTime}
           loading={loadingNew}
