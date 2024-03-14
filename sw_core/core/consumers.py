@@ -26,9 +26,6 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
             # Remove leading and trailing whitespaces, replace multiple spaces with one, and convert to lowercase
             cleaned_query = re.sub(r"\s+", " ", query.strip()).lower()
             is_relevant_only = True
-            sender = text_data_json["sender"]
-
-            print("RECEIVED MESSAGE FROM CLIENT: ", cleaned_query, is_relevant_only)
 
             cached_page_exists = await self.check_for_entry(
                 cleaned_query, is_relevant_only
