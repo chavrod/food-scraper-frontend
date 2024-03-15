@@ -399,9 +399,6 @@ def scrape_aldi(query: str, is_relevant_only: bool):
         }
 
 
-from playwright.sync_api import sync_playwright
-
-
 def scrape_supervalu(query: str, is_relevant_only: bool):
     start_time = time.time()
 
