@@ -29,7 +29,7 @@ if ENV == "DEV":
     ALLOWED_HOSTS = ["*"]
     CSRF_COOKIE_SAMESITE = "Lax"
     CSRF_COOKIE_DOMAIN = "127.0.0.1"
-    CSRF_TRUSTED_ORIGINS = ["*"]
+    CSRF_TRUSTED_ORIGINS = []
 else:
     BASE_DOMAIN_NAME = "https://shop-wiz.ie"
     ALLOWED_HOSTS = ["shop-wiz.ie", "www.shop-wiz.ie"]
