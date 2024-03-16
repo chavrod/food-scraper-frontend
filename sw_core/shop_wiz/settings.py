@@ -204,9 +204,6 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
-RESULTS_PER_PAGE = 24
-
 # Testing email
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
@@ -228,7 +225,11 @@ CACHES = {
     }
 }
 
+# Scraping config
 CACHE_SHOP_SCRAPE_EXECUTION_SECONDS = 20
+ENABLED_SCRAPERS = ["TescoScraper", "SuperValuScraper", "AldiScraper"]
+RESULTS_PER_PAGE = 24
+
 
 # CELERY config
 CELERY_BROKER_URL = "redis://127.0.0.1:6379"

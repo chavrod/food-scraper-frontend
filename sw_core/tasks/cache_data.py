@@ -9,7 +9,7 @@ from django.db import transaction
 
 from celery import shared_task
 
-from shop_wiz.settings import RESULTS_PER_PAGE
+from shop_wiz.settings import RESULTS_PER_PAGE, ENABLED_SCRAPERS
 import core.models as core_models
 from core.serializers import CachedProductsPage
 from core.scraper_factory import ScraperFactory
@@ -18,8 +18,6 @@ from core.scraper_factory.shop_scrapers import ShopScraper
 sys.path.append("/Users/dmitry/projects/shopping_wiz/sw_core")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shop_wiz.settings")
 django.setup()
-
-ENABLED_SCRAPERS = ["TescoScraper", "SuperValuScraper", "AldiScraper"]
 
 factory = ScraperFactory()
 
