@@ -26,11 +26,13 @@ class ShopPageCount(models.IntegerChoices):
 
 
 # All products are sorted in ascending order
-class CachedProductsPage(models.Model):
+class SearchedProduct(models.Model):
     query = models.CharField(max_length=30)
-    page = models.IntegerField(validators=[MinValueValidator(1)])
-    results = models.JSONField(default=list)
-    is_relevant_only = models.BooleanField()
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=100, decimal_places=2)
+    img_src = models.URLField(blank=True, null=True)
+    product_url = models.URLField(blank=True, null=True)
+    shop_name = models.CharField(max_length=50, choices=ShopName.choices)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:

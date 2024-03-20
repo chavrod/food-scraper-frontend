@@ -28,27 +28,13 @@ class Customer(serializers.ModelSerializer):
 
 
 @ts_interface()
-class CachedProductsPageResult(serializers.Serializer):
+class SearchedProduct(serializers.Serializer):
+    query = serializers.CharField(max_length=30, required=True)
     name = serializers.CharField()
     price = serializers.FloatField()
     img_src = serializers.CharField(allow_null=True)
     product_url = serializers.CharField(allow_null=True)
     shop_name = serializers.ChoiceField(choices=core_models.ShopName.choices)
-
-
-@ts_interface()
-class ScrapeStatsForCustomer(serializers.Serializer):
-    average_time_seconds = serializers.DecimalField(
-        max_digits=100, decimal_places=0, coerce_to_string=False
-    )
-
-
-@ts_interface()
-class CachedProductsPage(serializers.ModelSerializer):
-    query = serializers.CharField(max_length=30, required=True)
-    page = serializers.IntegerField(default=1)
-    is_relevant_only = serializers.BooleanField(required=True)
-    results = CachedProductsPageResult(many=True, required=False, default=list)
 
     def validate_query(self, value):
         """
@@ -64,8 +50,15 @@ class CachedProductsPage(serializers.ModelSerializer):
         return cleaned_query
 
     class Meta:
-        model = core_models.CachedProductsPage
+        model = core_models.SearchedProduct
         exclude = ["id"]
+
+
+@ts_interface()
+class ScrapeStatsForCustomer(serializers.Serializer):
+    average_time_seconds = serializers.DecimalField(
+        max_digits=100, decimal_places=0, coerce_to_string=False
+    )
 
 
 @ts_interface()
