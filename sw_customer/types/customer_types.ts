@@ -5,7 +5,8 @@ export interface Customer {
     user: number | string;
 }
 
-export interface CachedProductsPageResult {
+export interface SearchedProduct {
+    query: string;
     name: string;
     price: number;
     img_src: string | null;
@@ -15,14 +16,6 @@ export interface CachedProductsPageResult {
 
 export interface ScrapeStatsForCustomer {
     average_time_seconds: number;
-}
-
-export interface CachedProductsPage {
-    query: string;
-    page?: number;
-    is_relevant_only: boolean;
-    results?: CachedProductsPageResult[];
-    created?: string;
 }
 
 export interface Product {
