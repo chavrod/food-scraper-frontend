@@ -5,13 +5,11 @@ import django
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from django.db import transaction
-
 from celery import shared_task
 
 from shop_wiz.settings import RESULTS_PER_PAGE, ENABLED_SCRAPERS
 import core.models as core_models
-from core.serializers import CachedProductsPage
+import core.serializers as core_serializers
 from core.scraper_factory import ScraperFactory
 from core.scraper_factory.shop_scrapers import ShopScraper
 
@@ -27,17 +25,13 @@ def cache_data(query: str, is_relevant_only: bool):
     print(f"Passing to cache_data query: {query}; is_relevant_only: {is_relevant_only}")
 
     scraped_data = scrape_data(query, is_relevant_only)
-    unsorted_results = scraped_data["products"]
-    if not unsorted_results:
+    products = scraped_data["products"]
+    if not products:
         return
-
-    print("Finished scraping and start paginating and sorting")
-    sorted_and_paginated_data = sort_and_paginate(unsorted_results)
 
     save_results_to_db(
         query=query,
-        sorted_and_paginated_data=sorted_and_paginated_data,
-        is_relevant_only=is_relevant_only,
+        products=products,
     )
 
 
@@ -101,19 +95,21 @@ def sort_and_paginate(data):
     return sorted_results_paginated
 
 
-def save_results_to_db(query, sorted_and_paginated_data, is_relevant_only):
-    with transaction.atomic():
-        for index, page_data in enumerate(sorted_and_paginated_data, start=1):
-            serializer = CachedProductsPage(
-                data={
-                    "query": query,
-                    "page": index,
-                    "results": page_data,
-                    "is_relevant_only": is_relevant_only,
-                }
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+def save_results_to_db(query, products_list):
+    products_to_create = []  # List to hold unsaved SearchedProduct instances
+
+    for product in products_list:
+        product_instance = core_models.SearchedProduct(
+            query=query,
+            name=product["name"],
+            price=product["price"],
+            img_src=product["img_src"],
+            product_url=product["product_url"],
+            shop_name=product["shop_name"],
+        )
+        products_to_create.append(product_instance)
+
+    core_models.SearchedProduct.objects.bulk_create(products_to_create)
 
 
 if __name__ == "__main__":
