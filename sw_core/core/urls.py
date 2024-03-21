@@ -12,7 +12,7 @@ router.register("basket_items", core_views.BasketItemViewSet, basename="basket_i
 urlpatterns = [
     path(
         "cached_products_page/",
-        core_views.CachedProductsPageViewSet.as_view({"get": "retrieve"}),
+        core_views.SearchedProductViewSet.as_view({"get": "retrieve"}),
     ),
     path("", include(router.urls)),
 ]

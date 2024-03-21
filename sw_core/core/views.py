@@ -31,20 +31,18 @@ def ping(request):
     return response
 
 
-class CachedProductsPageViewSet(
+class SearchedProductViewSet(
     viewsets.GenericViewSet,
 ):
-    serializer_class = core_serializers.CachedProductsPage
-    queryset = core_models.CachedProductsPage.objects.all()
+    serializer_class = core_serializers.SearchedProduct
+    queryset = core_models.SearchedProduct.objects.all()
 
     def retrieve(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
         query_param = serializer.validated_data["query"]
-        page_param = serializer.validated_data["page"]
 
-        # is_relevant_only_param = serializer.validated_data["is_relevant_only"]
         is_relevant_only_param = True
 
         # Check if we have cached data for this query
@@ -94,7 +92,7 @@ class CachedProductsPageViewSet(
         serializer = self.get_serializer(cached_page_data)
 
         # Serialize the metadata
-        metadata_serializer = core_serializers.CachedProductsPageMetadata(
+        metadata_serializer = core_serializers.SearchedProductMetadata(
             data={
                 "page": cached_page_data.page,
                 "total_pages": total_pages,

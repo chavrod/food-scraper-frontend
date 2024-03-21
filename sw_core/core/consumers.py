@@ -83,6 +83,6 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
 
     @staticmethod
     def entry_exists(query, is_relevant_only):
-        return core_models.CachedProductsPage.objects.filter(
+        return core_models.SearchedProduct.objects.filter(
             query=query, is_relevant_only=is_relevant_only, page=1
         ).exists()
