@@ -55,6 +55,12 @@ class SearchedProduct(serializers.Serializer):
 
 
 @ts_interface()
+class SearchedProductMetadata(serializers.Serializer):
+    page = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+
+
+@ts_interface()
 class ScrapeStatsForCustomer(serializers.Serializer):
     average_time_seconds = serializers.DecimalField(
         max_digits=100, decimal_places=0, coerce_to_string=False
@@ -149,12 +155,6 @@ class BasketItemMetadata(serializers.Serializer):
     page = serializers.IntegerField()
     total_pages = serializers.IntegerField()
     selected_shop = serializers.ChoiceField(choices=core_models.ShopName.choices)
-
-
-@ts_interface()
-class CachedProductsPageMetadata(serializers.Serializer):
-    page = serializers.IntegerField()
-    total_pages = serializers.IntegerField()
 
 
 @ts_interface()
