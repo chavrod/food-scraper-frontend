@@ -70,20 +70,6 @@ def scrape_data(query: str, is_relevant_only: bool) -> Dict:
     return results
 
 
-def summarise_scraping(shop, results_count, execution_time, total_summary):
-    if results_count == 0:
-        return
-    summary = core_models.ScrapeSummaryPerShop.objects.create(
-        shop=shop,
-        results_count=results_count,
-        execution_time=execution_time,
-        summary_total=total_summary,
-    )
-    print(
-        f"SCRAPPED SUMMARY FOR {summary.summary_total.query} in {summary.shop}: {summary.execution_time} seconds"
-    )
-
-
 def sort_and_paginate(data):
     sorted_results = sorted(data, key=lambda x: x["price"])
 

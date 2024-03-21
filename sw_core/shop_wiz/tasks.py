@@ -7,22 +7,12 @@ logger = logging.getLogger(__name__)
 from datetime import timedelta
 from django.utils import timezone
 
-from core.models import CachedProductsPage
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 
 import authentication.models as authentication_models
 
 User = get_user_model()
-
-
-@shared_task
-def delete_old_cached_products():
-    five_days_ago = timezone.now() - timedelta(days=5)
-    old_products = CachedProductsPage.objects.filter(created__lte=five_days_ago)
-    count = old_products.count()
-    old_products.delete()
-    logger.info(f"Deleted {count} CachedProductsPage entries older than 1 day")
 
 
 @shared_task
