@@ -22,12 +22,8 @@ export type ItemsLoadingStates = {
 export default function HomePage() {
   const router = useRouter();
 
-  const {
-    productsPage,
-    averageScrapingTime,
-    cachedProductsPage,
-    cachedProductsPageMetadata,
-  } = useGlobalContext();
+  const { requestedProducts, averageScrapingTime, searchedProducts } =
+    useGlobalContext();
 
   const [loadingNew, setLoadingNew] = useState(false);
 
@@ -35,7 +31,7 @@ export default function HomePage() {
   const searchPage = router.query.page?.toString() || "1";
   useEffect(() => {
     if (searchQuery) {
-      productsPage.request({ query: searchQuery, page: searchPage });
+      requestedProducts.request({ query: searchQuery, page: searchPage });
     }
   }, [searchQuery, searchPage]);
 
@@ -72,7 +68,7 @@ export default function HomePage() {
             withBorder: true,
           });
           setTimeout(() => {
-            productsPage.request({ query: responseData.query, page: 1 });
+            requestedProducts.request({ query: responseData.query, page: 1 });
           }, 1000);
         } else {
           const error_msg =
@@ -106,12 +102,14 @@ export default function HomePage() {
     <>
       <Flex
         justify={
-          !productsPage.loading && !cachedProductsPage
+          !requestedProducts.loading && !searchedProducts
             ? "center"
             : "space-between"
         }
         align={
-          !productsPage.loading && !cachedProductsPage ? "center" : "flex-start"
+          !requestedProducts.loading && !searchedProducts
+            ? "center"
+            : "flex-start"
         }
         direction="row"
         wrap="nowrap"
@@ -121,17 +119,16 @@ export default function HomePage() {
           <NoSsr>
             <SearchResults
               searchQuery={searchQuery}
-              productsPageLoading={productsPage.loading}
-              cachedProductsPage={cachedProductsPage}
-              pageNumber={productsPage.pagination.page}
-              totalPages={productsPage.pagination.totalPages}
-              cachedProductsPageMetadata={cachedProductsPageMetadata}
+              productsPageLoading={requestedProducts.loading}
+              searchedProducts={searchedProducts}
+              pageNumber={requestedProducts.pagination.page}
+              totalPages={requestedProducts.pagination.totalPages}
               averageScrapingTime={averageScrapingTime}
               loadingNew={loadingNew}
             />
           </NoSsr>
         </Stack>
-        {!(!productsPage.loading && !cachedProductsPage) && (
+        {!(!requestedProducts.loading && !searchedProducts) && (
           <NoSsr>
             <BasketPreview />
           </NoSsr>

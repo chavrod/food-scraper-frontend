@@ -3,8 +3,8 @@ import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
 import usePaginatedApi, { UseApiReturnType } from "@/utils/usePaginatedApi";
 import { useSessionContext } from "@/Context/SessionContext";
 import {
-  CachedProductsPage,
-  CachedProductsPageMetadata,
+  SearchedProduct,
+  SearchedProductMetadata,
   ScrapeStatsForCustomer,
 } from "@/types/customer_types";
 import productsPagesApi from "@/utils/productsPagesApi";
@@ -13,14 +13,13 @@ import basketItemsApi from "@/utils/basketItemsApi";
 
 interface GlobalContextType {
   basketItems: UseApiReturnType<BasketItem[], BasketItemMetadata>;
-  productsPage: UseApiReturnType<
-    | [CachedProductsPage, CachedProductsPageMetadata]
-    | [{}, ScrapeStatsForCustomer],
+  requestedProducts: UseApiReturnType<
+    [SearchedProduct[], SearchedProductMetadata] | [{}, ScrapeStatsForCustomer],
     any
   >;
   averageScrapingTime: any;
-  cachedProductsPage: CachedProductsPage | undefined;
-  cachedProductsPageMetadata: CachedProductsPageMetadata | undefined;
+  searchedProducts: SearchedProduct[] | undefined;
+  searchedProductMetadata: SearchedProductMetadata | undefined;
 }
 
 // Define the props for GlobalProvider
@@ -50,9 +49,8 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     }
   }, [session]);
 
-  const productsPage = usePaginatedApi<
-    | [CachedProductsPage, CachedProductsPageMetadata]
-    | [{}, ScrapeStatsForCustomer]
+  const requestedProducts = usePaginatedApi<
+    [SearchedProduct[], SearchedProductMetadata] | [{}, ScrapeStatsForCustomer]
   >({
     apiFunc: productsPagesApi.get,
     onSuccess: () => {},
@@ -60,18 +58,18 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
   });
 
   const averageScrapingTime =
-    productsPage?.responseData?.metaData &&
-    "average_time_seconds" in productsPage?.responseData?.metaData
-      ? productsPage?.responseData?.metaData.average_time_seconds
+    requestedProducts?.responseData?.metaData &&
+    "average_time_seconds" in requestedProducts?.responseData?.metaData
+      ? requestedProducts?.responseData?.metaData.average_time_seconds
       : undefined;
 
-  const cachedProductsPage = !averageScrapingTime
-    ? (productsPage?.responseData?.data as CachedProductsPage | undefined)
+  const searchedProducts = !averageScrapingTime
+    ? (requestedProducts?.responseData?.data as SearchedProduct[] | undefined)
     : undefined;
 
-  const cachedProductsPageMetadata = !averageScrapingTime
-    ? (productsPage?.responseData?.metaData as
-        | CachedProductsPageMetadata
+  const searchedProductMetadata = !averageScrapingTime
+    ? (requestedProducts?.responseData?.metaData as
+        | SearchedProductMetadata
         | undefined)
     : undefined;
 
@@ -79,10 +77,10 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     <GlobalContext.Provider
       value={{
         basketItems,
-        productsPage,
+        requestedProducts,
         averageScrapingTime,
-        cachedProductsPage,
-        cachedProductsPageMetadata,
+        searchedProducts,
+        searchedProductMetadata,
       }}
     >
       {children}

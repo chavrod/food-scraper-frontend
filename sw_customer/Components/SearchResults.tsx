@@ -16,11 +16,7 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import {
-  CachedProductsPage,
-  CachedProductsPageMetadata,
-  Product,
-} from "@/types/customer_types";
+import { SearchedProduct, Product } from "@/types/customer_types";
 import { useSessionContext } from "@/Context/SessionContext";
 import { useGlobalContext } from "@/Context/globalContext";
 import basketItemsApi from "@/utils/basketItemsApi";
@@ -42,10 +38,9 @@ type ProductStateType = {
 interface SearchResultsProps {
   searchQuery: string | undefined;
   productsPageLoading: boolean;
-  cachedProductsPage: CachedProductsPage | undefined;
+  searchedProducts: SearchedProduct[] | undefined;
   pageNumber: number;
   totalPages: number;
-  cachedProductsPageMetadata: CachedProductsPageMetadata | undefined;
   averageScrapingTime: any;
   loadingNew: boolean;
 }
@@ -55,10 +50,9 @@ interface SearchResultsProps {
 export default React.memo(function SearchResults({
   searchQuery,
   productsPageLoading,
-  cachedProductsPage,
+  searchedProducts,
   pageNumber,
   totalPages,
-  cachedProductsPageMetadata,
   averageScrapingTime,
   loadingNew,
 }: SearchResultsProps) {
@@ -140,7 +134,7 @@ export default React.memo(function SearchResults({
 
   return (
     <>
-      {!searchQuery && !productsPageLoading && !cachedProductsPage ? (
+      {!searchQuery && !productsPageLoading && !searchedProducts ? (
         <SearchIntro />
       ) : loadingNew && averageScrapingTime ? (
         <CountdownCircle
@@ -150,8 +144,8 @@ export default React.memo(function SearchResults({
       ) : productsPageLoading ? (
         <ProductGridSkeleton />
       ) : (
-        cachedProductsPage?.results &&
-        cachedProductsPage.results.length > 0 && (
+        searchedProducts &&
+        searchedProducts.length > 0 && (
           <Stack align="center" spacing={0}>
             <Group px="lg" align="left" style={{ width: "100%" }}>
               {searchQuery && (
@@ -161,7 +155,7 @@ export default React.memo(function SearchResults({
               )}
             </Group>
             <Grid gutter={0} justify="center" m="sm">
-              {cachedProductsPage.results.map((product, index) => (
+              {searchedProducts.map((product, index) => (
                 <Grid.Col key={index} span={12} md={6} xl={4}>
                   <Paper
                     h="190px"
@@ -307,10 +301,8 @@ export default React.memo(function SearchResults({
       {searchQuery &&
         !productsPageLoading &&
         !loadingNew &&
-        cachedProductsPage?.results &&
-        cachedProductsPage.results.length === 0 && (
-          <>Sorry, there was nothing found!</>
-        )}
+        searchedProducts &&
+        searchedProducts.length === 0 && <>Sorry, there was nothing found!</>}
     </>
   );
 });

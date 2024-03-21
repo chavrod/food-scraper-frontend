@@ -42,7 +42,6 @@ import UserAccess from "../Components/UserAccess";
 import { logout } from "@/utils/auth";
 import { useGlobalContext } from "@/Context/globalContext";
 import SearchHeader from "./SearchHeader";
-import { CachedProductsPage } from "@/types/customer_types";
 
 interface Route {
   link: string;
@@ -69,7 +68,8 @@ export default function MainAppShell({
   // });
   const isLargerThanSm = useMediaQuery("(min-width: 768px)");
 
-  const { basketItems, productsPage, cachedProductsPage } = useGlobalContext();
+  const { basketItems, requestedProducts, searchedProducts } =
+    useGlobalContext();
   const { metaData: basketItemsMetaData } = basketItems.responseData;
   const basketQty = basketItemsMetaData?.total_quantity || 0;
 
@@ -193,8 +193,8 @@ export default function MainAppShell({
           backgroundImage:
             router.pathname === "/" &&
             !searchQuery &&
-            !productsPage.loading &&
-            !cachedProductsPage
+            !requestedProducts.loading &&
+            !searchedProducts
               ? "url(landing-background.webp)"
               : "",
           backgroundPosition: "center center",

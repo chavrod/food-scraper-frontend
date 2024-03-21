@@ -14,6 +14,11 @@ export interface SearchedProduct {
     shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
 }
 
+export interface SearchedProductMetadata {
+    page: number;
+    total_pages: number;
+}
+
 export interface ScrapeStatsForCustomer {
     average_time_seconds: number;
 }
@@ -49,11 +54,6 @@ export interface BasketItemMetadata {
     page: number;
     total_pages: number;
     selected_shop: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
-}
-
-export interface CachedProductsPageMetadata {
-    page: number;
-    total_pages: number;
 }
 
 export interface Basket {
