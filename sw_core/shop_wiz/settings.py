@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 from datetime import timedelta
+from django.utils import timezone
 
 from pathlib import Path
 
@@ -228,7 +229,7 @@ CACHES = {
 # Scraping config
 CACHE_SHOP_SCRAPE_EXECUTION_SECONDS = 20
 ENABLED_SCRAPERS = ["TescoScraper", "SuperValuScraper", "AldiScraper"]
-RESULTS_PER_PAGE = 24
+RESULTS_EXPIRY_DAYS = timezone.now() - timedelta(days=10)
 
 
 # CELERY config
@@ -239,10 +240,6 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 CELERY_BEAT_SCHEDULE = {
-    "delete_old_cached_products_every_day": {
-        "task": "shop_wiz.tasks.delete_old_cached_products",
-        "schedule": timedelta(days=1),
-    },
     "delete_unverified_emails_every_day": {
         "task": "shop_wiz.tasks.delete_unverified_emails",
         "schedule": timedelta(days=1),

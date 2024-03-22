@@ -28,13 +28,9 @@ class Customer(serializers.ModelSerializer):
 
 
 @ts_interface()
-class SearchedProduct(serializers.Serializer):
+class SearchQuery(serializers.Serializer):
     query = serializers.CharField(max_length=30, required=True)
-    name = serializers.CharField()
-    price = serializers.FloatField()
-    img_src = serializers.CharField(allow_null=True)
-    product_url = serializers.CharField(allow_null=True)
-    shop_name = serializers.ChoiceField(choices=core_models.ShopName.choices)
+    page = serializers.IntegerField(default=1)
 
     def validate_query(self, value):
         """
@@ -48,6 +44,16 @@ class SearchedProduct(serializers.Serializer):
             raise serializers.ValidationError("Query cannot be empty.")
 
         return cleaned_query
+
+
+@ts_interface()
+class SearchedProduct(serializers.Serializer):
+    query = serializers.CharField(max_length=30, required=True)
+    name = serializers.CharField()
+    price = serializers.FloatField()
+    img_src = serializers.CharField(allow_null=True)
+    product_url = serializers.CharField(allow_null=True)
+    shop_name = serializers.ChoiceField(choices=core_models.ShopName.choices)
 
     class Meta:
         model = core_models.SearchedProduct

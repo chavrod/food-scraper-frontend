@@ -20,7 +20,7 @@ import core.serializers as core_serializers
 import core.models as core_models
 import core.pagination as core_paginaton
 
-from shop_wiz.settings import CACHE_SHOP_SCRAPE_EXECUTION_SECONDS
+from shop_wiz.settings import CACHE_SHOP_SCRAPE_EXECUTION_SECONDS, RESULTS_EXPIRY_DAYS
 
 
 @csrf_protect
@@ -36,18 +36,22 @@ class SearchedProductViewSet(
 ):
     serializer_class = core_serializers.SearchedProduct
     queryset = core_models.SearchedProduct.objects.all()
+    pagination_class = core_paginaton.SearchedProductsPagination
 
     def retrieve(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.query_params)
+        serializer = core_serializers.SearchQuery(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
         query_param = serializer.validated_data["query"]
+        page_param = serializer.validated_data["page"]
 
         is_relevant_only_param = True
 
-        # Check if we have cached data for this query
-        cached_pages = self.get_queryset().filter(query=query_param).order_by("-page")
-        if not cached_pages.exists():
+        # Check if we have up to date data for this query
+        recent_products = self.get_queryset().filter(
+            query=query_param, created__gte=RESULTS_EXPIRY_DAYS
+        )
+        if not recent_products.exists():
             cache_key = f"scrape_query_{query_param}"
             last_update = cache.get(cache_key)
 
@@ -82,20 +86,16 @@ class SearchedProductViewSet(
                 {"data": {}, "metadata": scrape_stats_for_customer_serializer.data}
             )
         # If requested page is greater than the greatest cached page, return the latest available page
-        if page_param > cached_pages.first().page:
-            page_param = cached_pages.first().page
+        paginator = Paginator(recent_products, self.pagination_class.page_size)
+        page_obj = paginator.get_page(page_param)
 
-        # Now, retrieve the data for the specific page and return it
-        cached_page_data = cached_pages.filter(page=page_param).first()
-        total_pages = cached_pages.count()
-
-        serializer = self.get_serializer(cached_page_data)
+        serializer = self.get_serializer(page_obj, many=True)
 
         # Serialize the metadata
         metadata_serializer = core_serializers.SearchedProductMetadata(
             data={
-                "page": cached_page_data.page,
-                "total_pages": total_pages,
+                "page": page_obj.number,
+                "total_pages": paginator.num_pages,
             }
         )
         metadata_serializer.is_valid(raise_exception=True)
