@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from celery import shared_task
 
-from shop_wiz.settings import RESULTS_PER_PAGE, ENABLED_SCRAPERS
+from shop_wiz.settings import ENABLED_SCRAPERS
 import core.models as core_models
 import core.serializers as core_serializers
 from core.scraper_factory import ScraperFactory
@@ -30,8 +30,8 @@ def cache_data(query: str, is_relevant_only: bool):
         return
 
     save_results_to_db(
-        query=query,
-        products=products,
+        query,
+        products,
     )
 
 
@@ -68,17 +68,6 @@ def scrape_data(query: str, is_relevant_only: bool) -> Dict:
                 print(f"{scraper_name} generated an exception: {exc}")
 
     return results
-
-
-def sort_and_paginate(data):
-    sorted_results = sorted(data, key=lambda x: x["price"])
-
-    sorted_results_paginated = [
-        sorted_results[i : i + RESULTS_PER_PAGE]
-        for i in range(0, len(sorted_results), RESULTS_PER_PAGE)
-    ]
-
-    return sorted_results_paginated
 
 
 def save_results_to_db(query, products_list):

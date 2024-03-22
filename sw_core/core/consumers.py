@@ -25,11 +25,7 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
             query = text_data_json["query"].rstrip()
             # Remove leading and trailing whitespaces, replace multiple spaces with one, and convert to lowercase
             cleaned_query = re.sub(r"\s+", " ", query.strip()).lower()
-            is_relevant_only = True
-
-            cached_page_exists = await self.check_for_entry(
-                cleaned_query, is_relevant_only
-            )
+            cached_page_exists = await self.check_for_entry(cleaned_query)
 
             # Check if entry_data was found and send relevant information
             if cached_page_exists:
@@ -62,7 +58,7 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
 
         await self.close()  # Close the connection
 
-    async def check_for_entry(self, query, is_relevant_only):
+    async def check_for_entry(self, query):
         retry_gap_seconds = 3
         duration_seconds = 30
         start_time = time.time()
@@ -70,9 +66,7 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
         while time.time() < end_time:
             time_passed = time.time() - start_time
             print(f"{time_passed} seconds passed, CHECKING RESULTS FOR {query}...")
-            cached_page_exists = await database_sync_to_async(self.entry_exists)(
-                query, is_relevant_only
-            )
+            cached_page_exists = await database_sync_to_async(self.entry_exists)(query)
             if cached_page_exists is not False:
                 return True
             else:
@@ -82,7 +76,5 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
                 await asyncio.sleep(retry_gap_seconds)
 
     @staticmethod
-    def entry_exists(query, is_relevant_only):
-        return core_models.SearchedProduct.objects.filter(
-            query=query, is_relevant_only=is_relevant_only, page=1
-        ).exists()
+    def entry_exists(query):
+        return core_models.SearchedProduct.objects.filter(query=query).exists()
