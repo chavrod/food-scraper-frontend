@@ -5,6 +5,11 @@ export interface Customer {
     user: number | string;
 }
 
+export interface SearchQuery {
+    query: string;
+    page?: number;
+}
+
 export interface SearchedProduct {
     query: string;
     name: string;
