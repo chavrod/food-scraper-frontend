@@ -7,7 +7,7 @@ import {
   SearchedProductMetadata,
   ScrapeStatsForCustomer,
 } from "@/types/customer_types";
-import productsPagesApi from "@/utils/productsPagesApi";
+import searchedProductsApi from "@/utils/searchedProductsApi";
 
 import basketItemsApi from "@/utils/basketItemsApi";
 
@@ -52,7 +52,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
   const requestedProducts = usePaginatedApi<
     [SearchedProduct[], SearchedProductMetadata] | [{}, ScrapeStatsForCustomer]
   >({
-    apiFunc: productsPagesApi.get,
+    apiFunc: searchedProductsApi.get,
     onSuccess: () => {},
     accessToken,
   });

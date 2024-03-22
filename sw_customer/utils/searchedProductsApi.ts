@@ -5,6 +5,6 @@ const get = (
   params?: { [key: string]: string | number }
 ) => apiClient.get("cached_products_page/", accessToken, params);
 
-const productsPagesApi = { get };
+const searchedProductsApi = { get };
 
-export default productsPagesApi;
+export default searchedProductsApi;
