@@ -57,12 +57,19 @@ class SearchParams(serializers.Serializer):
 
 @ts_interface()
 class SearchedProduct(serializers.Serializer):
-    query = serializers.CharField(max_length=30, required=True)
-    name = serializers.CharField()
-    price = serializers.FloatField()
-    img_src = serializers.CharField(allow_null=True)
-    product_url = serializers.CharField(allow_null=True)
-    shop_name = serializers.ChoiceField(choices=core_models.ShopName.choices)
+    query = serializers.CharField(max_length=30, required=True, allow_blank=False)
+    name = serializers.CharField(required=True, allow_blank=False)
+    price = serializers.FloatField(required=True)
+    img_src = serializers.CharField(required=True, allow_null=True)
+    product_url = serializers.CharField(required=True, allow_null=True)
+    shop_name = serializers.ChoiceField(
+        required=True, allow_blank=False, choices=core_models.ShopName.choices
+    )
+
+    def validate_price(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Price must be greater than 0")
+        return value
 
     class Meta:
         model = core_models.SearchedProduct

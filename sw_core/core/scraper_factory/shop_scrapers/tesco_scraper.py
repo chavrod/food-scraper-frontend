@@ -6,6 +6,7 @@ from playwright.sync_api import sync_playwright, Page
 
 from .shop_scraper import ShopScraper
 import core.models as core_models
+import core.serializers as core_serializers
 
 
 class TescoScraper(ShopScraper):
@@ -43,7 +44,7 @@ class TescoScraper(ShopScraper):
                     if not is_relevant_only and self.total_number_of_pages:
                         self.total_number_of_items = self._get_number_of_pages(page)
 
-                    self._parse_page(page)
+                    self._parse_page(page, query)
 
                     self.current_page += 1
                     if (
@@ -80,11 +81,12 @@ class TescoScraper(ShopScraper):
 
         return math.ceil(total_number_of_items / self.items_per_page)
 
-    def _parse_page(self, page: Page):
+    def _parse_page(self, page: Page, query: str):
         rows = page.query_selector_all("li.product-list--list-item")
 
         for prod in rows:
             product = {
+                "query": query,
                 "name": "",
                 "price": 0,
                 "img_src": None,
@@ -124,9 +126,12 @@ class TescoScraper(ShopScraper):
                     full_url = "https://www.tesco.ie" + internal_url_path
                     product["product_url"] = full_url
 
-            # If product has name and price, add to the list
-            if product["name"] and product["price"] > 0:
-                self.products.append(product)
+            # Create an instance of the serializer with the product data
+            serializer = core_serializers.SearchedProduct(data=product)
+            if serializer.is_valid():
+                self.products.append(serializer.validated_data)
+            else:
+                print(f"Invalid product data: {serializer.errors}")
 
     def _format_result(self):
         end_time = time.time()

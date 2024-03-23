@@ -25,21 +25,27 @@ class ShopPageCount(models.IntegerChoices):
     SUPERVALU = 30
 
 
-# All products are sorted in ascending order
 class SearchedProduct(models.Model):
     query = models.CharField(max_length=30)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=300)
     price = models.DecimalField(max_digits=100, decimal_places=2)
-    img_src = models.URLField(blank=True, null=True)
-    product_url = models.URLField(blank=True, null=True)
-    shop_name = models.CharField(max_length=50, choices=ShopName.choices)
+    img_src = models.URLField(null=True)
+    product_url = models.URLField(null=True)
+    shop_name = models.CharField(max_length=300, choices=ShopName.choices)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["query"]
+        constraints = [
+            models.CheckConstraint(check=models.Q(price__gt=0), name="price_gt_0"),
+            models.CheckConstraint(check=~models.Q(name=""), name="name_not_empty"),
+            models.CheckConstraint(check=~models.Q(query=""), name="query_not_empty"),
+            models.CheckConstraint(
+                check=~models.Q(shop_name=""), name="shop_name_not_empty"
+            ),
+        ]
 
     def __str__(self) -> str:
-        return f"{self.query}: {self.page} page"
+        return f"{self.query}: {self.name} ({self.created})"
 
 
 class Product(models.Model):
