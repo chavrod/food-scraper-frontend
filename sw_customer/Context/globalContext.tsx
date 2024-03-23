@@ -52,7 +52,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
   const requestedProducts = usePaginatedApi<
     [SearchedProduct[], SearchedProductMetadata] | [{}, ScrapeStatsForCustomer]
   >({
-    apiFunc: searchedProductsApi.get,
+    apiFunc: searchedProductsApi.list,
     onSuccess: () => {},
     accessToken,
   });

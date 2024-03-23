@@ -38,7 +38,7 @@ class SearchedProductViewSet(
     queryset = core_models.SearchedProduct.objects.all()
     pagination_class = core_paginaton.SearchedProductsPagination
 
-    def retrieve(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         serializer = core_serializers.SearchQuery(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 

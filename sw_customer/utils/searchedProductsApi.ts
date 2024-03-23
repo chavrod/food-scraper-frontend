@@ -1,10 +1,10 @@
 import apiClient from "./apiClient";
 
-const get = (
+const list = (
   accessToken: string | undefined,
   params?: { [key: string]: string | number }
-) => apiClient.get("cached_products_page/", accessToken, params);
+) => apiClient.get("products/", accessToken, params);
 
-const searchedProductsApi = { get };
+const searchedProductsApi = { list };
 
 export default searchedProductsApi;
