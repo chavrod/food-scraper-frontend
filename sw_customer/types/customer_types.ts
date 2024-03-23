@@ -5,9 +5,10 @@ export interface Customer {
     user: number | string;
 }
 
-export interface SearchQuery {
+export interface SearchParams {
     query: string;
     page?: number;
+    order_by?: string;
 }
 
 export interface SearchedProduct {
@@ -22,6 +23,7 @@ export interface SearchedProduct {
 export interface SearchedProductMetadata {
     page: number;
     total_pages: number;
+    order_by: string;
 }
 
 export interface ScrapeStatsForCustomer {

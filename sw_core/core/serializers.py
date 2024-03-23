@@ -28,9 +28,10 @@ class Customer(serializers.ModelSerializer):
 
 
 @ts_interface()
-class SearchQuery(serializers.Serializer):
+class SearchParams(serializers.Serializer):
     query = serializers.CharField(max_length=30, required=True)
     page = serializers.IntegerField(default=1)
+    order_by = serializers.CharField(default="price", required=False)
 
     def validate_query(self, value):
         """
@@ -44,6 +45,14 @@ class SearchQuery(serializers.Serializer):
             raise serializers.ValidationError("Query cannot be empty.")
 
         return cleaned_query
+
+    def validate_order_by(self, value):
+        # Validate the order field to ensure it's one of the acceptable options
+        if value not in ["price", "-price", "value", "-value"]:
+            raise serializers.ValidationError(
+                "Order must be 'price', '-price', 'value', or '-value'."
+            )
+        return value
 
 
 @ts_interface()
@@ -64,6 +73,7 @@ class SearchedProduct(serializers.Serializer):
 class SearchedProductMetadata(serializers.Serializer):
     page = serializers.IntegerField()
     total_pages = serializers.IntegerField()
+    order_by = serializers.CharField()
 
 
 @ts_interface()

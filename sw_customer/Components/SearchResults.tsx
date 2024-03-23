@@ -14,6 +14,7 @@ import {
   Box,
   Title,
   Tooltip,
+  Select,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { SearchedProduct, Product } from "@/types/customer_types";
@@ -24,6 +25,7 @@ import useApiSubmit from "@/utils/useApiSubmit";
 import CountdownCircle from "@/Components/CountdownCircle";
 import { ProductGridSkeleton } from "@/Components/Skeletons";
 import SearchIntro from "./SearchIntro";
+import { otherMetaData } from "@/utils/usePaginatedApi";
 
 export type ItemsLoadingStates = {
   loadingNew: boolean;
@@ -43,6 +45,7 @@ interface SearchResultsProps {
   totalPages: number;
   averageScrapingTime: any;
   loadingNew: boolean;
+  otherMetaData: otherMetaData;
 }
 
 // export default React.memo(SearchResults);
@@ -55,6 +58,7 @@ export default React.memo(function SearchResults({
   totalPages,
   averageScrapingTime,
   loadingNew,
+  otherMetaData,
 }: SearchResultsProps) {
   const { session, isLoading } = useSessionContext();
   const accessToken = session?.access_token;
@@ -66,17 +70,14 @@ export default React.memo(function SearchResults({
 
   const router = useRouter();
 
-  const handleFormSubmit = (values: { query: string; page: string }) => {
-    router.push(`?query=${values.query}&page=${values.page}`);
-  };
-
   const handlePageChange = (page: number) => {
-    // Scroll smoothly to the top of the page
     window.scrollTo({ top: 0, behavior: "smooth" });
-    // Wait for the scroll to complete (you can adjust the timeout as needed)
+    // Wait for the scroll to complete
     setTimeout(() => {
-      router.push(`?query=${searchQuery}&page=${page}`);
-    }, 500); // Adjust this time based on your scrolling speed
+      router.push(
+        `?query=${searchQuery}&page=${page}&order_by=${otherMetaData.orderBy}`
+      );
+    }, 500);
   };
 
   const { handleSubmit, loading: loadingSubmit } = useApiSubmit({
@@ -128,9 +129,14 @@ export default React.memo(function SearchResults({
     }
   };
 
-  interface SuggestedSearchOptionCardProps extends PropsWithChildren {
-    query: string;
-  }
+  const orderOptions = [
+    { value: "price", label: "Price Low to High" },
+    { value: "-price", label: "Price High to Low" },
+  ];
+
+  const handleFilter = (order_option: string) => {
+    router.push(`?query=${searchQuery}&page=${1}&order_by=${order_option}`);
+  };
 
   return (
     <>
@@ -147,12 +153,19 @@ export default React.memo(function SearchResults({
         searchedProducts &&
         searchedProducts.length > 0 && (
           <Stack align="center" spacing={0}>
-            <Group px="lg" align="left" style={{ width: "100%" }}>
+            <Group px="lg" position="apart" style={{ width: "100%" }}>
               {searchQuery && (
                 <Title order={isLargerThanSm ? 1 : 3} mt="md">
                   Results for &apos;{searchQuery}&apos;
                 </Title>
               )}
+              <Select
+                value={otherMetaData.orderBy || "price"}
+                onChange={handleFilter}
+                // label="Selected shops"
+                placeholder="Pick one"
+                data={orderOptions}
+              ></Select>
             </Group>
             <Grid gutter={0} justify="center" m="sm">
               {searchedProducts.map((product, index) => (

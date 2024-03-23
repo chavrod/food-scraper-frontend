@@ -12,6 +12,7 @@ import { useGlobalContext } from "@/Context/globalContext";
 export interface SearchParams {
   query: string;
   page: string;
+  order: string;
 }
 
 export type ItemsLoadingStates = {
@@ -27,13 +28,19 @@ export default function HomePage() {
 
   const [loadingNew, setLoadingNew] = useState(false);
 
+  // TODO: Think of a better solution (that handles 5+ params neatly)
   const searchQuery = router.query.query?.toString().toLowerCase() || "";
   const searchPage = router.query.page?.toString() || "1";
+  const searchOrder = router.query.order_by?.toString() || "price";
   useEffect(() => {
     if (searchQuery) {
-      requestedProducts.request({ query: searchQuery, page: searchPage });
+      requestedProducts.request({
+        query: searchQuery,
+        page: searchPage,
+        order_by: searchOrder,
+      });
     }
-  }, [searchQuery, searchPage]);
+  }, [searchQuery, searchPage, searchOrder]);
 
   useEffect(() => {
     if (averageScrapingTime && searchQuery) {
@@ -123,6 +130,7 @@ export default function HomePage() {
               searchedProducts={searchedProducts}
               pageNumber={requestedProducts.pagination.page}
               totalPages={requestedProducts.pagination.totalPages}
+              otherMetaData={requestedProducts.otherMetaData}
               averageScrapingTime={averageScrapingTime}
               loadingNew={loadingNew}
             />

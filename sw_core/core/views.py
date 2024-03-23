@@ -39,17 +39,18 @@ class SearchedProductViewSet(
     pagination_class = core_paginaton.SearchedProductsPagination
 
     def list(self, request, *args, **kwargs):
-        serializer = core_serializers.SearchQuery(data=request.query_params)
+        serializer = core_serializers.SearchParams(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
         query_param = serializer.validated_data["query"]
         page_param = serializer.validated_data["page"]
-
-        is_relevant_only_param = True
+        order_param = serializer.validated_data["order_by"]
 
         # Check if we have up to date data for this query
-        recent_products = self.get_queryset().filter(
-            query=query_param, created__gte=RESULTS_EXPIRY_DAYS
+        recent_products = (
+            self.get_queryset()
+            .filter(query=query_param, created__gte=RESULTS_EXPIRY_DAYS)
+            .order_by(order_param)
         )
         if not recent_products.exists():
             cache_key = f"scrape_query_{query_param}"
@@ -67,6 +68,8 @@ class SearchedProductViewSet(
                 pass
             else:
                 # Start the scraping process and set the cache
+                # TODO: Rethink
+                is_relevant_only_param = True
                 cache_data.delay(query_param, is_relevant_only_param)
                 cache.set(
                     cache_key,
@@ -96,6 +99,7 @@ class SearchedProductViewSet(
             data={
                 "page": page_obj.number,
                 "total_pages": paginator.num_pages,
+                "order_by": order_param,
             }
         )
         metadata_serializer.is_valid(raise_exception=True)
