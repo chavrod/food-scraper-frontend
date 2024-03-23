@@ -24,6 +24,7 @@ export interface SearchedProductMetadata {
     page: number;
     total_pages: number;
     order_by: string;
+    total_results: number;
 }
 
 export interface ScrapeStatsForCustomer {

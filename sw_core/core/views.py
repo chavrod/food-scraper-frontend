@@ -100,6 +100,7 @@ class SearchedProductViewSet(
                 "page": page_obj.number,
                 "total_pages": paginator.num_pages,
                 "order_by": order_param,
+                "total_results": recent_products.count(),
             }
         )
         metadata_serializer.is_valid(raise_exception=True)

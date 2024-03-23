@@ -153,10 +153,11 @@ export default React.memo(function SearchResults({
         searchedProducts &&
         searchedProducts.length > 0 && (
           <Stack align="center" spacing={0}>
-            <Group px="lg" position="apart" style={{ width: "100%" }}>
+            <Group px="lg" position="apart" mt="md" style={{ width: "100%" }}>
               {searchQuery && (
-                <Title order={isLargerThanSm ? 1 : 3} mt="md">
-                  Results for &apos;{searchQuery}&apos;
+                <Title order={isLargerThanSm ? 1 : 3}>
+                  {otherMetaData.totalResults} results for &apos;{searchQuery}
+                  &apos;
                 </Title>
               )}
               <Select

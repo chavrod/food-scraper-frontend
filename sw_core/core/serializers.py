@@ -74,6 +74,7 @@ class SearchedProductMetadata(serializers.Serializer):
     page = serializers.IntegerField()
     total_pages = serializers.IntegerField()
     order_by = serializers.CharField()
+    total_results = serializers.IntegerField()
 
 
 @ts_interface()
