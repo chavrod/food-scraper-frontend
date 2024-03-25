@@ -25,10 +25,21 @@ class ShopPageCount(models.IntegerChoices):
     SUPERVALU = 30
 
 
+class UnitType(models.TextChoices):
+    KG = "KG"
+    L = "L"
+    M = "M"
+    EACH = "EACH"
+    SHEET = "SHEET"
+    M2 = "M2"
+
+
 class SearchedProduct(models.Model):
     query = models.CharField(max_length=30)
     name = models.CharField(max_length=300)
-    price = models.DecimalField(max_digits=100, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_type = models.CharField(max_length=50, choices=UnitType.choices)
+    unit_measurement = models.FloatField()
     img_src = models.URLField(null=True)
     product_url = models.URLField(null=True)
     shop_name = models.CharField(max_length=300, choices=ShopName.choices)
@@ -37,6 +48,12 @@ class SearchedProduct(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(check=models.Q(price__gt=0), name="price_gt_0"),
+            models.CheckConstraint(
+                check=~models.Q(unit_type=""), name="unit_type_not_empty"
+            ),
+            models.CheckConstraint(
+                check=models.Q(unit_measurement__gt=0), name="unit_measurement_gt_0"
+            ),
             models.CheckConstraint(check=~models.Q(name=""), name="name_not_empty"),
             models.CheckConstraint(check=~models.Q(query=""), name="query_not_empty"),
             models.CheckConstraint(
