@@ -17,7 +17,7 @@ import {
   Select,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { SearchedProduct, Product } from "@/types/customer_types";
+import { SearchedProduct, BasketProduct } from "@/types/customer_types";
 import { useSessionContext } from "@/Context/SessionContext";
 import { useGlobalContext } from "@/Context/globalContext";
 import basketItemsApi from "@/utils/basketItemsApi";
@@ -93,7 +93,7 @@ export default React.memo(function SearchResults({
     added: {},
   });
 
-  const handleAddToBasket = async (product: Product, index: number) => {
+  const handleAddToBasket = async (product: BasketProduct, index: number) => {
     setProductStates((prevStates) => ({
       ...prevStates,
       loading: { ...prevStates.loading, [index]: true },

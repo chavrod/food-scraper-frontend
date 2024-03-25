@@ -280,7 +280,7 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     def _add_or_update_item_in_basket(self, request):
         customer = request.user.customer
         basket, _ = core_models.Basket.objects.get_or_create(customer=customer)
-        serializer = core_serializers.ProductCreateOrUpdate(data=request.data)
+        serializer = core_serializers.BasketProductCreateOrUpdate(data=request.data)
         if serializer.is_valid():
             product = serializer.save()
             basket_item, item_created = core_models.BasketItem.objects.get_or_create(

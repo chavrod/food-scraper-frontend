@@ -92,13 +92,13 @@ class ScrapeStatsForCustomer(serializers.Serializer):
 
 
 @ts_interface()
-class Product(serializers.ModelSerializer):
+class BasketProduct(serializers.ModelSerializer):
     class Meta:
-        model = core_models.Product
+        model = core_models.BasketProduct
         fields = "__all__"
 
 
-class ProductCreateOrUpdate(serializers.ModelSerializer):
+class BasketProductCreateOrUpdate(serializers.ModelSerializer):
     name = serializers.CharField(trim_whitespace=True, required=False)
 
     def validate(self, attrs):
@@ -122,7 +122,7 @@ class ProductCreateOrUpdate(serializers.ModelSerializer):
         shop_name = validated_data.get("shop_name")
 
         if name and shop_name:
-            product, created = core_models.Product.objects.get_or_create(
+            product, created = core_models.BasketProduct.objects.get_or_create(
                 name=name, shop_name=shop_name, defaults=validated_data
             )
             if not created:
@@ -137,7 +137,7 @@ class ProductCreateOrUpdate(serializers.ModelSerializer):
             )
 
     class Meta:
-        model = core_models.Product
+        model = core_models.BasketProduct
         fields = ["name", "price", "img_src", "product_url", "shop_name"]
         extra_kwargs = {
             "name": {"required": False},
@@ -150,7 +150,7 @@ class ProductCreateOrUpdate(serializers.ModelSerializer):
 
 @ts_interface()
 class BasketItem(serializers.ModelSerializer):
-    product = Product(read_only=True)
+    product = BasketProduct(read_only=True)
 
     class Meta:
         model = core_models.BasketItem

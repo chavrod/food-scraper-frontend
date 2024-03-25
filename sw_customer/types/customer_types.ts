@@ -15,8 +15,6 @@ export interface SearchedProduct {
     query: string;
     name: string;
     price: number;
-    unit_type: "KG" | "L" | "M" | "EACH" | "SHEET" | "M2";
-    unit_measurement: number;
     img_src: string | null;
     product_url: string | null;
     shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
@@ -33,7 +31,7 @@ export interface ScrapeStatsForCustomer {
     average_time_seconds: number;
 }
 
-export interface Product {
+export interface BasketProduct {
     id?: number;
     name: string;
     price: number;
@@ -46,7 +44,7 @@ export interface Product {
 
 export interface BasketItem {
     id?: number;
-    product?: Product;
+    product?: BasketProduct;
     quantity?: number;
 }
 

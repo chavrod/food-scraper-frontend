@@ -65,7 +65,7 @@ class SearchedProduct(models.Model):
         return f"{self.query}: {self.name} ({self.created})"
 
 
-class Product(models.Model):
+class BasketProduct(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=100, decimal_places=2)
     img_src = models.URLField(blank=True, null=True)
@@ -91,7 +91,7 @@ class Basket(models.Model):
 
 class BasketItem(models.Model):
     basket = models.ForeignKey(Basket, on_delete=models.CASCADE, related_name="items")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(BasketProduct, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
 
     def __str__(self):
