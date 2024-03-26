@@ -60,6 +60,11 @@ class SearchedProduct(serializers.Serializer):
     query = serializers.CharField(max_length=30, required=True, allow_blank=False)
     name = serializers.CharField(required=True, allow_blank=False)
     price = serializers.FloatField(required=True)
+    price_per_unit = serializers.FloatField(required=True)
+    unit_type = serializers.ChoiceField(
+        required=True, allow_blank=False, choices=core_models.UnitType.choices
+    )
+    unit_measurement = serializers.FloatField(required=True)
     img_src = serializers.CharField(required=True, allow_null=True)
     product_url = serializers.CharField(required=True, allow_null=True)
     shop_name = serializers.ChoiceField(

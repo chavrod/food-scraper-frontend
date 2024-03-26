@@ -15,6 +15,9 @@ export interface SearchedProduct {
     query: string;
     name: string;
     price: number;
+    price_per_unit: number;
+    unit_type: "KG" | "L" | "M" | "EACH" | "SHEET" | "M2";
+    unit_measurement: number;
     img_src: string | null;
     product_url: string | null;
     shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
