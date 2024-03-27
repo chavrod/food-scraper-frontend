@@ -30,7 +30,7 @@ class UnitType(models.TextChoices):
     L = "L"
     M = "M"
     EACH = "EACH"
-    SHEET = "SHEET"
+    HUNDRED_SHEETS = "HUNDRED_SHEETS"
     M2 = "M2"
 
 

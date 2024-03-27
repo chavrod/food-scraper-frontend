@@ -16,7 +16,7 @@ export interface SearchedProduct {
     name: string;
     price: number;
     price_per_unit: number;
-    unit_type: "KG" | "L" | "M" | "EACH" | "SHEET" | "M2";
+    unit_type: "KG" | "L" | "M" | "EACH" | "HUNDRED_SHEETS" | "M2";
     unit_measurement: number;
     img_src: string | null;
     product_url: string | null;
