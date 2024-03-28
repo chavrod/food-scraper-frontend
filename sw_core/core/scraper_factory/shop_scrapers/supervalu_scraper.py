@@ -7,6 +7,7 @@ from playwright.sync_api import sync_playwright, Page
 from .shop_scraper import ShopScraper
 import core.models as core_models
 import core.serializers as core_serializers
+import core.scraper_factory.shop_scrapers.util as scraper_util
 
 
 class SuperValuScraper(ShopScraper):
@@ -82,29 +83,48 @@ class SuperValuScraper(ShopScraper):
                 "query": query,
                 "name": "",
                 "price": 0,
+                "price_per_unit": 0,
+                "unit_type": "",
+                "unit_measurment": 0,
                 "img_src": None,
                 "product_url": None,
                 "shop_name": self.shop_name,
             }
 
+            # Get the product name
             name_element = prod.query_selector('span[class^="ProductCardTitle"] > div')
-            price_element = prod.query_selector(
-                '[class^="ProductCardPricing"] > span > span'
-            )
-            image_element = prod.query_selector(
-                '[class^="ProductCardImageWrapper"] > div > img'
-            )
-
             product["name"] = (
                 name_element.text_content().strip() if name_element else ""
             )
 
+            # Get the product price
+            price_element = prod.query_selector('span[class*="ProductCardPrice"]')
             price_text = price_element.text_content() if price_element else None
-
-            # Extracting the float value from the price text
             match = re.search(r"(\d+\.\d+)", price_text) if price_text else None
             product["price"] = round(float(match.group(1)), 2) if match else 0
 
+            # Get unit_type and price_per_unit
+            price_per_unit_element = prod.query_selector(
+                'span[class*="ProductCardPriceInfo"]'
+            )
+            if price_per_unit_element:
+                price_per_unit_text = (
+                    price_per_unit_element.text_content().strip() or ""
+                )
+                parts = price_per_unit_text.split("/")
+
+                unit_type, price_per_unit, unit_measurement = (
+                    scraper_util.get_unit_data(parts, product["price"])
+                )
+
+                product["unit_type"] = unit_type
+                product["price_per_unit"] = price_per_unit
+                product["unit_measurement"] = unit_measurement
+
+            # Get the product image source
+            image_element = prod.query_selector(
+                '[class^="ProductCardImageWrapper"] > div > img'
+            )
             product["img_src"] = (
                 image_element.get_attribute("src") if image_element else None
             )

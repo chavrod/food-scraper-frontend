@@ -7,15 +7,16 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from celery import shared_task
 
+sys.path.append("/Users/dmitry/projects/shopping_wiz/sw_core")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shop_wiz.settings")
+django.setup()
+
 from shop_wiz.settings import ENABLED_SCRAPERS
 import core.models as core_models
 import core.serializers as core_serializers
 from core.scraper_factory import ScraperFactory
 from core.scraper_factory.shop_scrapers import ShopScraper
 
-sys.path.append("/Users/dmitry/projects/shopping_wiz/sw_core")
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shop_wiz.settings")
-django.setup()
 
 factory = ScraperFactory()
 
@@ -78,6 +79,9 @@ def save_results_to_db(query, products_list):
             query=query,
             name=product["name"],
             price=product["price"],
+            price_per_unit=product["price_per_unit"],
+            unit_type=product["unit_type"],
+            unit_measurement=product["unit_measurement"],
             img_src=product["img_src"],
             product_url=product["product_url"],
             shop_name=product["shop_name"],
@@ -90,23 +94,17 @@ def save_results_to_db(query, products_list):
 if __name__ == "__main__":
     # Argument parser setup
     parser = argparse.ArgumentParser(
-        description="Scrape data based on a query and page number."
+        description="Scrape data based on a query and relevance."
     )
-
-    # Add arguments for query and page
+    # Add argument for query
     parser.add_argument("query", type=str, help="The query to search for.")
-    parser.add_argument("page", type=str, help="The page number to retrieve.")
-    parser.add_argument(
-        "is_relevant_only",
-        type=str,
-        help="Only scrape first page of most relevant searches.",
-    )
-
     # Parse the arguments
     args = parser.parse_args()
 
+    is_relevant_only = True
+
     # Call the function with parsed arguments
-    result = scrape_data(args.query, args.page, args.is_relevant_only)
+    result = scrape_data(args.query, is_relevant_only)
 
     # Display the desired results
     for shop in result["summaryPerShop"]:

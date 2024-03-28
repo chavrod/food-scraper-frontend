@@ -7,6 +7,7 @@ from playwright.sync_api import sync_playwright, Page
 from .shop_scraper import ShopScraper
 import core.models as core_models
 import core.serializers as core_serializers
+import core.scraper_factory.shop_scrapers.util as scraper_util
 
 
 class AldiScraper(ShopScraper):
@@ -84,6 +85,9 @@ class AldiScraper(ShopScraper):
                 "query": query,
                 "name": "",
                 "price": 0,
+                "price_per_unit": 0,
+                "unit_type": "",
+                "unit_measurment": 0,
                 "img_src": None,
                 "product_url": None,
                 "shop_name": self.shop_name,
@@ -92,16 +96,35 @@ class AldiScraper(ShopScraper):
             # Extracting elements
             name_element = prod.query_selector('[data-qa="search-product-title"]')
             price_element = prod.query_selector(".product-tile-price .h4 span")
+            price_per_unit_element = prod.query_selector(
+                '[data-qa="product-price"] > span'
+            )
             image_element = prod.query_selector("img")
 
             # Extracting relevant data
             product["name"] = name_element.text_content() or ""
 
+            # Get the product price
             price_text = price_element.text_content()
             price_match = re.search(r"(\d+\.\d+)", price_text)
             product["price"] = (
                 round(float(price_match.group(1)), 2) if price_match else 0
             )
+
+            # Get unit_type and price_per_unit
+            if price_per_unit_element:
+                price_per_unit_text = (
+                    price_per_unit_element.text_content().strip() or ""
+                )
+                parts = price_per_unit_text.split("per")
+
+                unit_type, price_per_unit, unit_measurement = (
+                    scraper_util.get_unit_data(parts, product["price"])
+                )
+
+                product["unit_type"] = unit_type
+                product["price_per_unit"] = price_per_unit
+                product["unit_measurement"] = unit_measurement
 
             product["img_src"] = image_element.get_attribute("src") or None
 
