@@ -40,7 +40,7 @@ class SearchedProduct(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
     unit_type = models.CharField(max_length=50, choices=UnitType.choices)
-    unit_measurement = models.FloatField()
+    unit_measurement = models.DecimalField(max_digits=10, decimal_places=3)
     img_src = models.URLField(null=True)
     product_url = models.URLField(null=True)
     shop_name = models.CharField(max_length=300, choices=ShopName.choices)
