@@ -250,12 +250,20 @@ export default React.memo(function SearchResults({
                           </Text>
                         </Box>
 
-                        <Group spacing={0} h={40} position="apart">
-                          <Text align="center">
-                            {product.price
-                              ? `€${product.price.toFixed(2)}`
-                              : "Price not available"}
-                          </Text>
+                        <Group spacing={0} h={40} position="apart" noWrap>
+                          <Group noWrap spacing={2}>
+                            <Text size="lg" align="center">
+                              {product.price
+                                ? `€${product.price.toFixed(2)}`
+                                : "Price not available"}
+                            </Text>
+                            <Text size="sm" color="dimmed" align="center">
+                              {`€${product.price_per_unit.toFixed(2)}/${
+                                product.unit_type
+                              }`}
+                            </Text>
+                          </Group>
+
                           <Tooltip
                             label="Log in to Add"
                             disabled={!!session}
