@@ -48,9 +48,9 @@ class SearchParams(serializers.Serializer):
 
     def validate_order_by(self, value):
         # Validate the order field to ensure it's one of the acceptable options
-        if value not in ["price", "-price", "value", "-value"]:
+        if value not in ["price", "-price", "price_per_unit", "-price_per_unit"]:
             raise serializers.ValidationError(
-                "Order must be 'price', '-price', 'value', or '-value'."
+                "Order must be 'price', '-price', 'price_per_unit', or '-price_per_unit'."
             )
         return value
 
