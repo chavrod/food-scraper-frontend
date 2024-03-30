@@ -66,7 +66,7 @@ class SearchedProduct(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.query}: {self.name} ({self.created})"
+        return f"{self.query}: {self.price} for {self.unit_measurement} {self.unit_type} ({self.price_per_unit}) {self.name} - {self.created}"
 
 
 class BasketProduct(models.Model):
