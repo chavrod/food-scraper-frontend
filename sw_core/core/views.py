@@ -3,7 +3,17 @@ from datetime import timedelta
 
 from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
-from django.db.models import Avg, Sum, F, Value, IntegerField, DecimalField
+from django.db.models import (
+    Sum,
+    F,
+    Value,
+    IntegerField,
+    DecimalField,
+    Min,
+    Max,
+    QuerySet,
+    Count,
+)
 from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -19,6 +29,7 @@ from tasks.cache_data import cache_data
 import core.serializers as core_serializers
 import core.models as core_models
 import core.pagination as core_paginaton
+import core.filters as core_filters
 
 from shop_wiz.settings import CACHE_SHOP_SCRAPE_EXECUTION_SECONDS, RESULTS_EXPIRY_DAYS
 
@@ -38,59 +49,99 @@ class SearchedProductViewSet(
     queryset = core_models.SearchedProduct.objects.all()
     pagination_class = core_paginaton.SearchedProductsPagination
 
+    def _begin_scraping_and_notify_client(self, query_param):
+        cache_key = f"scrape_query_{query_param}"
+        last_update = cache.get(cache_key)
+
+        average_time_seconds = CACHE_SHOP_SCRAPE_EXECUTION_SECONDS
+
+        if last_update and timezone.now() - last_update < timedelta(
+            seconds=CACHE_SHOP_SCRAPE_EXECUTION_SECONDS
+        ):
+            elapsed_time = timezone.now() - last_update
+            elapsed_seconds = elapsed_time.total_seconds()
+            seconds_left = average_time_seconds - elapsed_seconds
+            average_time_seconds = Decimal(int(max(0, seconds_left)))
+            pass
+        else:
+            # Start the scraping process and set the cache
+            # TODO: Rethink
+            is_relevant_only_param = True
+            cache_data.delay(query_param, is_relevant_only_param)
+            cache.set(
+                cache_key,
+                timezone.now(),
+                timeout=CACHE_SHOP_SCRAPE_EXECUTION_SECONDS,
+            )
+            print(f"SETTING NEW CACHE FOR {cache_key}")
+
+        scrape_stats_for_customer_serializer = core_serializers.ScrapeStatsForCustomer(
+            data={"average_time_seconds": average_time_seconds}
+        )
+        scrape_stats_for_customer_serializer.is_valid(raise_exception=True)
+
+        return Response(
+            {"data": {}, "metadata": scrape_stats_for_customer_serializer.data}
+        )
+
     def list(self, request, *args, **kwargs):
         serializer = core_serializers.SearchParams(data=request.query_params)
         serializer.is_valid(raise_exception=True)
+        validated_params = serializer.validated_data
+        print("validated_params: ", validated_params)
 
-        query_param = serializer.validated_data["query"]
-        page_param = serializer.validated_data["page"]
-        order_param = serializer.validated_data["order_by"]
-
-        # Check if we have up to date data for this query
-        recent_products = (
-            self.get_queryset()
-            .filter(query=query_param, created__gte=RESULTS_EXPIRY_DAYS)
-            .order_by(order_param)
+        filter_created_date = timezone.now() - timedelta(days=RESULTS_EXPIRY_DAYS)
+        recent_products = self.get_queryset().filter(
+            query=validated_params["query"], created__gte=filter_created_date
         )
+        # Check if we have up to date data for this query
         if not recent_products.exists():
-            cache_key = f"scrape_query_{query_param}"
-            last_update = cache.get(cache_key)
+            self._begin_scraping_and_notify_client(validated_params["query"])
 
-            average_time_seconds = CACHE_SHOP_SCRAPE_EXECUTION_SECONDS
+        filtered_products = core_filters.SearchedProductFilter(
+            validated_params, recent_products
+        ).qs
 
-            if last_update and timezone.now() - last_update < timedelta(
-                seconds=CACHE_SHOP_SCRAPE_EXECUTION_SECONDS
-            ):
-                elapsed_time = timezone.now() - last_update
-                elapsed_seconds = elapsed_time.total_seconds()
-                seconds_left = average_time_seconds - elapsed_seconds
-                average_time_seconds = Decimal(int(max(0, seconds_left)))
-                pass
-            else:
-                # Start the scraping process and set the cache
-                # TODO: Rethink
-                is_relevant_only_param = True
-                cache_data.delay(query_param, is_relevant_only_param)
-                cache.set(
-                    cache_key,
-                    timezone.now(),
-                    timeout=CACHE_SHOP_SCRAPE_EXECUTION_SECONDS,
-                )
-                print(f"SETTING NEW CACHE FOR {cache_key}")
+        # print("Product count", filtered_products.count())
 
-            scrape_stats_for_customer_serializer = (
-                core_serializers.ScrapeStatsForCustomer(
-                    data={"average_time_seconds": average_time_seconds}
-                )
+        for product in recent_products:
+            print(product)
+
+        # TODO: Can we refactor it ????
+        # 1. One query
+        # 2. Moved to queryset manager (potentially just aggregated on the recent_products queryset right away)
+        # Get distinct unit types present in the filtered_products
+        unit_types_present = (
+            recent_products.values("unit_type").annotate(total=Count("id")).order_by()
+        )
+        total_unit_range_info = {}
+        # Loop through each unit_type and calculate the min and max unit_measurement values
+        for entry in unit_types_present:
+            unit_type = entry["unit_type"]
+            unit_type_products = recent_products.filter(unit_type=unit_type)
+            ranges = unit_type_products.aggregate(
+                Min("unit_measurement"), Max("unit_measurement")
             )
-            scrape_stats_for_customer_serializer.is_valid(raise_exception=True)
+            total_unit_range_info[unit_type] = {
+                "min": ranges["unit_measurement__min"],
+                "max": ranges["unit_measurement__max"],
+                "count": entry["total"],  # Number of products for this unit_type
+            }
 
-            return Response(
-                {"data": {}, "metadata": scrape_stats_for_customer_serializer.data}
+        selected_unit_range_info = {}
+        if validated_params["unit_measurement_range"] and validated_params["unit_type"]:
+            ranges = filtered_products.aggregate(
+                Min("unit_measurement"), Max("unit_measurement")
             )
+            selected_unit_range_info = {
+                "name": validated_params["unit_type"],
+                "min": ranges["unit_measurement__min"],
+                "max": ranges["unit_measurement__max"],
+            }
+
         # If requested page is greater than the greatest cached page, return the latest available page
         paginator = Paginator(recent_products, self.pagination_class.page_size)
-        page_obj = paginator.get_page(page_param)
+        page_obj = paginator.get_page(validated_params["page"])
 
         serializer = self.get_serializer(page_obj, many=True)
 
@@ -99,8 +150,10 @@ class SearchedProductViewSet(
             data={
                 "page": page_obj.number,
                 "total_pages": paginator.num_pages,
-                "order_by": order_param,
+                "order_by": validated_params["order_by"],
                 "total_results": recent_products.count(),
+                # "total_unit_range_info": total_unit_range_info,
+                # "selected_unit_range_info": selected_unit_range_info,
             }
         )
         metadata_serializer.is_valid(raise_exception=True)

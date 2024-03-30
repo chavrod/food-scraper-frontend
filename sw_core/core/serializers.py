@@ -32,6 +32,11 @@ class SearchParams(serializers.Serializer):
     query = serializers.CharField(max_length=30, required=True)
     page = serializers.IntegerField(default=1)
     order_by = serializers.CharField(default="price", required=False)
+    price_range = serializers.CharField(required=False)
+    unit_type = serializers.ChoiceField(
+        choices=core_models.UnitType.choices, required=False
+    )
+    unit_measurement_range = serializers.CharField(required=False)
 
     def validate_query(self, value):
         """
@@ -48,10 +53,63 @@ class SearchParams(serializers.Serializer):
 
     def validate_order_by(self, value):
         # Validate the order field to ensure it's one of the acceptable options
-        if value not in ["price", "-price", "price_per_unit", "-price_per_unit"]:
+        if value not in ["price", "-price", "value", "-value"]:
             raise serializers.ValidationError(
-                "Order must be 'price', '-price', 'price_per_unit', or '-price_per_unit'."
+                "Order must be 'price', '-price', 'value', or '-value'."
             )
+        return value
+
+    # TODO: Abstract to validate_range so it can be reused
+    def validate_price_range(self, value):
+        """
+        Ensure that price_range is a comma-separated string of two numbers and
+        the first number is less than or equal to the second.
+        """
+        parts = value.split(",")
+        if len(parts) != 2:
+            raise serializers.ValidationError(
+                "Price range must consist of two numbers separated by a comma."
+            )
+
+        try:
+            min_price, max_price = float(parts[0]), float(parts[1])
+        except ValueError:
+            raise serializers.ValidationError(
+                "Both values in price range must be numbers."
+            )
+
+        if min_price > max_price:
+            raise serializers.ValidationError(
+                "The first number in the price range must be less than or equal to the second."
+            )
+
+        return value
+
+    def validate_unit_measurement_range(self, value):
+        # This validation only makes sense if unit_type is provided, so we check for it
+        if "unit_type" not in self.initial_data:
+            raise serializers.ValidationError(
+                "Unit type must be provided to filter by unit measurement range."
+            )
+
+        parts = value.split(",")
+        if len(parts) != 2:
+            raise serializers.ValidationError(
+                "Measurement range must consist of two numbers separated by a comma."
+            )
+
+        try:
+            min_measurement, max_measurement = float(parts[0]), float(parts[1])
+        except ValueError:
+            raise serializers.ValidationError(
+                "Both values in measurement range must be numbers."
+            )
+
+        if min_measurement > max_measurement:
+            raise serializers.ValidationError(
+                "The first number in the measurement range must be less than or equal to the second."
+            )
+
         return value
 
 
