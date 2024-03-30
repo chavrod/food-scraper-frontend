@@ -9,6 +9,9 @@ export interface SearchParams {
     query: string;
     page?: number;
     order_by?: string;
+    price_range?: string;
+    unit_type?: "KG" | "L" | "M" | "EACH" | "HUNDRED_SHEETS" | "M2";
+    unit_measurement_range?: string;
 }
 
 export interface SearchedProduct {
