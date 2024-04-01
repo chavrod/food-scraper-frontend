@@ -32,15 +32,24 @@ export default function HomePage() {
   const searchQuery = router.query.query?.toString().toLowerCase() || "";
   const searchPage = router.query.page?.toString() || "1";
   const searchOrder = router.query.order_by?.toString() || "price";
+  const priceRange = router.query.price_range?.toString() || "";
+  const unitType = router.query.unit_type?.toString() || "";
+  const unitMeasurmentRange =
+    router.query.unit_measurement_range?.toString() || "";
+  // TODO: Things like price__range should not even be included
+  // if they are not provided
   useEffect(() => {
     if (searchQuery) {
       requestedProducts.request({
         query: searchQuery,
-        page: searchPage,
+        // page: searchPage,
         order_by: searchOrder,
+        price_range: priceRange,
+        unit_type: unitType,
+        unit_measurement_range: unitMeasurmentRange,
       });
     }
-  }, [searchQuery, searchPage, searchOrder]);
+  }, [searchQuery, searchPage, searchOrder, priceRange]);
 
   useEffect(() => {
     if (averageScrapingTime && searchQuery) {
