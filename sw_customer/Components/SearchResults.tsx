@@ -132,8 +132,8 @@ export default React.memo(function SearchResults({
   const orderOptions = [
     { value: "price", label: "Price Low to High" },
     { value: "-price", label: "Price High to Low" },
-    { value: "price_per_unit", label: "Value Low to High" },
-    { value: "-price_per_unit", label: "Value High to Low" },
+    { value: "value", label: "Value Low to High" },
+    { value: "-value", label: "Value High to Low" },
   ];
 
   const handleFilter = (order_option: string) => {
