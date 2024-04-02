@@ -26,11 +26,26 @@ export interface SearchedProduct {
     shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
 }
 
+export interface SearchedProductAvailableUnitRangesInfo {
+    name: string;
+    count: number;
+    min: number;
+    max: number;
+}
+
+export interface SearchedProductSelectedUnitRangesInfo {
+    name: string;
+    min: number;
+    max: number;
+}
+
 export interface SearchedProductMetadata {
     page: number;
     total_pages: number;
     order_by: string;
     total_results: number;
+    total_unit_range_info: SearchedProductAvailableUnitRangesInfo[] | null;
+    selected_unit_range_info: SearchedProductSelectedUnitRangesInfo | null;
 }
 
 export interface ScrapeStatsForCustomer {
