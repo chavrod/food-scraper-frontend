@@ -91,7 +91,9 @@ class SearchedProductViewSet(
         print("validated_params: ", validated_params)
 
         filter_created_date = timezone.now() - timedelta(days=RESULTS_EXPIRY_DAYS)
-        recent_products = self.get_queryset().filter(
+        recent_products: QuerySet[
+            core_models.SearchedProduct
+        ] = self.get_queryset().filter(
             query=validated_params["query"], created__gte=filter_created_date
         )
         # Check if we have up to date data for this query
