@@ -140,11 +140,30 @@ class SearchedProduct(serializers.Serializer):
 
 
 @ts_interface()
+class SearchedProductAvailableUnitRangesInfo(serializers.Serializer):
+    name = serializers.CharField(max_length=50)
+    count = serializers.IntegerField()
+    min = serializers.DecimalField(max_digits=10, decimal_places=3)
+    max = serializers.DecimalField(max_digits=10, decimal_places=3)
+
+
+@ts_interface()
+class SearchedProductSelectedUnitRangesInfo(serializers.Serializer):
+    name = serializers.CharField(max_length=50)
+    min = serializers.DecimalField(max_digits=10, decimal_places=3)
+    max = serializers.DecimalField(max_digits=10, decimal_places=3)
+
+
+@ts_interface()
 class SearchedProductMetadata(serializers.Serializer):
     page = serializers.IntegerField()
     total_pages = serializers.IntegerField()
     order_by = serializers.CharField()
     total_results = serializers.IntegerField()
+    total_unit_range_info = serializers.ListField(
+        child=SearchedProductAvailableUnitRangesInfo(), allow_null=True
+    )
+    selected_unit_range_info = SearchedProductSelectedUnitRangesInfo(allow_null=True)
 
 
 @ts_interface()

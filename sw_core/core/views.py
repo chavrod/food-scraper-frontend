@@ -102,11 +102,6 @@ class SearchedProductViewSet(
             validated_params, recent_products
         ).qs
 
-        # print("Product count", filtered_products.count())
-
-        for product in recent_products:
-            print(product)
-
         # TODO: Can we refactor it ????
         # 1. One query
         # 2. Moved to queryset manager (potentially just aggregated on the recent_products queryset right away)
@@ -114,7 +109,7 @@ class SearchedProductViewSet(
         unit_types_present = (
             recent_products.values("unit_type").annotate(total=Count("id")).order_by()
         )
-        total_unit_range_info = {}
+        total_unit_range_info_list = []
         # Loop through each unit_type and calculate the min and max unit_measurement values
         for entry in unit_types_present:
             unit_type = entry["unit_type"]
@@ -122,13 +117,14 @@ class SearchedProductViewSet(
             ranges = unit_type_products.aggregate(
                 Min("unit_measurement"), Max("unit_measurement")
             )
-            total_unit_range_info[unit_type] = {
+            unit_range_info = {
+                "name": unit_type,
+                "count": entry["total"],  # Number of products for this unit_type
                 "min": ranges["unit_measurement__min"],
                 "max": ranges["unit_measurement__max"],
-                "count": entry["total"],  # Number of products for this unit_type
             }
+            total_unit_range_info_list.append(unit_range_info)
 
-        selected_unit_range_info = {}
         if validated_params["unit_measurement_range"] and validated_params["unit_type"]:
             ranges = filtered_products.aggregate(
                 Min("unit_measurement"), Max("unit_measurement")
@@ -152,8 +148,10 @@ class SearchedProductViewSet(
                 "total_pages": paginator.num_pages,
                 "order_by": validated_params["order_by"],
                 "total_results": recent_products.count(),
-                # "total_unit_range_info": total_unit_range_info,
-                # "selected_unit_range_info": selected_unit_range_info,
+                "total_unit_range_info": total_unit_range_info_list,
+                "selected_unit_range_info": (
+                    selected_unit_range_info if selected_unit_range_info else {}
+                ),
             }
         )
         metadata_serializer.is_valid(raise_exception=True)
