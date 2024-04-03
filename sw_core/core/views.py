@@ -79,7 +79,6 @@ class SearchedProductViewSet(
             data={"average_time_seconds": average_time_seconds}
         )
         scrape_stats_for_customer_serializer.is_valid(raise_exception=True)
-
         return Response(
             {"data": {}, "metadata": scrape_stats_for_customer_serializer.data}
         )
@@ -96,9 +95,10 @@ class SearchedProductViewSet(
         ] = self.get_queryset().filter(
             query=validated_params["query"], created__gte=filter_created_date
         )
+
         # Check if we have up to date data for this query
         if not recent_products.exists():
-            self._begin_scraping_and_notify_client(validated_params["query"])
+            return self._begin_scraping_and_notify_client(validated_params["query"])
 
         filtered_products = core_filters.SearchedProductFilter(
             validated_params, recent_products
@@ -122,8 +122,8 @@ class SearchedProductViewSet(
             unit_range_info = {
                 "name": unit_type,
                 "count": entry["total"],  # Number of products for this unit_type
-                "min": ranges["unit_measurement__min"],
-                "max": ranges["unit_measurement__max"],
+                "min": round(ranges["unit_measurement__min"], 2),
+                "max": round(ranges["unit_measurement__max"], 2),
             }
             total_unit_range_info_list.append(unit_range_info)
 
@@ -136,12 +136,12 @@ class SearchedProductViewSet(
             )
             selected_unit_range_info = {
                 "name": validated_params["unit_type"],
-                "min": ranges["unit_measurement__min"],
-                "max": ranges["unit_measurement__max"],
+                "min": round(ranges["unit_measurement__min"], 2),
+                "max": round(ranges["unit_measurement__max"], 2),
             }
 
         # If requested page is greater than the greatest cached page, return the latest available page
-        paginator = Paginator(recent_products, self.pagination_class.page_size)
+        paginator = Paginator(filtered_products, self.pagination_class.page_size)
         page_obj = paginator.get_page(validated_params["page"])
 
         serializer = self.get_serializer(page_obj, many=True)
