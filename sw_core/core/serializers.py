@@ -163,7 +163,7 @@ class SearchedProductMetadata(serializers.Serializer):
     total_unit_range_info = serializers.ListField(
         child=SearchedProductAvailableUnitRangesInfo(), allow_null=True
     )
-    selected_unit_range_info = SearchedProductSelectedUnitRangesInfo(allow_null=True)
+    selected_unit_range_info = SearchedProductSelectedUnitRangesInfo(required=False)
 
 
 @ts_interface()

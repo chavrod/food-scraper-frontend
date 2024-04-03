@@ -127,7 +127,10 @@ class SearchedProductViewSet(
             }
             total_unit_range_info_list.append(unit_range_info)
 
-        if validated_params["unit_measurement_range"] and validated_params["unit_type"]:
+        selected_unit_range_info = {}
+        if validated_params.get("unit_measurement_range") and validated_params.get(
+            "unit_type"
+        ):
             ranges = filtered_products.aggregate(
                 Min("unit_measurement"), Max("unit_measurement")
             )
@@ -143,7 +146,6 @@ class SearchedProductViewSet(
 
         serializer = self.get_serializer(page_obj, many=True)
 
-        # Serialize the metadata
         metadata_serializer = core_serializers.SearchedProductMetadata(
             data={
                 "page": page_obj.number,
@@ -151,8 +153,10 @@ class SearchedProductViewSet(
                 "order_by": validated_params["order_by"],
                 "total_results": recent_products.count(),
                 "total_unit_range_info": total_unit_range_info_list,
-                "selected_unit_range_info": (
-                    selected_unit_range_info if selected_unit_range_info else {}
+                **(
+                    {"selected_unit_range_info": selected_unit_range_info}
+                    if selected_unit_range_info
+                    else {}
                 ),
             }
         )
