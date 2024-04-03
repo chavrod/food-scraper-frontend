@@ -45,7 +45,7 @@ export interface SearchedProductMetadata {
     order_by: string;
     total_results: number;
     total_unit_range_info: SearchedProductAvailableUnitRangesInfo[] | null;
-    selected_unit_range_info: SearchedProductSelectedUnitRangesInfo | null;
+    selected_unit_range_info?: SearchedProductSelectedUnitRangesInfo;
 }
 
 export interface ScrapeStatsForCustomer {
