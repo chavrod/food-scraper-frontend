@@ -229,7 +229,8 @@ CACHES = {
 
 # Scraping config
 CACHE_SHOP_SCRAPE_EXECUTION_SECONDS = 20
-ENABLED_SCRAPERS = ["TescoScraper", "SuperValuScraper", "AldiScraper"]
+ENABLED_SCRAPERS = ["TescoScraper", "AldiScraper"]
+# "SuperValuScraper"
 RESULTS_EXPIRY_DAYS = 10
 
 
