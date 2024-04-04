@@ -15,8 +15,11 @@ import {
   Title,
   Tooltip,
   Select,
+  Drawer,
+  RangeSlider,
+  Slider,
 } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import { SearchedProduct, BasketProduct } from "@/types/customer_types";
 import { useSessionContext } from "@/Context/SessionContext";
 import { useGlobalContext } from "@/Context/globalContext";
@@ -60,6 +63,8 @@ export default React.memo(function SearchResults({
   loadingNew,
   otherMetaData,
 }: SearchResultsProps) {
+  const [opened, { open, close }] = useDisclosure(false);
+
   const { session, isLoading } = useSessionContext();
   const accessToken = session?.access_token;
 
@@ -142,6 +147,7 @@ export default React.memo(function SearchResults({
 
   return (
     <>
+      <FilterDrawer opened={opened} close={close} />
       {!searchQuery && !productsPageLoading && !searchedProducts ? (
         <SearchIntro />
       ) : loadingNew && averageScrapingTime ? (
@@ -162,13 +168,18 @@ export default React.memo(function SearchResults({
                   &apos;
                 </Title>
               )}
-              <Select
-                value={otherMetaData.orderBy || "price"}
-                onChange={handleFilter}
-                // label="Selected shops"
-                placeholder="Pick one"
-                data={orderOptions}
-              ></Select>
+              <Group>
+                <Select
+                  value={otherMetaData.orderBy || "price"}
+                  onChange={handleFilter}
+                  // label="Selected shops"
+                  placeholder="Pick one"
+                  data={orderOptions}
+                />
+                <Group position="center">
+                  <Button onClick={open}>Filters</Button>
+                </Group>
+              </Group>
             </Group>
             <Grid gutter={0} justify="center" m="sm">
               {searchedProducts.map((product, index) => (
@@ -330,3 +341,65 @@ export default React.memo(function SearchResults({
     </>
   );
 });
+
+const FilterDrawer = ({
+  opened,
+  close,
+}: {
+  opened: boolean;
+  close: () => void;
+}) => {
+  return (
+    <Drawer opened={opened} onClose={close} position="right">
+      {/* TODO: Add Clear all, with divider */}
+    </Drawer>
+  );
+};
+
+type RangeSliderComponentProps = {
+  unit: SearchedProduct["unit_type"];
+};
+
+function RangeSliderComponent({ unit }: RangeSliderComponentProps) {
+  function valueLabelFormat(value: number, unit: string) {
+    // Define the scaling and units for KG and L
+    const scaleForKgAndL = 100; // Start from 100mg or 100ml
+    let scaledValue = value;
+    let displayUnit = unit;
+
+    // Handle KG and L units
+    if (unit === "KG" || unit === "L") {
+      // Convert value to KG or L if it's 1000 or more
+      if (value >= 1000) {
+        scaledValue = value / 1000; // Convert to KG or L
+        displayUnit = unit === "KG" ? "kg" : "litre";
+      } else {
+        scaledValue = value * scaleForKgAndL; // Keep as mg or ml
+        displayUnit = unit === "KG" ? "mg" : "ml";
+      }
+    } else if (unit === "euros" || unit === "EACH") {
+      // For euros and EACH, use the value directly without conversion
+      displayUnit = unit;
+    } else {
+      // Add handling for other units if necessary
+    }
+
+    return `${scaledValue} ${displayUnit}`;
+  }
+
+  return (
+    <Stack spacing="xl" p="xl">
+      <RangeSlider
+        py="xl"
+        scale={(v) => 2 ** v}
+        step={1}
+        min={2}
+        max={30}
+        labelAlwaysOn
+        defaultValue={[10, 20]}
+        label={(value) => valueLabelFormat(value, "L")} // Specify the unit as 'L' here
+      />
+      {/* Add more sliders for euros and EACH if needed */}
+    </Stack>
+  );
+}
