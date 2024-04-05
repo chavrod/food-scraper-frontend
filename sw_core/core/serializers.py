@@ -141,17 +141,23 @@ class SearchedProduct(serializers.Serializer):
 
 @ts_interface()
 class SearchedProductAvailableUnitRangesInfo(serializers.Serializer):
-    name = serializers.CharField(max_length=50)
+    name = serializers.ChoiceField(
+        allow_blank=False, choices=core_models.UnitType.choices
+    )
     count = serializers.IntegerField()
-    min = serializers.DecimalField(max_digits=10, decimal_places=3)
-    max = serializers.DecimalField(max_digits=10, decimal_places=3)
+    min = serializers.FloatField()
+    max = serializers.FloatField()
+    min_selected = serializers.FloatField(allow_null=True)
+    max_selected = serializers.FloatField(allow_null=True)
 
 
 @ts_interface()
-class SearchedProductSelectedUnitRangesInfo(serializers.Serializer):
+class SearchedProductPriceRangeInfo(serializers.Serializer):
     name = serializers.CharField(max_length=50)
-    min = serializers.DecimalField(max_digits=10, decimal_places=3)
-    max = serializers.DecimalField(max_digits=10, decimal_places=3)
+    min = serializers.FloatField()
+    max = serializers.FloatField()
+    min_selected = serializers.FloatField(allow_null=True)
+    max_selected = serializers.FloatField(allow_null=True)
 
 
 @ts_interface()
@@ -160,10 +166,10 @@ class SearchedProductMetadata(serializers.Serializer):
     total_pages = serializers.IntegerField()
     order_by = serializers.CharField()
     total_results = serializers.IntegerField()
-    total_unit_range_info = serializers.ListField(
-        child=SearchedProductAvailableUnitRangesInfo(), allow_null=True
+    units_range_list = serializers.ListField(
+        child=SearchedProductAvailableUnitRangesInfo()
     )
-    selected_unit_range_info = SearchedProductSelectedUnitRangesInfo(required=False)
+    price_range_info = SearchedProductPriceRangeInfo()
 
 
 @ts_interface()
