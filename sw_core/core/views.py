@@ -107,7 +107,20 @@ class SearchedProductViewSet(
         # TODO: Can we refactor it ????
         # 1. One query
         # 2. Moved to queryset manager (potentially just aggregated on the recent_products queryset right away)
-        # Get distinct unit types present in the filtered_products
+        price_ranges = recent_products.aggregate(Min("price"), Max("price"))
+        min_selected_price, max_selected_price = None, None
+        if validated_params.get("price_range"):
+            parts = validated_params.get("price_range").split(",")
+            min_selected_price, max_selected_price = float(parts[0]), float(parts[1])
+        price_range_info = {
+            "name": "euros",
+            "min": round(price_ranges["price__min"], 2),
+            "max": round(price_ranges["price__max"], 2),
+            "min_selected": min_selected_price,
+            "max_selected": max_selected_price,
+        }
+        print("price_range_info: ", price_range_info)
+
         unit_types_present = (
             recent_products.values("unit_type").annotate(total=Count("id")).order_by()
         )
@@ -121,24 +134,24 @@ class SearchedProductViewSet(
             )
             unit_range_info = {
                 "name": unit_type,
-                "count": entry["total"],  # Number of products for this unit_type
+                "count": entry["total"],
                 "min": round(ranges["unit_measurement__min"], 2),
                 "max": round(ranges["unit_measurement__max"], 2),
+                "min_selected": None,
+                "max_selected": None,
             }
-            total_unit_range_info_list.append(unit_range_info)
+            # If this unit_type is the selected type, add the selected ranges
+            if unit_type == validated_params.get("unit_type") and validated_params.get(
+                "validate_unit_measurement_range"
+            ):
+                parts = validated_params.get("validate_unit_measurement_range").split(
+                    ","
+                )
+                min_selected, max_selected = float(parts[0]), float(parts[1])
+                unit_range_info["min_selected"] = min_selected
+                unit_range_info["max_selected"] = max_selected
 
-        selected_unit_range_info = {}
-        if validated_params.get("unit_measurement_range") and validated_params.get(
-            "unit_type"
-        ):
-            ranges = filtered_products.aggregate(
-                Min("unit_measurement"), Max("unit_measurement")
-            )
-            selected_unit_range_info = {
-                "name": validated_params["unit_type"],
-                "min": round(ranges["unit_measurement__min"], 2),
-                "max": round(ranges["unit_measurement__max"], 2),
-            }
+            total_unit_range_info_list.append(unit_range_info)
 
         # If requested page is greater than the greatest cached page, return the latest available page
         paginator = Paginator(filtered_products, self.pagination_class.page_size)
@@ -152,12 +165,8 @@ class SearchedProductViewSet(
                 "total_pages": paginator.num_pages,
                 "order_by": validated_params["order_by"],
                 "total_results": recent_products.count(),
-                "total_unit_range_info": total_unit_range_info_list,
-                **(
-                    {"selected_unit_range_info": selected_unit_range_info}
-                    if selected_unit_range_info
-                    else {}
-                ),
+                "units_range_list": total_unit_range_info_list,
+                "price_range_info": price_range_info,
             }
         )
         metadata_serializer.is_valid(raise_exception=True)
