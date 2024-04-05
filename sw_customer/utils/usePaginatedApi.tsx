@@ -31,7 +31,6 @@ export interface UseApiReturnType<T, M> {
     page: number;
     totalPages: number;
   };
-  otherMetaData: otherMetaData;
 }
 
 function usePaginatedApi<T, M = any>({
@@ -50,13 +49,6 @@ function usePaginatedApi<T, M = any>({
   }>({
     page: 1,
     totalPages: 0,
-  });
-  const [otherMetaData, setOtherMetaData] = useState<{
-    totalResults: number;
-    orderBy: string;
-  }>({
-    totalResults: 0,
-    orderBy: "",
   });
   const [responseData, setResponseData] = useState<{ data?: T; metaData?: M }>(
     {}
@@ -87,10 +79,6 @@ function usePaginatedApi<T, M = any>({
           page: metadata.page || 1,
           totalPages: metadata.total_pages || 0,
         });
-        setOtherMetaData({
-          totalResults: metadata.total_results || 0,
-          orderBy: metadata.order_by || "",
-        });
       } else {
         const errorData = await res.json();
 
@@ -106,7 +94,7 @@ function usePaginatedApi<T, M = any>({
     }
   };
 
-  return { pagination, otherMetaData, request, responseData, loading, errors };
+  return { pagination, request, responseData, loading, errors };
 }
 
 export default usePaginatedApi;

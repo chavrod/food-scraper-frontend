@@ -27,16 +27,20 @@ export interface SearchedProduct {
 }
 
 export interface SearchedProductAvailableUnitRangesInfo {
-    name: string;
+    name: "KG" | "L" | "M" | "EACH" | "HUNDRED_SHEETS" | "M2";
     count: number;
     min: number;
     max: number;
+    min_selected: number | null;
+    max_selected: number | null;
 }
 
-export interface SearchedProductSelectedUnitRangesInfo {
+export interface SearchedProductPriceRangeInfo {
     name: string;
     min: number;
     max: number;
+    min_selected: number | null;
+    max_selected: number | null;
 }
 
 export interface SearchedProductMetadata {
@@ -44,8 +48,8 @@ export interface SearchedProductMetadata {
     total_pages: number;
     order_by: string;
     total_results: number;
-    total_unit_range_info: SearchedProductAvailableUnitRangesInfo[] | null;
-    selected_unit_range_info?: SearchedProductSelectedUnitRangesInfo;
+    units_range_list: SearchedProductAvailableUnitRangesInfo[];
+    price_range_info: SearchedProductPriceRangeInfo;
 }
 
 export interface ScrapeStatsForCustomer {

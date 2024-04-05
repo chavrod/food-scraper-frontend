@@ -18,9 +18,14 @@ import {
   Drawer,
   RangeSlider,
   Slider,
+  Divider,
 } from "@mantine/core";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
-import { SearchedProduct, BasketProduct } from "@/types/customer_types";
+import {
+  SearchedProduct,
+  SearchedProductMetadata,
+  BasketProduct,
+} from "@/types/customer_types";
 import { useSessionContext } from "@/Context/SessionContext";
 import { useGlobalContext } from "@/Context/globalContext";
 import basketItemsApi from "@/utils/basketItemsApi";
@@ -28,7 +33,6 @@ import useApiSubmit from "@/utils/useApiSubmit";
 import CountdownCircle from "@/Components/CountdownCircle";
 import { ProductGridSkeleton } from "@/Components/Skeletons";
 import SearchIntro from "./SearchIntro";
-import { otherMetaData } from "@/utils/usePaginatedApi";
 
 export type ItemsLoadingStates = {
   loadingNew: boolean;
@@ -48,7 +52,7 @@ interface SearchResultsProps {
   totalPages: number;
   averageScrapingTime: any;
   loadingNew: boolean;
-  otherMetaData: otherMetaData;
+  searchedProductsMetaData: SearchedProductMetadata | undefined;
 }
 
 // export default React.memo(SearchResults);
@@ -61,7 +65,7 @@ export default React.memo(function SearchResults({
   totalPages,
   averageScrapingTime,
   loadingNew,
-  otherMetaData,
+  searchedProductsMetaData,
 }: SearchResultsProps) {
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -80,7 +84,9 @@ export default React.memo(function SearchResults({
     // Wait for the scroll to complete
     setTimeout(() => {
       router.push(
-        `?query=${searchQuery}&page=${page}&order_by=${otherMetaData.orderBy}`
+        `?query=${searchQuery}&page=${page}&order_by=${
+          searchedProductsMetaData?.order_by ?? "price"
+        }`
       );
     }, 500);
   };
@@ -147,7 +153,14 @@ export default React.memo(function SearchResults({
 
   return (
     <>
-      <FilterDrawer opened={opened} close={close} />
+      {searchedProductsMetaData && (
+        <FilterDrawer
+          opened={opened}
+          close={close}
+          searchedProductsMetaData={searchedProductsMetaData}
+        />
+      )}
+
       {!searchQuery && !productsPageLoading && !searchedProducts ? (
         <SearchIntro />
       ) : loadingNew && averageScrapingTime ? (
@@ -162,15 +175,16 @@ export default React.memo(function SearchResults({
         searchedProducts.length > 0 && (
           <Stack align="center" spacing={0}>
             <Group px="lg" position="apart" mt="md" style={{ width: "100%" }}>
-              {searchQuery && (
+              {searchQuery && searchedProductsMetaData?.total_results && (
                 <Title order={isLargerThanSm ? 1 : 3}>
-                  {otherMetaData.totalResults} results for &apos;{searchQuery}
+                  {searchedProductsMetaData.total_results} results for &apos;
+                  {searchQuery}
                   &apos;
                 </Title>
               )}
               <Group>
                 <Select
-                  value={otherMetaData.orderBy || "price"}
+                  value={searchedProductsMetaData?.order_by ?? "price"}
                   onChange={handleFilter}
                   // label="Selected shops"
                   placeholder="Pick one"
@@ -345,59 +359,95 @@ export default React.memo(function SearchResults({
 const FilterDrawer = ({
   opened,
   close,
+  searchedProductsMetaData,
 }: {
   opened: boolean;
   close: () => void;
+  searchedProductsMetaData: SearchedProductMetadata;
 }) => {
+  console.log("searchedProductsMetaData: ", searchedProductsMetaData);
   return (
     <Drawer opened={opened} onClose={close} position="right">
       {/* TODO: Add Clear all, with divider */}
+      <Divider my="xs" label="Price" />
+      <RangeSliderComponent
+        unit="euros"
+        min={searchedProductsMetaData.price_range_info.min}
+        max={searchedProductsMetaData.price_range_info.max}
+        min_selected={searchedProductsMetaData.price_range_info.min_selected}
+        max_selected={searchedProductsMetaData.price_range_info.max_selected}
+      />
+      <Divider my="xs" label="Avialable Unit Ranges" />
+      {/* {searchedProductsMetaData.units_range_list.map(
+        (unit_type_data, index) => (
+          <RangeSliderComponent
+            key={index}
+            unit={unit_type_data.name}
+            min={unit_type_data.min}
+            max={unit_type_data.max}
+            min_selected={unit_type_data.min_selected}
+            max_selected={unit_type_data.max_selected}
+          />
+        )
+      )} */}
     </Drawer>
   );
 };
 
 type RangeSliderComponentProps = {
-  unit: SearchedProduct["unit_type"];
+  unit: SearchedProduct["unit_type"] | "euros";
+  min: number;
+  max: number;
+  min_selected: number | null;
+  max_selected: number | null;
 };
 
-function RangeSliderComponent({ unit }: RangeSliderComponentProps) {
-  function valueLabelFormat(value: number, unit: string) {
-    // Define the scaling and units for KG and L
-    const scaleForKgAndL = 100; // Start from 100mg or 100ml
-    let scaledValue = value;
-    let displayUnit = unit;
+function RangeSliderComponent({
+  unit,
+  min,
+  max,
+  min_selected,
+  max_selected,
+}: RangeSliderComponentProps) {
+  // function valueLabelFormat(value: number, unit: string) {
+  //   console.log("value, unit", value, unit);
+  //   // Define the scaling and units for KG and L
+  //   const scaleForKgAndL = 100; // Start from 100mg or 100ml
+  //   let scaledValue = value;
+  //   let displayUnit = unit;
 
-    // Handle KG and L units
-    if (unit === "KG" || unit === "L") {
-      // Convert value to KG or L if it's 1000 or more
-      if (value >= 1000) {
-        scaledValue = value / 1000; // Convert to KG or L
-        displayUnit = unit === "KG" ? "kg" : "litre";
-      } else {
-        scaledValue = value * scaleForKgAndL; // Keep as mg or ml
-        displayUnit = unit === "KG" ? "mg" : "ml";
-      }
-    } else if (unit === "euros" || unit === "EACH") {
-      // For euros and EACH, use the value directly without conversion
-      displayUnit = unit;
-    } else {
-      // Add handling for other units if necessary
-    }
+  //   // Handle KG and L units
+  //   if (unit === "KG" || unit === "L") {
+  //     // Convert value to KG or L if it's 1000 or more
+  //     if (value >= 1000) {
+  //       scaledValue = value / 1000; // Convert to KG or L
+  //       displayUnit = unit === "KG" ? "kg" : "litre";
+  //     } else {
+  //       scaledValue = value * scaleForKgAndL; // Keep as mg or ml
+  //       displayUnit = unit === "KG" ? "mg" : "ml";
+  //     }
+  //   } else {
+  //     displayUnit = unit;
+  //   }
+  //   console.log(`${scaledValue} ${displayUnit}`);
+  //   return `${scaledValue} ${displayUnit}`;
+  // }
 
-    return `${scaledValue} ${displayUnit}`;
-  }
-
+  // console.log("value, unit", value, unit);
+  console.log(min, max);
   return (
     <Stack spacing="xl" p="xl">
+      <Text>{unit}</Text>
       <RangeSlider
         py="xl"
-        scale={(v) => 2 ** v}
+        // TODO: Custom step and custom scale!!
+        // scale={(v) => 2 ** v}
         step={1}
-        min={2}
-        max={30}
+        min={min}
+        max={max}
         labelAlwaysOn
-        defaultValue={[10, 20]}
-        label={(value) => valueLabelFormat(value, "L")} // Specify the unit as 'L' here
+        defaultValue={[min_selected ?? min, max_selected ?? max]}
+        // label={(value) => valueLabelFormat(value, unit)}
       />
       {/* Add more sliders for euros and EACH if needed */}
     </Stack>

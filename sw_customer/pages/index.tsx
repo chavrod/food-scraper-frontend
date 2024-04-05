@@ -23,8 +23,12 @@ export type ItemsLoadingStates = {
 export default function HomePage() {
   const router = useRouter();
 
-  const { requestedProducts, averageScrapingTime, searchedProducts } =
-    useGlobalContext();
+  const {
+    requestedProducts,
+    averageScrapingTime,
+    searchedProducts,
+    searchedProductMetadata,
+  } = useGlobalContext();
 
   const [loadingNew, setLoadingNew] = useState(false);
 
@@ -139,7 +143,7 @@ export default function HomePage() {
               searchedProducts={searchedProducts}
               pageNumber={requestedProducts.pagination.page}
               totalPages={requestedProducts.pagination.totalPages}
-              otherMetaData={requestedProducts.otherMetaData}
+              searchedProductsMetaData={searchedProductMetadata}
               averageScrapingTime={averageScrapingTime}
               loadingNew={loadingNew}
             />
