@@ -1,5 +1,15 @@
 import React, { PropsWithChildren, useState } from "react";
-import { IconShoppingBagPlus, IconCheck } from "@tabler/icons-react";
+import {
+  IconShoppingBagPlus,
+  IconCheck,
+  IconScale,
+  IconDroplet,
+  IconHash,
+  IconRuler2,
+  IconSquareHalf,
+  IconBorderStyle,
+  IconToiletPaper,
+} from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import normalizeUrl from "normalize-url";
 import {
@@ -17,8 +27,7 @@ import {
   Select,
   Drawer,
   RangeSlider,
-  Slider,
-  Divider,
+  Flex,
 } from "@mantine/core";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import {
@@ -356,6 +365,80 @@ export default React.memo(function SearchResults({
   );
 });
 
+type FilterOptionCardProps = {
+  unit: SearchedProduct["unit_type"];
+  onCardClick: (unit: SearchedProduct["unit_type"]) => void;
+  isSelected: boolean;
+};
+
+const FilterOptionCard = ({
+  unit,
+  onCardClick,
+  isSelected,
+}: FilterOptionCardProps) => {
+  const getIconForUnit = (unit: SearchedProduct["unit_type"]) => {
+    const size = "1.5rem";
+    switch (unit) {
+      case "KG":
+        return <IconScale size={size} />;
+      case "L":
+        return <IconDroplet size={size} />;
+      case "M":
+        return <IconRuler2 size={size} />;
+      case "M2":
+        return <IconSquareHalf size={size} />;
+      case "HUNDRED_SHEETS":
+        return <IconToiletPaper size={size} />;
+      case "EACH":
+        return <IconHash size={size} />;
+      default:
+        return <IconHash size={size} />;
+    }
+  };
+
+  const getPrettyUnitName = (unit: SearchedProduct["unit_type"]) => {
+    switch (unit) {
+      case "KG":
+        return "Kilograms";
+      case "L":
+        return "Litres";
+      case "M":
+        return "Metres";
+      case "M2":
+        return "Square metre";
+      case "HUNDRED_SHEETS":
+        return "100 Sheets";
+      case "EACH":
+        return "Per Item";
+      default:
+        return "Per Item";
+    }
+  };
+
+  return (
+    <Paper
+      h="100%"
+      shadow="lg"
+      withBorder
+      p="lg"
+      radius="lg"
+      style={{ cursor: "pointer" }}
+      sx={(theme) => ({
+        width: "auto",
+        cursor: "pointer",
+        outline: isSelected ? `2px solid ${theme.colors.brand[5]}` : "none",
+        outlineOffset: isSelected ? "-1px" : "0",
+      })}
+      onClick={() => onCardClick(unit)}
+    >
+      <Group spacing="md">
+        {getIconForUnit(unit)}
+        <Text>{getPrettyUnitName(unit)}</Text>
+      </Group>
+    </Paper>
+  );
+};
+
 const FilterDrawer = ({
   opened,
   close,
@@ -365,31 +448,121 @@ const FilterDrawer = ({
   close: () => void;
   searchedProductsMetaData: SearchedProductMetadata;
 }) => {
-  console.log("searchedProductsMetaData: ", searchedProductsMetaData);
+  const [activeUnit, setActiveUnit] = useState<
+    SearchedProduct["unit_type"] | null
+  >(null);
+
+  type SliderValues = {
+    [key in SearchedProduct["unit_type"]]?: [number, number];
+  };
+  const initialUnitSliderValues: SliderValues = {};
+  // Initialize state for each slider
+  searchedProductsMetaData.units_range_list.forEach((unit_type_data) => {
+    initialUnitSliderValues[unit_type_data.name] = [
+      unit_type_data.min_selected ?? unit_type_data.min,
+      unit_type_data.max_selected ?? unit_type_data.max,
+    ];
+  });
+
+  const [unitSliderValues, setUnitSliderValues] = useState<SliderValues>(
+    initialUnitSliderValues
+  );
+
+  const initialPriceRange: [number, number] = [
+    searchedProductsMetaData.price_range_info.min_selected ??
+      searchedProductsMetaData.price_range_info.min,
+    searchedProductsMetaData.price_range_info.max_selected ??
+      searchedProductsMetaData.price_range_info.max,
+  ];
+
+  const [priceSliderValues, setPriceSliderValues] =
+    useState<[number, number]>(initialPriceRange);
+
+  const handleUnitSliderChange = (
+    unit: SearchedProduct["unit_type"],
+    values: [number, number]
+  ) => {
+    setUnitSliderValues((prevValues) => ({
+      ...prevValues,
+      [unit]: values,
+    }));
+  };
+
+  console.log(
+    "initialUnitSliderValues ",
+    JSON.stringify(initialUnitSliderValues)
+  );
+  console.log("NEW ", JSON.stringify(unitSliderValues));
+
+  const filterRequestDisabled =
+    JSON.stringify(initialPriceRange) === JSON.stringify(priceSliderValues) &&
+    JSON.stringify(initialUnitSliderValues) ===
+      JSON.stringify(unitSliderValues);
+
   return (
-    <Drawer opened={opened} onClose={close} position="right">
-      {/* TODO: Add Clear all, with divider */}
-      <Divider my="xs" label="Price" />
-      <RangeSliderComponent
-        unit="euros"
-        min={searchedProductsMetaData.price_range_info.min}
-        max={searchedProductsMetaData.price_range_info.max}
-        min_selected={searchedProductsMetaData.price_range_info.min_selected}
-        max_selected={searchedProductsMetaData.price_range_info.max_selected}
-      />
-      <Divider my="xs" label="Avialable Unit Ranges" />
-      {/* {searchedProductsMetaData.units_range_list.map(
-        (unit_type_data, index) => (
+    <Drawer
+      opened={opened}
+      onClose={() => {
+        setActiveUnit(null);
+        setUnitSliderValues(initialUnitSliderValues);
+        setPriceSliderValues(initialPriceRange);
+        close();
+      }}
+      position="right"
+    >
+      <Flex direction="column" style={{ height: "calc(100vh - 80px)" }}>
+        <div style={{ flexGrow: 1 }}>
+          <Text mb="md">Filter by price</Text>
           <RangeSliderComponent
-            key={index}
-            unit={unit_type_data.name}
-            min={unit_type_data.min}
-            max={unit_type_data.max}
-            min_selected={unit_type_data.min_selected}
-            max_selected={unit_type_data.max_selected}
+            unit="euros"
+            min={searchedProductsMetaData.price_range_info.min}
+            max={searchedProductsMetaData.price_range_info.max}
+            rangeValue={priceSliderValues}
+            setSliderRangeValues={(_, val) => {
+              setPriceSliderValues(val);
+            }}
           />
-        )
-      )} */}
+          <Text mb="md">Filter by available measurment types</Text>
+
+          <Grid>
+            {searchedProductsMetaData.units_range_list.map(
+              (unit_type_data, index) => (
+                <Grid.Col span={6} key={index}>
+                  <FilterOptionCard
+                    unit={unit_type_data.name}
+                    onCardClick={(unit) => {
+                      setUnitSliderValues(initialUnitSliderValues);
+                      setActiveUnit(unit);
+                    }}
+                    isSelected={activeUnit === unit_type_data.name}
+                  />
+                </Grid.Col>
+              )
+            )}
+          </Grid>
+
+          {searchedProductsMetaData.units_range_list.map(
+            (unit_type_data, index) => {
+              if (activeUnit === unit_type_data.name) {
+                return (
+                  <RangeSliderComponent
+                    key={index}
+                    unit={unit_type_data.name}
+                    min={unit_type_data.min}
+                    max={unit_type_data.max}
+                    rangeValue={unitSliderValues[unit_type_data.name]!}
+                    setSliderRangeValues={handleUnitSliderChange}
+                  />
+                );
+              }
+              return null;
+            }
+          )}
+        </div>
+        <Button size="md" disabled={filterRequestDisabled} fullWidth>
+          LOAD RESULTS
+        </Button>
+      </Flex>
     </Drawer>
   );
 };
@@ -398,58 +571,92 @@ type RangeSliderComponentProps = {
   unit: SearchedProduct["unit_type"] | "euros";
   min: number;
   max: number;
-  min_selected: number | null;
-  max_selected: number | null;
+  rangeValue: [number, number];
+  setSliderRangeValues: (
+    unit: SearchedProduct["unit_type"],
+    values: [number, number]
+  ) => void;
 };
 
 function RangeSliderComponent({
   unit,
   min,
   max,
-  min_selected,
-  max_selected,
+  rangeValue,
+  setSliderRangeValues,
 }: RangeSliderComponentProps) {
-  // function valueLabelFormat(value: number, unit: string) {
-  //   console.log("value, unit", value, unit);
-  //   // Define the scaling and units for KG and L
-  //   const scaleForKgAndL = 100; // Start from 100mg or 100ml
-  //   let scaledValue = value;
-  //   let displayUnit = unit;
+  function valueLabelFormat(value: number, currentUnit: string) {
+    let displayUnit = currentUnit;
+    let scaledValue = value;
 
-  //   // Handle KG and L units
-  //   if (unit === "KG" || unit === "L") {
-  //     // Convert value to KG or L if it's 1000 or more
-  //     if (value >= 1000) {
-  //       scaledValue = value / 1000; // Convert to KG or L
-  //       displayUnit = unit === "KG" ? "kg" : "litre";
-  //     } else {
-  //       scaledValue = value * scaleForKgAndL; // Keep as mg or ml
-  //       displayUnit = unit === "KG" ? "mg" : "ml";
-  //     }
-  //   } else {
-  //     displayUnit = unit;
-  //   }
-  //   console.log(`${scaledValue} ${displayUnit}`);
-  //   return `${scaledValue} ${displayUnit}`;
-  // }
+    // Specific case for euros
+    if (currentUnit === "euros") {
+      return `€${Math.round(value)}`;
+    }
 
-  // console.log("value, unit", value, unit);
-  console.log(min, max);
+    // Handling KG and L with specific scaling and unit changes
+    if (currentUnit === "KG" || currentUnit === "L") {
+      if (value < 1) {
+        scaledValue = Math.round(value * 1000);
+        displayUnit = currentUnit === "KG" ? "mg" : "ml";
+      } else {
+        scaledValue = Math.round(value * 10) / 10; // Keep only one decimal for KG and L
+        displayUnit = currentUnit === "KG" ? "kg" : "litre";
+      }
+    }
+
+    // Handling M and M2 without changes to scaledValue
+    if (currentUnit === "M" || currentUnit === "M2") {
+      displayUnit = currentUnit.toLowerCase();
+    }
+
+    // Handling EACH with singular or plural terms
+    if (currentUnit === "EACH") {
+      displayUnit = value === 1 ? "item" : "items";
+    }
+
+    // Handling HUNDRED_SHEETS as a fixed unit
+    if (currentUnit === "HUNDRED_SHEETS") {
+      displayUnit = "(100 sheets)";
+    }
+
+    // For other units or default case, just round the value
+    scaledValue = Math.round(scaledValue);
+
+    return `${scaledValue} ${displayUnit}`;
+  }
+
+  // Define custom step and minRange based on unit
+  let step, minRange;
+  if (["euros", "M", "EACH", "HUNDRED_SHEETS", "M2"].includes(unit)) {
+    step = 1;
+    minRange = 2;
+  } else if (["KG", "L"].includes(unit)) {
+    step = 0.1;
+    minRange = 0.2;
+  } else {
+    step = 1;
+    minRange = 1;
+  }
+
   return (
-    <Stack spacing="xl" p="xl">
-      <Text>{unit}</Text>
-      <RangeSlider
-        py="xl"
-        // TODO: Custom step and custom scale!!
-        // scale={(v) => 2 ** v}
-        step={1}
-        min={min}
-        max={max}
-        labelAlwaysOn
-        defaultValue={[min_selected ?? min, max_selected ?? max]}
-        // label={(value) => valueLabelFormat(value, unit)}
-      />
-      {/* Add more sliders for euros and EACH if needed */}
-    </Stack>
+    <RangeSlider
+      size="lg"
+      py={40}
+      m="xl"
+      step={step}
+      min={min}
+      max={max}
+      minRange={minRange}
+      labelAlwaysOn
+      value={rangeValue}
+      onChange={(val) => {
+        if (unit === "euros") {
+          unit = "EACH";
+        }
+        setSliderRangeValues(unit, val);
+      }}
+      label={(value) => <Text size="xs">{valueLabelFormat(value, unit)}</Text>}
+    />
   );
 }
