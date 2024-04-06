@@ -168,7 +168,7 @@ export default function BasketPreview() {
     }));
   };
 
-  if (!isLargerThanSm) {
+  if (!isLargerThanSm || !session) {
     return <></>;
   }
 
@@ -179,7 +179,7 @@ export default function BasketPreview() {
         borderLeft: "1px solid #ADB5BD", // Apply border to the left side
         borderRight: "1px solid #ADB5BD",
         borderBottom: "1px solid #ADB5BD",
-        minWidth: "300px",
+        minWidth: "3n0px",
         maxWidth: "400px",
         marginRight: "20px",
       }}
