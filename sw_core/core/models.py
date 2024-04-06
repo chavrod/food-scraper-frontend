@@ -29,9 +29,9 @@ class UnitType(models.TextChoices):
     KG = "KG"
     L = "L"
     M = "M"
+    M2 = "M2"
     EACH = "EACH"
     HUNDRED_SHEETS = "HUNDRED_SHEETS"
-    M2 = "M2"
 
 
 class SearchedProduct(models.Model):
