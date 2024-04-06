@@ -1,5 +1,6 @@
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import timedelta
+from collections import OrderedDict
 
 from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
@@ -87,7 +88,6 @@ class SearchedProductViewSet(
         serializer = core_serializers.SearchParams(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         validated_params = serializer.validated_data
-        print("validated_params: ", validated_params)
 
         filter_created_date = timezone.now() - timedelta(days=RESULTS_EXPIRY_DAYS)
         recent_products: QuerySet[
@@ -119,12 +119,17 @@ class SearchedProductViewSet(
             "min_selected": min_selected_price,
             "max_selected": max_selected_price,
         }
-        print("price_range_info: ", price_range_info)
 
+        ordered_unit_type_values = [
+            unit_type.value for unit_type in core_models.UnitType
+        ]
+        # Pre-populate an ordered dictionary with placeholders for each unit type
+        ordered_unit_range_info_dict = OrderedDict(
+            (unit_type, None) for unit_type in ordered_unit_type_values
+        )
         unit_types_present = (
             recent_products.values("unit_type").annotate(total=Count("id")).order_by()
         )
-        total_unit_range_info_list = []
         # Loop through each unit_type and calculate the min and max unit_measurement values
         for entry in unit_types_present:
             unit_type = entry["unit_type"]
@@ -151,7 +156,14 @@ class SearchedProductViewSet(
                 unit_range_info["min_selected"] = min_selected
                 unit_range_info["max_selected"] = max_selected
 
-            total_unit_range_info_list.append(unit_range_info)
+            # Update the placeholder in the ordered dictionary with actual data
+            if unit_type in ordered_unit_range_info_dict:
+                ordered_unit_range_info_dict[unit_type] = unit_range_info
+
+        # Convert the dictionary back to a list, filtering out placeholders
+        total_unit_range_info_list = [
+            info for info in ordered_unit_range_info_dict.values() if info is not None
+        ]
 
         # If requested page is greater than the greatest cached page, return the latest available page
         paginator = Paginator(filtered_products, self.pagination_class.page_size)
