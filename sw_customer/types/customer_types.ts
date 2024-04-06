@@ -10,7 +10,7 @@ export interface SearchParams {
     page?: number;
     order_by?: string;
     price_range?: string;
-    unit_type?: "KG" | "L" | "M" | "EACH" | "HUNDRED_SHEETS" | "M2";
+    unit_type?: "KG" | "L" | "M" | "M2" | "EACH" | "HUNDRED_SHEETS";
     unit_measurement_range?: string;
 }
 
@@ -19,7 +19,7 @@ export interface SearchedProduct {
     name: string;
     price: number;
     price_per_unit: number;
-    unit_type: "KG" | "L" | "M" | "EACH" | "HUNDRED_SHEETS" | "M2";
+    unit_type: "KG" | "L" | "M" | "M2" | "EACH" | "HUNDRED_SHEETS";
     unit_measurement: number;
     img_src: string | null;
     product_url: string | null;
@@ -27,7 +27,7 @@ export interface SearchedProduct {
 }
 
 export interface SearchedProductAvailableUnitRangesInfo {
-    name: "KG" | "L" | "M" | "EACH" | "HUNDRED_SHEETS" | "M2";
+    name: "KG" | "L" | "M" | "M2" | "EACH" | "HUNDRED_SHEETS";
     count: number;
     min: number;
     max: number;

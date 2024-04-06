@@ -46,7 +46,7 @@ export default function HomePage() {
     if (searchQuery) {
       requestedProducts.request({
         query: searchQuery,
-        // page: searchPage,
+        page: searchPage,
         order_by: searchOrder,
         price_range: priceRange,
         unit_type: unitType,
