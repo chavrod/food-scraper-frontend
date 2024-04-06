@@ -1,5 +1,6 @@
 from rest_framework import serializers
 import re
+import math
 
 from django_typomatic import ts_interface, generate_ts
 
@@ -150,6 +151,12 @@ class SearchedProductAvailableUnitRangesInfo(serializers.Serializer):
     min_selected = serializers.FloatField(allow_null=True)
     max_selected = serializers.FloatField(allow_null=True)
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["min"] = math.floor(ret["min"])
+        ret["max"] = math.ceil(ret["max"])
+        return ret
+
 
 @ts_interface()
 class SearchedProductPriceRangeInfo(serializers.Serializer):
@@ -158,6 +165,12 @@ class SearchedProductPriceRangeInfo(serializers.Serializer):
     max = serializers.FloatField()
     min_selected = serializers.FloatField(allow_null=True)
     max_selected = serializers.FloatField(allow_null=True)
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["min"] = math.floor(ret["min"])
+        ret["max"] = math.ceil(ret["max"])
+        return ret
 
 
 @ts_interface()
