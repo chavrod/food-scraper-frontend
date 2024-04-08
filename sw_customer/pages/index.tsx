@@ -53,7 +53,14 @@ export default function HomePage() {
         unit_measurement_range: unitMeasurmentRange,
       });
     }
-  }, [searchQuery, searchPage, searchOrder, priceRange]);
+  }, [
+    searchQuery,
+    searchPage,
+    searchOrder,
+    priceRange,
+    unitType,
+    unitMeasurmentRange,
+  ]);
 
   useEffect(() => {
     if (averageScrapingTime && searchQuery) {

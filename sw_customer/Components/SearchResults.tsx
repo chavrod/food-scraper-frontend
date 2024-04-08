@@ -221,7 +221,7 @@ export default React.memo(function SearchResults({
                 </Group>
               </Group>
             </Group>
-            <Grid gutter={0} justify="center" m="sm">
+            <Grid gutter={0} justify="center" m="sm" grow>
               {searchedProducts.map((product, index) => (
                 <Grid.Col key={index} span={12} md={6} xl={4}>
                   <Paper
@@ -384,12 +384,14 @@ export default React.memo(function SearchResults({
 
 type FilterOptionCardProps = {
   unit: SearchedProduct["unit_type"];
+  count: number;
   onCardClick: (unit: SearchedProduct["unit_type"]) => void;
   isSelected: boolean;
 };
 
 const FilterOptionCard = ({
   unit,
+  count,
   onCardClick,
   isSelected,
 }: FilterOptionCardProps) => {
@@ -450,7 +452,12 @@ const FilterOptionCard = ({
     >
       <Group spacing="md">
         {getIconForUnit(unit)}
-        <Text>{getPrettyUnitName(unit)}</Text>
+        <Stack spacing={0}>
+          <Text>{getPrettyUnitName(unit)}</Text>
+          <Text c="dimmed" size="sm">
+            {count} {count === 1 ? "item" : "items"}
+          </Text>
+        </Stack>
       </Group>
     </Paper>
   );
@@ -465,6 +472,8 @@ const FilterDrawer = ({
   close: () => void;
   searchedProductsMetaData: SearchedProductMetadata;
 }) => {
+  const router = useRouter();
+
   const [activeUnit, setActiveUnit] = useState<
     SearchedProduct["unit_type"] | null
   >(null);
@@ -505,15 +514,10 @@ const FilterDrawer = ({
     }));
   };
 
-  console.log(
-    "initialUnitSliderValues ",
-    JSON.stringify(initialUnitSliderValues)
-  );
+  const isPriceRangeUpdated =
+    JSON.stringify(initialPriceRange) !== JSON.stringify(priceSliderValues);
 
-  const filterRequestDisabled =
-    JSON.stringify(initialPriceRange) === JSON.stringify(priceSliderValues) &&
-    JSON.stringify(initialUnitSliderValues) ===
-      JSON.stringify(unitSliderValues);
+  const filterRequestDisabled = !isPriceRangeUpdated && !activeUnit;
 
   const handleClose = () => {
     setActiveUnit(null);
@@ -522,7 +526,37 @@ const FilterDrawer = ({
     close();
   };
 
-  const appendToUrl = () => {};
+  const appendToUrl = () => {
+    // Construct an array of [key, value] pairs for the new query parameters
+    const queryParamsArray = Object.entries({
+      ...router.query,
+      page: "1", // Set page to 1 when applying filters, ensure value is a string
+      price_range: isPriceRangeUpdated
+        ? priceSliderValues.join(",")
+        : undefined,
+      unit_type: activeUnit || undefined, // Conditionally include unit_type
+      unit_measurement_range:
+        activeUnit &&
+        JSON.stringify(initialUnitSliderValues[activeUnit]) !==
+          JSON.stringify(unitSliderValues[activeUnit])
+          ? unitSliderValues[activeUnit]?.join(",")
+          : undefined,
+    });
+
+    // Filter out any undefined or unwanted values and reconstruct the query object
+    const updatedQuery = Object.fromEntries(
+      queryParamsArray.filter(([_, value]) => value !== undefined)
+    );
+
+    router.push(
+      {
+        pathname: router.pathname,
+        query: updatedQuery,
+      }
+      // undefined,
+      // { shallow: true }
+    );
+  };
 
   return (
     <Drawer opened={opened} onClose={handleClose} position="right">
@@ -546,6 +580,7 @@ const FilterDrawer = ({
                 <Grid.Col span={6} key={index}>
                   <FilterOptionCard
                     unit={unit_type_data.name}
+                    count={unit_type_data.count}
                     onCardClick={(unit) => {
                       setUnitSliderValues(initialUnitSliderValues);
                       setActiveUnit(unit);
@@ -579,7 +614,10 @@ const FilterDrawer = ({
           size="md"
           disabled={filterRequestDisabled}
           fullWidth
-          onClick={appendToUrl}
+          onClick={() => {
+            appendToUrl();
+            close();
+          }}
         >
           LOAD RESULTS
         </Button>
