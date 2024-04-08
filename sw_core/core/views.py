@@ -134,25 +134,24 @@ class SearchedProductViewSet(
         for entry in unit_types_present:
             unit_type = entry["unit_type"]
             unit_type_products = recent_products.filter(unit_type=unit_type)
-            ranges = unit_type_products.aggregate(
-                Min("unit_measurement"), Max("unit_measurement")
-            )
+            ranges = unit_type_products.aggregate(Max("unit_measurement"))
             unit_range_info = {
                 "name": unit_type,
                 "count": entry["total"],
-                "min": round(ranges["unit_measurement__min"], 2),
+                "min": 0,
                 "max": round(ranges["unit_measurement__max"], 2),
                 "min_selected": None,
                 "max_selected": None,
             }
             # If this unit_type is the selected type, add the selected ranges
-            if unit_type == validated_params.get("unit_type") and validated_params.get(
-                "validate_unit_measurement_range"
-            ):
-                parts = validated_params.get("validate_unit_measurement_range").split(
-                    ","
-                )
-                min_selected, max_selected = float(parts[0]), float(parts[1])
+            if unit_type == validated_params.get("unit_type"):
+                min_selected = 0
+                max_selected = round(ranges["unit_measurement__max"], 2)
+                if validated_params.get("validate_unit_measurement_range"):
+                    parts = validated_params.get(
+                        "validate_unit_measurement_range"
+                    ).split(",")
+                    min_selected, max_selected = float(parts[0]), float(parts[1])
                 unit_range_info["min_selected"] = min_selected
                 unit_range_info["max_selected"] = max_selected
 
@@ -176,7 +175,7 @@ class SearchedProductViewSet(
                 "page": page_obj.number,
                 "total_pages": paginator.num_pages,
                 "order_by": validated_params["order_by"],
-                "total_results": recent_products.count(),
+                "total_results": filtered_products.count(),
                 "units_range_list": total_unit_range_info_list,
                 "price_range_info": price_range_info,
             }
