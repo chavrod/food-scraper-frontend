@@ -93,9 +93,15 @@ export default React.memo(function SearchResults({
     // Wait for the scroll to complete
     setTimeout(() => {
       router.push(
-        `?query=${searchQuery}&page=${page}&order_by=${
-          searchedProductsMetaData?.order_by ?? "price"
-        }`
+        {
+          ...router,
+          query: {
+            ...router.query,
+            page: page,
+          },
+        },
+        undefined,
+        { shallow: true }
       );
     }, 500);
   };
@@ -157,7 +163,18 @@ export default React.memo(function SearchResults({
   ];
 
   const handleFilter = (order_option: string) => {
-    router.push(`?query=${searchQuery}&page=${1}&order_by=${order_option}`);
+    router.push(
+      {
+        ...router,
+        query: {
+          ...router.query,
+          page: 1,
+          order_by: order_option,
+        },
+      },
+      undefined,
+      { shallow: true }
+    );
   };
 
   return (
@@ -492,24 +509,23 @@ const FilterDrawer = ({
     "initialUnitSliderValues ",
     JSON.stringify(initialUnitSliderValues)
   );
-  console.log("NEW ", JSON.stringify(unitSliderValues));
 
   const filterRequestDisabled =
     JSON.stringify(initialPriceRange) === JSON.stringify(priceSliderValues) &&
     JSON.stringify(initialUnitSliderValues) ===
       JSON.stringify(unitSliderValues);
 
+  const handleClose = () => {
+    setActiveUnit(null);
+    setUnitSliderValues(initialUnitSliderValues);
+    setPriceSliderValues(initialPriceRange);
+    close();
+  };
+
+  const appendToUrl = () => {};
+
   return (
-    <Drawer
-      opened={opened}
-      onClose={() => {
-        setActiveUnit(null);
-        setUnitSliderValues(initialUnitSliderValues);
-        setPriceSliderValues(initialPriceRange);
-        close();
-      }}
-      position="right"
-    >
+    <Drawer opened={opened} onClose={handleClose} position="right">
       <Flex direction="column" style={{ height: "calc(100vh - 80px)" }}>
         <div style={{ flexGrow: 1 }}>
           <Text mb="md">Filter by price</Text>
@@ -559,7 +575,12 @@ const FilterDrawer = ({
             }
           )}
         </div>
-        <Button size="md" disabled={filterRequestDisabled} fullWidth>
+        <Button
+          size="md"
+          disabled={filterRequestDisabled}
+          fullWidth
+          onClick={appendToUrl}
+        >
           LOAD RESULTS
         </Button>
       </Flex>
