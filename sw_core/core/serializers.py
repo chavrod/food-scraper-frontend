@@ -179,6 +179,9 @@ class SearchedProductMetadata(serializers.Serializer):
     total_pages = serializers.IntegerField()
     order_by = serializers.CharField()
     total_results = serializers.IntegerField()
+    active_unit = serializers.ChoiceField(
+        choices=core_models.UnitType.choices, allow_null=True
+    )
     units_range_list = serializers.ListField(
         child=SearchedProductAvailableUnitRangesInfo()
     )

@@ -176,6 +176,7 @@ class SearchedProductViewSet(
                 "total_pages": paginator.num_pages,
                 "order_by": validated_params["order_by"],
                 "total_results": filtered_products.count(),
+                "active_unit": validated_params.get("unit_type"),
                 "units_range_list": total_unit_range_info_list,
                 "price_range_info": price_range_info,
             }

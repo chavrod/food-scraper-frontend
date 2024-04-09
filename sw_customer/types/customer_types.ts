@@ -48,6 +48,7 @@ export interface SearchedProductMetadata {
     total_pages: number;
     order_by: string;
     total_results: number;
+    active_unit: "KG" | "L" | "M" | "M2" | "EACH" | "HUNDRED_SHEETS" | null;
     units_range_list: SearchedProductAvailableUnitRangesInfo[];
     price_range_info: SearchedProductPriceRangeInfo;
 }
