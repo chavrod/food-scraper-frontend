@@ -476,7 +476,7 @@ const FilterDrawer = ({
 
   const [activeUnit, setActiveUnit] = useState<
     SearchedProduct["unit_type"] | null
-  >(null);
+  >(searchedProductsMetaData.active_unit);
 
   type SliderValues = {
     [key in SearchedProduct["unit_type"]]?: [number, number];
@@ -519,13 +519,6 @@ const FilterDrawer = ({
 
   const filterRequestDisabled = !isPriceRangeUpdated && !activeUnit;
 
-  const handleClose = () => {
-    setActiveUnit(null);
-    setUnitSliderValues(initialUnitSliderValues);
-    setPriceSliderValues(initialPriceRange);
-    close();
-  };
-
   const appendToUrl = () => {
     // Construct an array of [key, value] pairs for the new query parameters
     const queryParamsArray = Object.entries({
@@ -559,7 +552,16 @@ const FilterDrawer = ({
   };
 
   return (
-    <Drawer opened={opened} onClose={handleClose} position="right">
+    <Drawer
+      opened={opened}
+      onClose={() => {
+        setActiveUnit(searchedProductsMetaData.active_unit);
+        setUnitSliderValues(initialUnitSliderValues);
+        setPriceSliderValues(initialPriceRange);
+        close();
+      }}
+      position="right"
+    >
       <Flex direction="column" style={{ height: "calc(100vh - 80px)" }}>
         <div style={{ flexGrow: 1 }}>
           <Text mb="md">Filter by price</Text>
