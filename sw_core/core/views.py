@@ -147,10 +147,8 @@ class SearchedProductViewSet(
             if unit_type == validated_params.get("unit_type"):
                 min_selected = 0
                 max_selected = round(ranges["unit_measurement__max"], 2)
-                if validated_params.get("validate_unit_measurement_range"):
-                    parts = validated_params.get(
-                        "validate_unit_measurement_range"
-                    ).split(",")
+                if validated_params.get("unit_measurement_range"):
+                    parts = validated_params.get("unit_measurement_range").split(",")
                     min_selected, max_selected = float(parts[0]), float(parts[1])
                 unit_range_info["min_selected"] = min_selected
                 unit_range_info["max_selected"] = max_selected
