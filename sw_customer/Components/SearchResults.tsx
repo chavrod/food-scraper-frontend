@@ -516,8 +516,19 @@ const FilterDrawer = ({
 
   const isPriceRangeUpdated =
     JSON.stringify(initialPriceRange) !== JSON.stringify(priceSliderValues);
+  const isActiveUnitChanged =
+    activeUnit !== searchedProductsMetaData.active_unit;
+  const isUnitRangeUpdated = !!(
+    activeUnit &&
+    JSON.stringify(initialUnitSliderValues[activeUnit]) !==
+      JSON.stringify(unitSliderValues[activeUnit])
+  );
 
-  const filterRequestDisabled = !isPriceRangeUpdated && !activeUnit;
+  const filterRequestDisabled = !(
+    isPriceRangeUpdated ||
+    isActiveUnitChanged ||
+    isUnitRangeUpdated
+  );
 
   const appendToUrl = () => {
     // Construct an array of [key, value] pairs for the new query parameters
@@ -691,10 +702,10 @@ function RangeSliderComponent({
   let step, minRange;
   if (["euros", "M", "EACH", "HUNDRED_SHEETS", "M2"].includes(unit)) {
     step = 1;
-    minRange = 2;
+    minRange = 1;
   } else if (["KG", "L"].includes(unit)) {
     step = 0.1;
-    minRange = 0.2;
+    minRange = 0.1;
   } else {
     step = 1;
     minRange = 1;
