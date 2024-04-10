@@ -151,10 +151,41 @@ class SearchedProductAvailableUnitRangesInfo(serializers.Serializer):
     min_selected = serializers.FloatField(allow_null=True)
     max_selected = serializers.FloatField(allow_null=True)
 
+    @staticmethod
+    def round_up_to_1_decimal(value):
+        """Always round up the value to 1 decimal place."""
+        return math.ceil(value * 10) / 10
+
+    @staticmethod
+    def round_down_to_1_decimal(value):
+        """Round down the value to 1 decimal place."""
+        return math.floor(value * 10) / 10
+
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        ret["min"] = math.floor(ret["min"])
-        ret["max"] = math.ceil(ret["max"])
+
+        # Define the fields to apply rounding
+        rounding_fields = ["min", "max", "min_selected", "max_selected"]
+
+        # Apply rounding logic based on unit type and field name
+        for field in rounding_fields:
+            if (
+                ret.get(field) is not None
+            ):  # Check if the field value exists and is not None
+                if ret["name"] in [core_models.UnitType.KG, core_models.UnitType.L]:
+                    if "min" in field:
+                        # For KG or L and 'min' fields, round down to 1 decimal place
+                        ret[field] = self.round_down_to_1_decimal(ret[field])
+                    else:
+                        # For KG or L and 'max' fields, round up to 1 decimal place
+                        ret[field] = self.round_up_to_1_decimal(ret[field])
+                else:
+                    if "min" in field:
+                        # For other unit types and 'min' fields, round down to the nearest whole number
+                        ret[field] = math.floor(ret[field])
+                    else:
+                        # For other unit types and 'max' fields, round up to the nearest whole number
+                        ret[field] = math.ceil(ret[field])
         return ret
 
 
