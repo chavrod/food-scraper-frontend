@@ -217,6 +217,7 @@ class SearchedProductMetadata(serializers.Serializer):
         child=SearchedProductAvailableUnitRangesInfo()
     )
     price_range_info = SearchedProductPriceRangeInfo()
+    filter_count = serializers.IntegerField()
 
 
 @ts_interface()

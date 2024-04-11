@@ -51,6 +51,7 @@ export interface SearchedProductMetadata {
     active_unit: "KG" | "L" | "M" | "M2" | "EACH" | "HUNDRED_SHEETS" | null;
     units_range_list: SearchedProductAvailableUnitRangesInfo[];
     price_range_info: SearchedProductPriceRangeInfo;
+    filter_count: number;
 }
 
 export interface ScrapeStatsForCustomer {

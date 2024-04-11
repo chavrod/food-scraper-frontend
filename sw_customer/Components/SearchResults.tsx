@@ -212,12 +212,18 @@ export default React.memo(function SearchResults({
                 <Select
                   value={searchedProductsMetaData?.order_by ?? "price"}
                   onChange={handleFilter}
-                  // label="Selected shops"
                   placeholder="Pick one"
                   data={orderOptions}
                 />
                 <Group position="center">
-                  <Button onClick={open}>Filters</Button>
+                  <Button onClick={open} variant="outline" radius="xs">
+                    {searchedProductsMetaData &&
+                    searchedProductsMetaData.filter_count > 0
+                      ? `${searchedProductsMetaData.filter_count} Filter${
+                          searchedProductsMetaData.filter_count > 1 ? "s" : ""
+                        }`
+                      : "Filters"}
+                  </Button>
                 </Group>
               </Group>
             </Group>

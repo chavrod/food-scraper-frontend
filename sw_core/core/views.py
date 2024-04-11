@@ -168,6 +168,37 @@ class SearchedProductViewSet(
 
         serializer = self.get_serializer(page_obj, many=True)
 
+        def count_filters() -> int:
+            filter_count = 0
+            # Condition 1: In "price_range_info", check if "min" != "min_selected" or "max" != "max_selected"
+            if (
+                price_range_info["min_selected"] is not None
+                and price_range_info["max_selected"] is not None
+            ):
+                if (
+                    price_range_info["min_selected"] != 0
+                    or price_range_info["max"] > price_range_info["max_selected"]
+                ):
+                    print(price_range_info["min"], price_range_info["min_selected"])
+                    print(price_range_info["max"], price_range_info["max_selected"])
+                    filter_count += 1
+
+            active_unit = validated_params.get("unit_type")
+            # Condition 2: Check if "active_unit" is not None
+            if active_unit:
+                filter_count += 1
+
+                for unit_info in total_unit_range_info_list:
+                    if unit_info["name"] == active_unit:
+                        min_selected = unit_info.get("min_selected")
+                        max_selected = unit_info.get("max_selected")
+                        if min_selected is not None and max_selected is not None:
+                            if min_selected != 0 or unit_info["max"] > max_selected:
+                                filter_count += 1
+                                break  # Since we found the active unit and checked it, we can break the loop
+
+            return filter_count
+
         metadata_serializer = core_serializers.SearchedProductMetadata(
             data={
                 "page": page_obj.number,
@@ -177,6 +208,7 @@ class SearchedProductViewSet(
                 "active_unit": validated_params.get("unit_type"),
                 "units_range_list": total_unit_range_info_list,
                 "price_range_info": price_range_info,
+                "filter_count": count_filters(),
             }
         )
         metadata_serializer.is_valid(raise_exception=True)

@@ -42,6 +42,7 @@ export default function HomePage() {
     router.query.unit_measurement_range?.toString() || "";
   // TODO: Things like price__range should not even be included
   // if they are not provided
+  // Maybe the issue of recucrring requests was cuased here... but how?
   useEffect(() => {
     if (searchQuery) {
       requestedProducts.request({
