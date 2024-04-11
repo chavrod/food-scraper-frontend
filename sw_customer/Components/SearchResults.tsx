@@ -536,17 +536,34 @@ const FilterDrawer = ({
     isUnitRangeUpdated
   );
 
+  const isDefaultPriceRange =
+    priceSliderValues[0] === 0 &&
+    priceSliderValues[1] === searchedProductsMetaData.price_range_info.max;
+
+  const activeUnitValues = activeUnit && unitSliderValues[activeUnit];
+  // Get the active unit range to work with
+  const activeUnitRange = searchedProductsMetaData.units_range_list.find(
+    (unitRange) => unitRange.name === activeUnit
+  );
+  const isDefaultUnitRange =
+    activeUnit &&
+    activeUnitRange &&
+    activeUnitValues?.[0] === activeUnitRange?.min &&
+    activeUnitValues?.[1] === activeUnitRange?.max;
+
   const appendToUrl = () => {
     // Construct an array of [key, value] pairs for the new query parameters
     const queryParamsArray = Object.entries({
       ...router.query,
       page: "1", // Set page to 1 when applying filters, ensure value is a string
-      price_range: isPriceRangeUpdated
-        ? priceSliderValues.join(",")
-        : undefined,
+      price_range:
+        isPriceRangeUpdated && !isDefaultPriceRange
+          ? priceSliderValues.join(",")
+          : undefined,
       unit_type: activeUnit || undefined, // Conditionally include unit_type
       unit_measurement_range:
         activeUnit &&
+        !isDefaultUnitRange &&
         JSON.stringify(initialUnitSliderValues[activeUnit]) !==
           JSON.stringify(unitSliderValues[activeUnit])
           ? unitSliderValues[activeUnit]?.join(",")
