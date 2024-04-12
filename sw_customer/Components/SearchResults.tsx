@@ -391,15 +391,15 @@ export default React.memo(function SearchResults({
 type FilterOptionCardProps = {
   unit: SearchedProduct["unit_type"];
   count: number;
-  onCardClick: (unit: SearchedProduct["unit_type"]) => void;
+  handleClick: () => void;
   isSelected: boolean;
 };
 
 const FilterOptionCard = ({
   unit,
   count,
-  onCardClick,
   isSelected,
+  handleClick,
 }: FilterOptionCardProps) => {
   const getIconForUnit = (unit: SearchedProduct["unit_type"]) => {
     const size = "1.5rem";
@@ -454,7 +454,7 @@ const FilterOptionCard = ({
         outline: isSelected ? `2px solid ${theme.colors.brand[5]}` : "none",
         outlineOffset: isSelected ? "-1px" : "0",
       })}
-      onClick={() => onCardClick(unit)}
+      onClick={handleClick}
     >
       <Group spacing="md">
         {getIconForUnit(unit)}
@@ -540,16 +540,15 @@ const FilterDrawer = ({
     priceSliderValues[0] === 0 &&
     priceSliderValues[1] === searchedProductsMetaData.price_range_info.max;
 
-  const activeUnitValues = activeUnit && unitSliderValues[activeUnit];
   // Get the active unit range to work with
   const activeUnitRange = searchedProductsMetaData.units_range_list.find(
     (unitRange) => unitRange.name === activeUnit
   );
   const isDefaultUnitRange =
-    activeUnit &&
+    activeUnit != null &&
     activeUnitRange &&
-    activeUnitValues?.[0] === activeUnitRange?.min &&
-    activeUnitValues?.[1] === activeUnitRange?.max;
+    unitSliderValues[activeUnit]?.[0] === activeUnitRange?.min &&
+    unitSliderValues[activeUnit]?.[1] === activeUnitRange?.max;
 
   const appendToUrl = () => {
     // Construct an array of [key, value] pairs for the new query parameters
@@ -617,9 +616,13 @@ const FilterDrawer = ({
                   <FilterOptionCard
                     unit={unit_type_data.name}
                     count={unit_type_data.count}
-                    onCardClick={(unit) => {
+                    handleClick={() => {
+                      if (unit_type_data.name === activeUnit) {
+                        setActiveUnit(null);
+                      } else {
+                        setActiveUnit(unit_type_data.name);
+                      }
                       setUnitSliderValues(initialUnitSliderValues);
-                      setActiveUnit(unit);
                     }}
                     isSelected={activeUnit === unit_type_data.name}
                   />
