@@ -7,7 +7,7 @@ import {
   IconHash,
   IconRuler2,
   IconSquareHalf,
-  IconBorderStyle,
+  IconTelescope,
   IconToiletPaper,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
@@ -383,7 +383,18 @@ export default React.memo(function SearchResults({
         !productsPageLoading &&
         !loadingNew &&
         searchedProducts &&
-        searchedProducts.length === 0 && <>Sorry, there was nothing found!</>}
+        searchedProducts.length === 0 && (
+          <Stack
+            align="center"
+            justify="center"
+            style={{ height: "calc(100vh - 130px)" }}
+          >
+            <IconTelescope size="5rem" />
+            <Text size="lg" fw={500}>
+              Sorry, there was nothing found!
+            </Text>
+          </Stack>
+        )}
     </>
   );
 });
