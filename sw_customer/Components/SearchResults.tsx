@@ -599,8 +599,47 @@ const FilterDrawer = ({
     );
   };
 
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <Drawer opened={opened} onClose={close} position="right">
+    <Drawer
+      opened={opened}
+      onClose={close}
+      position="right"
+      title={
+        <Text
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchEnd={() => setIsHovered(false)}
+          c="brand.7"
+          fw={500}
+          style={{
+            cursor: "pointer",
+            textDecoration: isHovered ? "underline" : "none",
+          }}
+          onClick={() => {
+            setPriceSliderValues([
+              searchedProductsMetaData.price_range_info.min,
+              searchedProductsMetaData.price_range_info.max,
+            ]);
+            setActiveUnit(null);
+            const defaultUnitSliderValues: SliderValues = {};
+            // Initialize state for each slider
+            searchedProductsMetaData.units_range_list.forEach(
+              (unit_type_data) => {
+                defaultUnitSliderValues[unit_type_data.name] = [
+                  unit_type_data.min,
+                  unit_type_data.max,
+                ];
+              }
+            );
+            setUnitSliderValues(defaultUnitSliderValues);
+          }}
+        >
+          Clear all filters
+        </Text>
+      }
+    >
       <Flex direction="column" style={{ height: "calc(100vh - 80px)" }}>
         <div style={{ flexGrow: 1 }}>
           <Text mb="md">Filter by price</Text>
