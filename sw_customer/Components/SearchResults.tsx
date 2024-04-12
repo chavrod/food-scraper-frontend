@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useState } from "react";
+import React, { PropsWithChildren, useState, useEffect } from "react";
 import {
   IconShoppingBagPlus,
   IconCheck,
@@ -531,6 +531,15 @@ const FilterDrawer = ({
     }));
   };
 
+  // Effect to update activeUnit when drawer opens
+  useEffect(() => {
+    if (opened) {
+      setActiveUnit(searchedProductsMetaData.active_unit);
+      setUnitSliderValues(initialUnitSliderValues);
+      setPriceSliderValues(initialPriceRange);
+    }
+  }, [opened]);
+
   const isPriceRangeUpdated =
     JSON.stringify(initialPriceRange) !== JSON.stringify(priceSliderValues);
   const isActiveUnitChanged =
@@ -550,7 +559,6 @@ const FilterDrawer = ({
   const isDefaultPriceRange =
     priceSliderValues[0] === 0 &&
     priceSliderValues[1] === searchedProductsMetaData.price_range_info.max;
-
   // Get the active unit range to work with
   const activeUnitRange = searchedProductsMetaData.units_range_list.find(
     (unitRange) => unitRange.name === activeUnit
@@ -566,16 +574,12 @@ const FilterDrawer = ({
     const queryParamsArray = Object.entries({
       ...router.query,
       page: "1", // Set page to 1 when applying filters, ensure value is a string
-      price_range:
-        isPriceRangeUpdated && !isDefaultPriceRange
-          ? priceSliderValues.join(",")
-          : undefined,
+      price_range: !isDefaultPriceRange
+        ? priceSliderValues.join(",")
+        : undefined,
       unit_type: activeUnit || undefined, // Conditionally include unit_type
       unit_measurement_range:
-        activeUnit &&
-        !isDefaultUnitRange &&
-        JSON.stringify(initialUnitSliderValues[activeUnit]) !==
-          JSON.stringify(unitSliderValues[activeUnit])
+        activeUnit && !isDefaultUnitRange
           ? unitSliderValues[activeUnit]?.join(",")
           : undefined,
     });
@@ -596,16 +600,7 @@ const FilterDrawer = ({
   };
 
   return (
-    <Drawer
-      opened={opened}
-      onClose={() => {
-        setActiveUnit(searchedProductsMetaData.active_unit);
-        setUnitSliderValues(initialUnitSliderValues);
-        setPriceSliderValues(initialPriceRange);
-        close();
-      }}
-      position="right"
-    >
+    <Drawer opened={opened} onClose={close} position="right">
       <Flex direction="column" style={{ height: "calc(100vh - 80px)" }}>
         <div style={{ flexGrow: 1 }}>
           <Text mb="md">Filter by price</Text>
