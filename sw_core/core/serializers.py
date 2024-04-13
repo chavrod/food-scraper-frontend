@@ -28,13 +28,25 @@ class Customer(serializers.ModelSerializer):
             return 0
 
 
+class CaseInsensitiveChoiceField(serializers.ChoiceField):
+    def to_internal_value(self, data):
+        data_lower = str(data).lower()
+        for choice, _ in self.choices.items():
+            if choice.lower() == data_lower:
+                return choice
+        return super().to_internal_value(data)
+
+
 @ts_interface()
 class SearchParams(serializers.Serializer):
     query = serializers.CharField(max_length=30, required=True)
     page = serializers.IntegerField(default=1)
     order_by = serializers.CharField(default="price", required=False)
     price_range = serializers.CharField(required=False)
-    unit_type = serializers.ChoiceField(
+    # unit_type = serializers.ChoiceField(
+    #     choices=core_models.UnitType.choices, required=False
+    # )
+    unit_type = CaseInsensitiveChoiceField(
         choices=core_models.UnitType.choices, required=False
     )
     unit_measurement_range = serializers.CharField(required=False)
