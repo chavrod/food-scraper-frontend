@@ -1,14 +1,8 @@
-import React, { PropsWithChildren, useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   IconShoppingBagPlus,
   IconCheck,
-  IconScale,
-  IconDroplet,
-  IconHash,
-  IconRuler2,
-  IconSquareHalf,
   IconTelescope,
-  IconToiletPaper,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import normalizeUrl from "normalize-url";
@@ -25,9 +19,6 @@ import {
   Title,
   Tooltip,
   Select,
-  Drawer,
-  RangeSlider,
-  Flex,
 } from "@mantine/core";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import {
@@ -42,6 +33,7 @@ import useApiSubmit from "@/utils/useApiSubmit";
 import CountdownCircle from "@/Components/CountdownCircle";
 import { ProductGridSkeleton } from "@/Components/Skeletons";
 import SearchIntro from "./SearchIntro";
+import FilterDrawer from "./FilterDrawer";
 
 export type ItemsLoadingStates = {
   loadingNew: boolean;
@@ -64,9 +56,7 @@ interface SearchResultsProps {
   searchedProductsMetaData: SearchedProductMetadata | undefined;
 }
 
-// export default React.memo(SearchResults);
-
-export default React.memo(function SearchResults({
+function SearchResults({
   searchQuery,
   productsPageLoading,
   searchedProducts,
@@ -78,7 +68,7 @@ export default React.memo(function SearchResults({
 }: SearchResultsProps) {
   const [opened, { open, close }] = useDisclosure(false);
 
-  const { session, isLoading } = useSessionContext();
+  const { session } = useSessionContext();
   const accessToken = session?.access_token;
 
   const { basketItems } = useGlobalContext();
@@ -97,7 +87,7 @@ export default React.memo(function SearchResults({
           ...router,
           query: {
             ...router.query,
-            page: page,
+            page,
           },
         },
         undefined,
@@ -106,7 +96,7 @@ export default React.memo(function SearchResults({
     }, 500);
   };
 
-  const { handleSubmit, loading: loadingSubmit } = useApiSubmit({
+  const { handleSubmit } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
     onSuccess: () => {
       basketItems.request();
@@ -126,13 +116,16 @@ export default React.memo(function SearchResults({
     }));
 
     // Encode the URL - some urls are non standard
-    if (product.img_src) {
-      product.img_src = normalizeUrl(product.img_src);
-    }
+    const modifiedProduct = {
+      ...product,
+      img_src: product.img_src
+        ? normalizeUrl(product.img_src)
+        : product.img_src,
+    };
 
-    const wasSuccessful = await handleSubmit(product, {
+    const wasSuccessful = await handleSubmit(modifiedProduct, {
       title: "Added item",
-      body: `${product.name} added to basket.`,
+      body: `${modifiedProduct.name} added to basket.`,
     });
     // Update states based on whether adding to basket was successful
     if (wasSuccessful) {
@@ -203,7 +196,8 @@ export default React.memo(function SearchResults({
             <Group px="lg" position="apart" mt="md" style={{ width: "100%" }}>
               {searchQuery && searchedProductsMetaData?.total_results && (
                 <Title order={isLargerThanSm ? 1 : 3}>
-                  {searchedProductsMetaData.total_results} results for &apos;
+                  {searchedProductsMetaData.total_results}
+                  results for &apos;
                   {searchQuery}
                   &apos;
                 </Title>
@@ -229,6 +223,7 @@ export default React.memo(function SearchResults({
             </Group>
             <Grid gutter={0} justify="center" m="sm" grow>
               {searchedProducts.map((product, index) => (
+                // eslint-disable-next-line react/no-array-index-key
                 <Grid.Col key={index} span={12} md={6} xl={4}>
                   <Paper
                     h="190px"
@@ -253,6 +248,8 @@ export default React.memo(function SearchResults({
                             src={product.img_src || "no-product-image.jpeg"}
                             alt={product.name}
                             style={{ width: "5rem" }}
+                            loading="lazy"
+                            decoding="async"
                           />
                         </Container>
                         <Container
@@ -308,7 +305,6 @@ export default React.memo(function SearchResults({
                             Go to source ❯
                           </Text>
                         </Box>
-
                         <Group spacing={0} h={40} position="apart" noWrap>
                           <Group noWrap spacing={2}>
                             <Text size="lg" align="center">
@@ -352,7 +348,9 @@ export default React.memo(function SearchResults({
                                   : "gray.6"
                               }
                               onClick={() => {
-                                session && handleAddToBasket(product, index);
+                                if (session) {
+                                  handleAddToBasket(product, index);
+                                }
                               }}
                             >
                               {productStates.added[index] ? "Added!" : "Add"}
@@ -397,409 +395,6 @@ export default React.memo(function SearchResults({
         )}
     </>
   );
-});
-
-type FilterOptionCardProps = {
-  unit: SearchedProduct["unit_type"];
-  count: number;
-  handleClick: () => void;
-  isSelected: boolean;
-};
-
-const FilterOptionCard = ({
-  unit,
-  count,
-  isSelected,
-  handleClick,
-}: FilterOptionCardProps) => {
-  const getIconForUnit = (unit: SearchedProduct["unit_type"]) => {
-    const size = "1.5rem";
-    switch (unit) {
-      case "KG":
-        return <IconScale size={size} />;
-      case "L":
-        return <IconDroplet size={size} />;
-      case "M":
-        return <IconRuler2 size={size} />;
-      case "M2":
-        return <IconSquareHalf size={size} />;
-      case "HUNDRED_SHEETS":
-        return <IconToiletPaper size={size} />;
-      case "EACH":
-        return <IconHash size={size} />;
-      default:
-        return <IconHash size={size} />;
-    }
-  };
-
-  const getPrettyUnitName = (unit: SearchedProduct["unit_type"]) => {
-    switch (unit) {
-      case "KG":
-        return "Kilograms";
-      case "L":
-        return "Litres";
-      case "M":
-        return "Metres";
-      case "M2":
-        return "Square metre";
-      case "HUNDRED_SHEETS":
-        return "100 Sheets";
-      case "EACH":
-        return "Per Item";
-      default:
-        return "Per Item";
-    }
-  };
-
-  return (
-    <Paper
-      h="100%"
-      shadow="lg"
-      withBorder
-      p="lg"
-      radius="lg"
-      style={{ cursor: "pointer" }}
-      sx={(theme) => ({
-        width: "auto",
-        cursor: "pointer",
-        outline: isSelected ? `2px solid ${theme.colors.brand[5]}` : "none",
-        outlineOffset: isSelected ? "-1px" : "0",
-      })}
-      onClick={handleClick}
-    >
-      <Group spacing="md">
-        {getIconForUnit(unit)}
-        <Stack spacing={0}>
-          <Text>{getPrettyUnitName(unit)}</Text>
-          <Text c="dimmed" size="sm">
-            {count} {count === 1 ? "item" : "items"}
-          </Text>
-        </Stack>
-      </Group>
-    </Paper>
-  );
-};
-
-const FilterDrawer = ({
-  opened,
-  close,
-  searchedProductsMetaData,
-}: {
-  opened: boolean;
-  close: () => void;
-  searchedProductsMetaData: SearchedProductMetadata;
-}) => {
-  const router = useRouter();
-
-  const [activeUnit, setActiveUnit] = useState<
-    SearchedProduct["unit_type"] | null
-  >(searchedProductsMetaData.active_unit);
-
-  type SliderValues = {
-    [key in SearchedProduct["unit_type"]]?: [number, number];
-  };
-  const initialUnitSliderValues: SliderValues = {};
-  // Initialize state for each slider
-  searchedProductsMetaData.units_range_list.forEach((unit_type_data) => {
-    initialUnitSliderValues[unit_type_data.name] = [
-      unit_type_data.min_selected ?? unit_type_data.min,
-      unit_type_data.max_selected ?? unit_type_data.max,
-    ];
-  });
-
-  const [unitSliderValues, setUnitSliderValues] = useState<SliderValues>(
-    initialUnitSliderValues
-  );
-
-  const initialPriceRange: [number, number] = [
-    searchedProductsMetaData.price_range_info.min_selected ??
-      searchedProductsMetaData.price_range_info.min,
-    searchedProductsMetaData.price_range_info.max_selected ??
-      searchedProductsMetaData.price_range_info.max,
-  ];
-
-  const [priceSliderValues, setPriceSliderValues] =
-    useState<[number, number]>(initialPriceRange);
-
-  const handleUnitSliderChange = (
-    unit: SearchedProduct["unit_type"],
-    values: [number, number]
-  ) => {
-    setUnitSliderValues((prevValues) => ({
-      ...prevValues,
-      [unit]: values,
-    }));
-  };
-
-  // Effect to update activeUnit when drawer opens
-  useEffect(() => {
-    if (opened) {
-      setActiveUnit(searchedProductsMetaData.active_unit);
-      setUnitSliderValues(initialUnitSliderValues);
-      setPriceSliderValues(initialPriceRange);
-    }
-  }, [opened]);
-
-  const isPriceRangeUpdated =
-    JSON.stringify(initialPriceRange) !== JSON.stringify(priceSliderValues);
-  const isActiveUnitChanged =
-    activeUnit !== searchedProductsMetaData.active_unit;
-  const isUnitRangeUpdated = !!(
-    activeUnit &&
-    JSON.stringify(initialUnitSliderValues[activeUnit]) !==
-      JSON.stringify(unitSliderValues[activeUnit])
-  );
-
-  const filterRequestDisabled = !(
-    isPriceRangeUpdated ||
-    isActiveUnitChanged ||
-    isUnitRangeUpdated
-  );
-
-  const isDefaultPriceRange =
-    priceSliderValues[0] === 0 &&
-    priceSliderValues[1] === searchedProductsMetaData.price_range_info.max;
-  // Get the active unit range to work with
-  const activeUnitRange = searchedProductsMetaData.units_range_list.find(
-    (unitRange) => unitRange.name === activeUnit
-  );
-  const isDefaultUnitRange =
-    activeUnit != null &&
-    activeUnitRange &&
-    unitSliderValues[activeUnit]?.[0] === activeUnitRange?.min &&
-    unitSliderValues[activeUnit]?.[1] === activeUnitRange?.max;
-
-  const appendToUrl = () => {
-    // Construct an array of [key, value] pairs for the new query parameters
-    const queryParamsArray = Object.entries({
-      ...router.query,
-      page: "1", // Set page to 1 when applying filters, ensure value is a string
-      price_range: !isDefaultPriceRange
-        ? priceSliderValues.join(",")
-        : undefined,
-      unit_type: activeUnit || undefined, // Conditionally include unit_type
-      unit_measurement_range:
-        activeUnit && !isDefaultUnitRange
-          ? unitSliderValues[activeUnit]?.join(",")
-          : undefined,
-    });
-
-    // Filter out any undefined or unwanted values and reconstruct the query object
-    const updatedQuery = Object.fromEntries(
-      queryParamsArray.filter(([_, value]) => value !== undefined)
-    );
-
-    router.push(
-      {
-        pathname: router.pathname,
-        query: updatedQuery,
-      }
-      // undefined,
-      // { shallow: true }
-    );
-  };
-
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <Drawer
-      opened={opened}
-      onClose={close}
-      position="right"
-      title={
-        <Text
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onTouchEnd={() => setIsHovered(false)}
-          c="brand.7"
-          fw={500}
-          style={{
-            cursor: "pointer",
-            textDecoration: isHovered ? "underline" : "none",
-          }}
-          onClick={() => {
-            setPriceSliderValues([
-              searchedProductsMetaData.price_range_info.min,
-              searchedProductsMetaData.price_range_info.max,
-            ]);
-            setActiveUnit(null);
-            const defaultUnitSliderValues: SliderValues = {};
-            // Initialize state for each slider
-            searchedProductsMetaData.units_range_list.forEach(
-              (unit_type_data) => {
-                defaultUnitSliderValues[unit_type_data.name] = [
-                  unit_type_data.min,
-                  unit_type_data.max,
-                ];
-              }
-            );
-            setUnitSliderValues(defaultUnitSliderValues);
-          }}
-        >
-          Clear all filters
-        </Text>
-      }
-    >
-      <Flex direction="column" style={{ height: "calc(100vh - 80px)" }}>
-        <div style={{ flexGrow: 1 }}>
-          <Text mb="md">Filter by price</Text>
-          <RangeSliderComponent
-            unit="euros"
-            min={searchedProductsMetaData.price_range_info.min}
-            max={searchedProductsMetaData.price_range_info.max}
-            rangeValue={priceSliderValues}
-            setSliderRangeValues={(_, val) => {
-              setPriceSliderValues(val);
-            }}
-          />
-          <Text mb="md">Filter by available measurment types</Text>
-
-          <Grid>
-            {searchedProductsMetaData.units_range_list.map(
-              (unit_type_data, index) => (
-                <Grid.Col span={6} key={index}>
-                  <FilterOptionCard
-                    unit={unit_type_data.name}
-                    count={unit_type_data.count}
-                    handleClick={() => {
-                      if (unit_type_data.name === activeUnit) {
-                        setActiveUnit(null);
-                      } else {
-                        setActiveUnit(unit_type_data.name);
-                      }
-                      setUnitSliderValues(initialUnitSliderValues);
-                    }}
-                    isSelected={activeUnit === unit_type_data.name}
-                  />
-                </Grid.Col>
-              )
-            )}
-          </Grid>
-
-          {searchedProductsMetaData.units_range_list.map(
-            (unit_type_data, index) => {
-              if (activeUnit === unit_type_data.name) {
-                return (
-                  <RangeSliderComponent
-                    key={index}
-                    unit={unit_type_data.name}
-                    min={unit_type_data.min}
-                    max={unit_type_data.max}
-                    rangeValue={unitSliderValues[unit_type_data.name]!}
-                    setSliderRangeValues={handleUnitSliderChange}
-                  />
-                );
-              }
-              return null;
-            }
-          )}
-        </div>
-        <Button
-          size="md"
-          disabled={filterRequestDisabled}
-          fullWidth
-          onClick={() => {
-            appendToUrl();
-            close();
-          }}
-        >
-          LOAD RESULTS
-        </Button>
-      </Flex>
-    </Drawer>
-  );
-};
-
-type RangeSliderComponentProps = {
-  unit: SearchedProduct["unit_type"] | "euros";
-  min: number;
-  max: number;
-  rangeValue: [number, number];
-  setSliderRangeValues: (
-    unit: SearchedProduct["unit_type"],
-    values: [number, number]
-  ) => void;
-};
-
-function RangeSliderComponent({
-  unit,
-  min,
-  max,
-  rangeValue,
-  setSliderRangeValues,
-}: RangeSliderComponentProps) {
-  function valueLabelFormat(value: number, currentUnit: string) {
-    let displayUnit = currentUnit;
-    let scaledValue = value;
-
-    // Specific case for euros
-    if (currentUnit === "euros") {
-      return `€${Math.round(value)}`;
-    }
-
-    // Handling KG and L with specific scaling and unit changes
-    if (currentUnit === "KG" || currentUnit === "L") {
-      if (value < 1) {
-        scaledValue = Math.round(value * 1000);
-        displayUnit = currentUnit === "KG" ? "mg" : "ml";
-      } else {
-        scaledValue = Math.round(value * 10) / 10; // Keep only one decimal for KG and L
-        displayUnit = currentUnit === "KG" ? "kg" : "litre";
-      }
-    }
-
-    // Handling M and M2 without changes to scaledValue
-    if (currentUnit === "M" || currentUnit === "M2") {
-      displayUnit = currentUnit.toLowerCase();
-    }
-
-    // Handling EACH with singular or plural terms
-    if (currentUnit === "EACH") {
-      displayUnit = value === 1 ? "item" : "items";
-    }
-
-    // Handling HUNDRED_SHEETS as a fixed unit
-    if (currentUnit === "HUNDRED_SHEETS") {
-      displayUnit = "(100 sheets)";
-    }
-
-    // For other units or default case, just round the value
-    scaledValue = Math.round(scaledValue);
-
-    return `${scaledValue} ${displayUnit}`;
-  }
-
-  // Define custom step and minRange based on unit
-  let step, minRange;
-  if (["euros", "M", "EACH", "HUNDRED_SHEETS", "M2"].includes(unit)) {
-    step = 1;
-    minRange = 1;
-  } else if (["KG", "L"].includes(unit)) {
-    step = 0.1;
-    minRange = 0.1;
-  } else {
-    step = 1;
-    minRange = 1;
-  }
-
-  return (
-    <RangeSlider
-      size="lg"
-      py={40}
-      m="xl"
-      step={step}
-      min={min}
-      max={max}
-      minRange={minRange}
-      labelAlwaysOn
-      value={rangeValue}
-      onChange={(val) => {
-        if (unit === "euros") {
-          unit = "EACH";
-        }
-        setSliderRangeValues(unit, val);
-      }}
-      label={(value) => <Text size="xs">{valueLabelFormat(value, unit)}</Text>}
-    />
-  );
 }
+
+export default React.memo(SearchResults);

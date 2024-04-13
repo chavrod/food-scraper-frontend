@@ -1,3 +1,21 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": ["next/core-web-vitals", "airbnb", "airbnb-typescript"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "@typescript-eslint/quotes": "off",
+    "@typescript-eslint/indent": "off",
+    "@typescript-eslint/comma-dangle": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "one-var": "off",
+    "one-var-declaration-per-line": "off",
+    "indent": "off",
+    "no-nested-ternary": "off",
+    "operator-linebreak": "off",
+    "react/jsx-wrap-multilines": "off",
+    "@next/next/no-img-element": "off"
+  }
 }
+
+// "next/core-web-vitals",
