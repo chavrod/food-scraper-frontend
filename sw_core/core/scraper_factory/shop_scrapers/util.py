@@ -28,6 +28,7 @@ conversion_metrics = {
     "100sht": (core_models.UnitType.HUNDRED_SHEETS, 1),
     "100sheets": (core_models.UnitType.HUNDRED_SHEETS, 1),
     "m2": (core_models.UnitType.M2, 1),
+    "m²": (core_models.UnitType.M2, 1),
 }
 
 
