@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { IconCheck } from "@tabler/icons-react";
-import { useRouter } from "next/router";
+import { useRouter, NextRouter } from "next/router";
 import { Stack, Flex } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import BasketPreview from "@/Components/BasketPreview";
@@ -8,20 +8,19 @@ import notifyError from "@/utils/notifyError";
 import SearchResults from "@/Components/SearchResults";
 import NoSsr from "@/utils/NoSsr";
 import { useGlobalContext } from "@/Context/globalContext";
-
-export interface SearchParams {
-  query: string;
-  page: string;
-  order: string;
-}
+import { SearchParams } from "@/types/customer_types";
 
 export type ItemsLoadingStates = {
   loadingNew: boolean;
   loadingCached: boolean;
 };
 
+type CustomRouter = NextRouter & {
+  query: SearchParams;
+};
+
 export default function HomePage() {
-  const router = useRouter();
+  const router = useRouter() as CustomRouter;
 
   const {
     requestedProducts,
@@ -32,39 +31,30 @@ export default function HomePage() {
 
   const [loadingNew, setLoadingNew] = useState(false);
 
-  // TODO: Think of a better solution (that handles 5+ params neatly)
-  const searchQuery = router.query.query?.toString().toLowerCase() || "";
-  const searchPage = router.query.page?.toString() || "1";
-  const searchOrder = router.query.order_by?.toString() || "price";
-  const priceRange = router.query.price_range?.toString() || "";
-  const unitType = router.query.unit_type?.toString() || "";
-  const unitMeasurmentRange =
-    router.query.unit_measurement_range?.toString() || "";
-  // TODO: Things like price__range should not even be included
-  // if they are not provided
-  // Maybe the issue of recucrring requests was cuased here... but how?
-  useEffect(() => {
-    if (searchQuery) {
-      requestedProducts.request({
-        query: searchQuery,
-        page: searchPage,
-        order_by: searchOrder,
-        price_range: priceRange,
-        unit_type: unitType,
-        unit_measurement_range: unitMeasurmentRange,
-      });
-    }
-  }, [
-    searchQuery,
-    searchPage,
-    searchOrder,
-    priceRange,
-    unitType,
-    unitMeasurmentRange,
-  ]);
+  // Function to normalize query parameters
+  const normalizeQueryParams = (params: SearchParams) => {
+    return Object.entries(params).reduce(
+      (acc: { [key: string]: string }, [key, value]) => {
+        if (value !== undefined) {
+          // Check if value is not undefined
+          acc[key] = value.toString().toLowerCase();
+        }
+        return acc;
+      },
+      {}
+    );
+  };
 
   useEffect(() => {
-    if (averageScrapingTime && searchQuery) {
+    const queryParams = normalizeQueryParams(router.query);
+
+    if (queryParams.query) {
+      requestedProducts.request(queryParams);
+    }
+  }, [router.query]);
+
+  useEffect(() => {
+    if (averageScrapingTime && router.query.query) {
       setLoadingNew(true);
 
       const socket = new WebSocket("ws://localhost:8000/ws/scraped_result/");
@@ -74,7 +64,7 @@ export default function HomePage() {
 
         // Sending a message to the server after connection
         const messageData = {
-          query: searchQuery,
+          query: router.query.query,
           sender: "Client",
         };
 
@@ -84,8 +74,6 @@ export default function HomePage() {
       socket.onmessage = (event) => {
         console.log("MESSAGE RECEIVED");
         const responseData = JSON.parse(event.data);
-
-        console.log("responseData: ", responseData);
 
         if (responseData.query) {
           notifications.show({
@@ -146,7 +134,7 @@ export default function HomePage() {
         <Stack align="center" spacing={0} style={{ flexGrow: "1" }}>
           <NoSsr>
             <SearchResults
-              searchQuery={searchQuery}
+              searchQuery={router.query.query}
               productsPageLoading={requestedProducts.loading}
               searchedProducts={searchedProducts}
               pageNumber={requestedProducts.pagination.page}
