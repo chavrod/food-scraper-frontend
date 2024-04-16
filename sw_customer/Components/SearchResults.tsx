@@ -196,8 +196,7 @@ function SearchResults({
             <Group px="lg" position="apart" mt="md" style={{ width: "100%" }}>
               {searchQuery && searchedProductsMetaData?.total_results && (
                 <Title order={isLargerThanSm ? 1 : 3}>
-                  {searchedProductsMetaData.total_results}
-                  results for &apos;
+                  {searchedProductsMetaData.total_results} results for &apos;
                   {searchQuery}
                   &apos;
                 </Title>
@@ -391,6 +390,7 @@ function SearchResults({
             <Text size="lg" fw={500}>
               Sorry, there was nothing found!
             </Text>
+            <Button onClick={open}>Adjust filters</Button>
           </Stack>
         )}
     </>

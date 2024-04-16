@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AppShell,
   Navbar,
@@ -36,11 +36,10 @@ import {
   IconSearch,
 } from "@tabler/icons-react";
 import { useSessionContext } from "@/Context/SessionContext";
-// Internal: Components
-import UserAccess from "../Components/UserAccess";
 // Internal: Utils
-import { logout } from "@/utils/auth";
+import logout from "@/utils/auth";
 import { useGlobalContext } from "@/Context/globalContext";
+import UserAccess from "./UserAccess";
 import SearchHeader from "./SearchHeader";
 
 interface Route {
@@ -79,7 +78,7 @@ export default function MainAppShell({
 
   useEffect(() => {
     // Check for 'login' query parameter
-    const loginQuery = router.query["login"];
+    const loginQuery = router.query.login;
     setIsEmailConfirmed(loginQuery === "successful-email-confirmation");
     setIsRedirectToLogin(loginQuery === "open");
 
@@ -274,7 +273,7 @@ export default function MainAppShell({
                     .filter((r) => r.navbar)
                     .map((r, i) => (
                       <Link
-                        key={i}
+                        key={r.link}
                         href={r.link}
                         style={{ textDecoration: "none" }}
                       >
@@ -289,7 +288,7 @@ export default function MainAppShell({
                             my={4}
                             label={r.label}
                             icon={<r.icon size="1.5rem" stroke={1.5} />}
-                            active={true}
+                            active
                             variant={
                               r.link === router.pathname ? "filled" : "light"
                             }
@@ -365,7 +364,7 @@ export default function MainAppShell({
                 .map((r, i) =>
                   typeof r.onClick === "function" ? (
                     // When onClick is a function
-                    <Stack key={i} align="center" spacing={0}>
+                    <Stack key={r.stat} align="center" spacing={0}>
                       <Indicator
                         disabled={!r.showStats}
                         label={r.stat}
@@ -392,7 +391,7 @@ export default function MainAppShell({
                   ) : (
                     // When onClick is not a function (i.e., is false)
                     <Link
-                      key={i}
+                      key={r.link}
                       href={r.link}
                       style={{ textDecoration: "none" }}
                     >
@@ -424,7 +423,7 @@ export default function MainAppShell({
           </Footer>
         ) : (
           <Footer height={0}>
-            <Container></Container>
+            <Container />
           </Footer>
         )
       }
@@ -437,8 +436,9 @@ export default function MainAppShell({
           if (isEmailConfirmed) setIsEmailConfirmed(false);
           if (isRedirectToLogin) setIsRedirectToLogin(false);
           if (isPasswordReset) setIsPasswordReset(false);
-          if (isEmailConfirmed || isPasswordReset)
+          if (isEmailConfirmed || isPasswordReset) {
             window.history.replaceState(null, "", "/");
+          }
           close();
         }}
         title={isPasswordReset ? "" : "Log in or sign up"}

@@ -17,9 +17,7 @@ declare let process: {
 const BACKEND_ACCESS_TOKEN_LIFETIME = 45 * 60; // 45 minutes
 const BACKEND_REFRESH_TOKEN_LIFETIME = 6 * 24 * 60 * 60; // 6 days
 
-const getCurrentEpochTime = () => {
-  return Math.floor(new Date().getTime() / 1000);
-};
+const getCurrentEpochTime = () => Math.floor(new Date().getTime() / 1000);
 
 const SIGN_IN_HANDLERS: Record<
   string,
@@ -31,20 +29,18 @@ const SIGN_IN_HANDLERS: Record<
     credentials: any
   ) => Promise<boolean>
 > = {
-  credentials: async (user, account, profile, email, credentials) => {
-    return true;
-  },
+  credentials: async (user, account, profile, email, credentials) => true,
   google: async (user, account, profile, email, credentials) => {
     try {
       const response = await fetch(
-        process.env.NEXTAUTH_BACKEND_URL + "auth/google/",
+        `${process.env.NEXTAUTH_BACKEND_URL}auth/google/`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            access_token: account["id_token"],
+            access_token: account.id_token,
           }),
         }
       );
@@ -54,10 +50,9 @@ const SIGN_IN_HANDLERS: Record<
       }
 
       const data = await response.json();
-      account["meta"] = data;
+      account.meta = data;
       return true;
     } catch (error) {
-      console.error(error);
       return false;
     }
   },
@@ -88,7 +83,7 @@ export const authOptions: NextAuthOptions = {
       ) {
         try {
           const response = await fetch(
-            process.env.NEXTAUTH_BACKEND_URL + "auth/login/",
+            `${process.env.NEXTAUTH_BACKEND_URL}auth/login/`,
             {
               method: "POST",
               headers: {
@@ -99,8 +94,6 @@ export const authOptions: NextAuthOptions = {
           );
 
           const data = await response.json();
-
-          console.log(!response.ok);
 
           if (!response.ok) {
             const errorMessage = data.non_field_errors
@@ -149,19 +142,19 @@ export const authOptions: NextAuthOptions = {
       if (user && account) {
         let backendResponse =
           account.provider === "credentials" ? user : (account.meta as any);
-        token["user"] = backendResponse.user;
-        token["access_token"] = backendResponse.access;
-        token["refresh_token"] = backendResponse.refresh;
-        token["ref"] = getCurrentEpochTime() + BACKEND_ACCESS_TOKEN_LIFETIME;
+        token.user = backendResponse.user;
+        token.access_token = backendResponse.access;
+        token.refresh_token = backendResponse.refresh;
+        token.ref = getCurrentEpochTime() + BACKEND_ACCESS_TOKEN_LIFETIME;
         return token;
       }
       if (trigger === "update") {
         const response = await fetch(
-          process.env.NEXTAUTH_BACKEND_URL + "auth/user/",
+          `${process.env.NEXTAUTH_BACKEND_URL}auth/user/`,
           {
             method: "GET",
             headers: {
-              Authorization: `Bearer ${token["access_token"]}`,
+              Authorization: `Bearer ${token.access_token}`,
             },
           }
         );
@@ -169,22 +162,19 @@ export const authOptions: NextAuthOptions = {
         if (!response.ok) throw new Error("Network response was not ok.");
 
         const updatedUserInfo = await response.json();
-        token["user"] = updatedUserInfo; // Update the user data in the token
+        token.user = updatedUserInfo; // Update the user data in the token
       }
       // Refresh the backend token if necessary
-      if (
-        typeof token["ref"] === "number" &&
-        getCurrentEpochTime() > token["ref"]
-      ) {
+      if (typeof token.ref === "number" && getCurrentEpochTime() > token.ref) {
         const response = await fetch(
-          process.env.NEXTAUTH_BACKEND_URL + "auth/token/refresh/",
+          `${process.env.NEXTAUTH_BACKEND_URL}auth/token/refresh/`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              refresh: token["refresh_token"],
+              refresh: token.refresh_token,
             }),
           }
         );
@@ -192,9 +182,9 @@ export const authOptions: NextAuthOptions = {
         if (!response.ok) throw new Error("Network response was not ok.");
 
         const data = await response.json();
-        token["access_token"] = data.access;
-        token["refresh_token"] = data.refresh;
-        token["ref"] = getCurrentEpochTime() + BACKEND_ACCESS_TOKEN_LIFETIME;
+        token.access_token = data.access;
+        token.refresh_token = data.refresh;
+        token.ref = getCurrentEpochTime() + BACKEND_ACCESS_TOKEN_LIFETIME;
       }
       return token;
     },

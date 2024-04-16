@@ -98,7 +98,7 @@ function FilterOptionCard({
           <Text>{getPrettyUnitName(unit)}</Text>
           <Text c="dimmed" size="sm">
             {count}
-            {count === 1 ? "item" : "items"}
+            {count === 1 ? " item" : " items"}
           </Text>
         </Stack>
       </Group>
@@ -162,7 +162,11 @@ function RangeSliderComponent({
     // For other units or default case, just round the value
     scaledValue = Math.round(scaledValue);
 
-    return `${scaledValue} ${displayUnit}`;
+    return (
+      <Text size="xs">
+        {scaledValue} {displayUnit}
+      </Text>
+    );
   }
 
   // Define custom step and minRange based on unit
@@ -198,7 +202,7 @@ function RangeSliderComponent({
         }
         setSliderRangeValues(unitToDisplay, val);
       }}
-      label={(value) => <Text size="xs">{valueLabelFormat(value, unit)}</Text>}
+      label={(value) => valueLabelFormat(value, unit)}
     />
   );
 }
@@ -253,15 +257,6 @@ export default function FilterDrawer({
       [unit]: values,
     }));
   };
-
-  // Effect to update activeUnit when drawer opens
-  useEffect(() => {
-    if (opened) {
-      setActiveUnit(searchedProductsMetaData.active_unit);
-      setUnitSliderValues(initialUnitSliderValues);
-      setPriceSliderValues(initialPriceRange);
-    }
-  }, [opened]);
 
   const isPriceRangeUpdated =
     JSON.stringify(initialPriceRange) !== JSON.stringify(priceSliderValues);
@@ -327,7 +322,12 @@ export default function FilterDrawer({
   return (
     <Drawer
       opened={opened}
-      onClose={close}
+      onClose={() => {
+        close();
+        setActiveUnit(searchedProductsMetaData.active_unit);
+        setUnitSliderValues(initialUnitSliderValues);
+        setPriceSliderValues(initialPriceRange);
+      }}
       position="right"
       title={
         <Text

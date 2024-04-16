@@ -1,4 +1,4 @@
-import { PropsWithChildren, useState } from "react";
+import React, { PropsWithChildren, useState } from "react";
 import Link from "next/link";
 
 import { Stack, Title, Text, Grid, Paper } from "@mantine/core";
@@ -6,14 +6,14 @@ import { IconEye, IconId, IconShield } from "@tabler/icons-react";
 
 import { useSessionContext } from "@/Context/SessionContext";
 
-interface AccountSettingsMainMenuCard extends PropsWithChildren {
+interface AccountSettingsMainMenuCardProps extends PropsWithChildren {
   href: string;
 }
 
-const AccountSettingsMainMenuCard = ({
+function AccountSettingsMainMenuCard({
   href,
   ...props
-}: AccountSettingsMainMenuCard) => {
+}: AccountSettingsMainMenuCardProps) {
   const [isPressed, setIsPressed] = useState(false);
 
   const handlePress = () => {
@@ -48,7 +48,7 @@ const AccountSettingsMainMenuCard = ({
       </Paper>
     </Link>
   );
-};
+}
 
 export default function EstimatePage() {
   const { session, isLoading } = useSessionContext();

@@ -1,7 +1,7 @@
 async function request(
   endpoint: string,
-  method = "GET",
   accessToken: string | undefined,
+  method = "GET",
   data: {} | null = null
 ) {
   const options: any = {
@@ -33,11 +33,12 @@ const apiClient = {
     accessToken: string | undefined,
     params?: { [key: string]: string | number }
   ) => {
+    let fullUrl = endpoint;
     if (params) {
       const queryString = new URLSearchParams(params as any).toString();
-      endpoint = `${endpoint}?${queryString}`;
+      fullUrl = `${endpoint}?${queryString}`;
     }
-    return request(endpoint, "GET", accessToken);
+    return request(fullUrl, "GET", accessToken);
   },
   post: (endpoint: string, accessToken: string | undefined, data?: {}) =>
     request(endpoint, "POST", accessToken, data),

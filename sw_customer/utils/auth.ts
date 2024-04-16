@@ -1,10 +1,10 @@
 import { signOut } from "next-auth/react";
 
-export const logout = async (refreshToken: string | null) => {
+export default async function logout(refreshToken: string | null) {
   try {
     if (refreshToken) {
       const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "auth/logout/",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}auth/logout/`,
         {
           method: "POST",
           headers: {
@@ -26,4 +26,4 @@ export const logout = async (refreshToken: string | null) => {
   } catch (error) {
     console.error("Error logging out:", error);
   }
-};
+}

@@ -1,6 +1,7 @@
 import "@/styles/global.css";
 import "@/styles/countDownClock.css";
 
+import React from "react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { MantineProvider, ColorSchemeProvider } from "@mantine/core";
@@ -73,6 +74,7 @@ export default function App({
               <GlobalProvider>
                 <Notifications position="top-right" />
                 <MainAppShell>
+                  {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                   <Component {...pageProps} />
                 </MainAppShell>
               </GlobalProvider>

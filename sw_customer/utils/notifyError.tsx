@@ -1,12 +1,13 @@
+import React from "react";
 import { notifications } from "@mantine/notifications";
 import { IconX } from "@tabler/icons-react";
 
-type notiftErrorProps = {
+type NotiftErrorProps = {
   message: string;
   title?: string;
 };
 
-export default function notifyError({ message, title }: notiftErrorProps) {
+export default function notifyError({ message, title }: NotiftErrorProps) {
   notifications.show({
     title: title || "Error",
     message,

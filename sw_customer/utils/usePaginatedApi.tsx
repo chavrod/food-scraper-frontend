@@ -4,7 +4,7 @@ import notifyError from "./notifyError";
 
 export type Params = { [name: string]: any };
 
-interface useApiProps {
+interface UseApiProps {
   apiFunc: (
     accessToken: string | undefined,
     params: any | void
@@ -13,11 +13,6 @@ interface useApiProps {
   onSuccess: () => void;
   accessToken: string | undefined;
 }
-
-export type otherMetaData = {
-  totalResults: number;
-  orderBy: string;
-};
 
 export interface UseApiReturnType<T, M> {
   request: (additionalParams?: any) => Promise<void>;
@@ -38,7 +33,7 @@ function usePaginatedApi<T, M = any>({
   defaultParams = {},
   onSuccess,
   accessToken,
-}: useApiProps): UseApiReturnType<T, M> {
+}: UseApiProps): UseApiReturnType<T, M> {
   const [params, setParams] = useState(defaultParams);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<any[]>([]);
@@ -73,7 +68,7 @@ function usePaginatedApi<T, M = any>({
         const jsonRes = await res.json();
         const { data, metadata } = jsonRes;
 
-        setResponseData({ data: data, metaData: metadata });
+        setResponseData({ data, metaData: metadata });
 
         setPagination({
           page: metadata.page || 1,

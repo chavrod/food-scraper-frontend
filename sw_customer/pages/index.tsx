@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { IconCheck } from "@tabler/icons-react";
 import { useRouter, NextRouter } from "next/router";
 import { Stack, Flex } from "@mantine/core";
@@ -32,8 +32,8 @@ export default function HomePage() {
   const [loadingNew, setLoadingNew] = useState(false);
 
   // Function to normalize query parameters
-  const normalizeQueryParams = (params: SearchParams) => {
-    return Object.entries(params).reduce(
+  const normalizeQueryParams = (params: SearchParams) =>
+    Object.entries(params).reduce(
       (acc: { [key: string]: string }, [key, value]) => {
         if (value !== undefined) {
           // Check if value is not undefined
@@ -43,7 +43,6 @@ export default function HomePage() {
       },
       {}
     );
-  };
 
   useEffect(() => {
     const queryParams = normalizeQueryParams(router.query);
@@ -51,6 +50,7 @@ export default function HomePage() {
     if (queryParams.query) {
       requestedProducts.request(queryParams);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query]);
 
   useEffect(() => {
@@ -60,8 +60,6 @@ export default function HomePage() {
       const socket = new WebSocket("ws://localhost:8000/ws/scraped_result/");
 
       socket.onopen = () => {
-        console.log("WebSocket is connected.");
-
         // Sending a message to the server after connection
         const messageData = {
           query: router.query.query,
@@ -72,7 +70,6 @@ export default function HomePage() {
       };
 
       socket.onmessage = (event) => {
-        console.log("MESSAGE RECEIVED");
         const responseData = JSON.parse(event.data);
 
         if (responseData.query) {
@@ -87,12 +84,12 @@ export default function HomePage() {
             requestedProducts.request({ query: responseData.query, page: 1 });
           }, 1000);
         } else {
-          const error_msg =
+          const errorMsg =
             responseData.message ||
             "Sorry, we were not able to get any results from your request.";
           notifyError({
             title: "Something went wrong, redirecting to home page...",
-            message: error_msg,
+            message: errorMsg,
           });
           router.push("/");
         }
@@ -112,45 +109,45 @@ export default function HomePage() {
         socket.close();
       };
     }
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [averageScrapingTime]);
 
   return (
-    <>
-      <Flex
-        justify={
-          !requestedProducts.loading && !searchedProducts
-            ? "center"
-            : "space-between"
-        }
-        align={
-          !requestedProducts.loading && !searchedProducts
-            ? "center"
-            : "flex-start"
-        }
-        direction="row"
-        wrap="nowrap"
-        style={{ width: "100%", height: "100%" }}
-      >
-        <Stack align="center" spacing={0} style={{ flexGrow: "1" }}>
-          <NoSsr>
-            <SearchResults
-              searchQuery={router.query.query}
-              productsPageLoading={requestedProducts.loading}
-              searchedProducts={searchedProducts}
-              pageNumber={requestedProducts.pagination.page}
-              totalPages={requestedProducts.pagination.totalPages}
-              searchedProductsMetaData={searchedProductMetadata}
-              averageScrapingTime={averageScrapingTime}
-              loadingNew={loadingNew}
-            />
-          </NoSsr>
-        </Stack>
-        {!(!requestedProducts.loading && !searchedProducts) && (
-          <NoSsr>
-            <BasketPreview />
-          </NoSsr>
-        )}
-      </Flex>
-    </>
+    <Flex
+      justify={
+        !requestedProducts.loading && !searchedProducts
+          ? "center"
+          : "space-between"
+      }
+      align={
+        !requestedProducts.loading && !searchedProducts
+          ? "center"
+          : "flex-start"
+      }
+      direction="row"
+      wrap="nowrap"
+      style={{ width: "100%", height: "100%" }}
+    >
+      <Stack align="center" spacing={0} style={{ flexGrow: "1" }}>
+        <NoSsr>
+          <SearchResults
+            searchQuery={router.query.query}
+            productsPageLoading={requestedProducts.loading}
+            searchedProducts={searchedProducts}
+            pageNumber={requestedProducts.pagination.page}
+            totalPages={requestedProducts.pagination.totalPages}
+            searchedProductsMetaData={searchedProductMetadata}
+            averageScrapingTime={averageScrapingTime}
+            loadingNew={loadingNew}
+          />
+        </NoSsr>
+      </Stack>
+      {!(!requestedProducts.loading && !searchedProducts) && (
+        <NoSsr>
+          <BasketPreview />
+        </NoSsr>
+      )}
+    </Flex>
   );
 }

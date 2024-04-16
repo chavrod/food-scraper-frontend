@@ -31,17 +31,17 @@ export function formatDateRelative(dateString: string | null) {
   return format(date, "dd/MM/yyyy");
 }
 
-export function _formatDate(date: string | null) {
+export function formatDate(date: string | null) {
   if (date === null) return "";
   return format(parseISO(date), "dd/MM/yyyy");
 }
 
-export function _formatDateTime(date: string | null) {
+export function formatDateTime(date: string | null) {
   if (date === null) return "";
   return format(parseISO(date), "PPpp", { locale: enGB });
 }
 
-export function _formatDateShortYear(date: string | null) {
+export function formatDateShortYear(date: string | null) {
   if (date === null) return "";
   return format(parseISO(date), "dd/MM/yy");
 }

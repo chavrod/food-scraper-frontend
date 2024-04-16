@@ -75,7 +75,7 @@ export default function Basket() {
 
     setTimeout(() => {
       router.push(`?shop=${searchShop}&page=${page}`);
-      basketItems.request({ shop: searchShop, page: page });
+      basketItems.request({ shop: searchShop, page });
     }, 500);
   };
 
@@ -294,7 +294,7 @@ export default function Basket() {
                   </Text>
                 </Group>
               )}
-              <Divider></Divider>
+              <Divider />
 
               <Accordion
                 multiple
@@ -310,7 +310,7 @@ export default function Basket() {
                 {basketItems.responseData.metaData &&
                   basketItems.responseData.metaData.shop_breakdown?.map(
                     (shop, index) => (
-                      <Accordion.Item value={shop.name} key={index}>
+                      <Accordion.Item value={shop.name} key={shop.name}>
                         <Accordion.Control
                           disabled={isLargerThanLg}
                           style={{
@@ -349,7 +349,7 @@ export default function Basket() {
                     )
                   )}
               </Accordion>
-              <Divider color="dark"></Divider>
+              <Divider color="dark" />
               <Group mt="xs" position="apart">
                 <Text ml={21} weight={500} miw={80} align="left">
                   {isLargerThanLg ? "" : "Total"}
@@ -379,7 +379,7 @@ export default function Basket() {
             </Group>
             <Grid gutter={0}>
               {basketItems.responseData.data.map((item, index) => (
-                <Grid.Col key={index} span={12}>
+                <Grid.Col key={item.product?.id} span={12}>
                   <Paper
                     maw={450}
                     miw={isLargerThanLg ? 400 : ""}
@@ -476,8 +476,9 @@ export default function Basket() {
                             }
                             variant="transparent"
                             onClick={() => {
-                              item?.id &&
+                              if (item?.id) {
                                 handleDecreaseQuantity(item.id, index);
+                              }
                             }}
                           >
                             {productStates.decreased[index] ? (
@@ -495,8 +496,9 @@ export default function Basket() {
                             }
                             variant="transparent"
                             onClick={() => {
-                              item?.id &&
-                                handleIncreaseQuantity(item.id, index);
+                              if (item?.id) {
+                                handleDecreaseQuantity(item.id, index);
+                              }
                             }}
                           >
                             {productStates.increased[index] ? (
@@ -513,9 +515,9 @@ export default function Basket() {
                           variant="transparent"
                           color="red"
                           onClick={() => {
-                            item?.id &&
-                              item.product?.name &&
+                            if (item?.id && item.product?.name) {
                               clearProduct(item.id, item.product.name, index);
+                            }
                           }}
                         >
                           <IconX size="1.2rem" />
@@ -525,7 +527,7 @@ export default function Basket() {
                           <Text weight={500}>
                             €
                             {item.product?.price && item.quantity
-                              ? (item.product?.price * item.quantity).toFixed(2)
+                              ? (item.product.price * item.quantity).toFixed(2)
                               : "N/A"}
                           </Text>
                         </Stack>

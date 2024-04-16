@@ -1,10 +1,10 @@
 import { notifications } from "@mantine/notifications";
-import { useState } from "react";
+import React, { useState } from "react";
 import { IconX, IconCheck } from "@tabler/icons-react";
 // Internal
 import notifyError from "./notifyError";
 
-interface useApiSubmitProps<T> {
+interface UseApiSubmitProps<T> {
   apiFunc: (accessToken: string | undefined, data: T) => Promise<Response>;
   onSuccess: () => void;
   accessToken: string | undefined;
@@ -14,7 +14,7 @@ function useApiSubmit<T>({
   apiFunc,
   onSuccess,
   accessToken,
-}: useApiSubmitProps<T>) {
+}: UseApiSubmitProps<T>) {
   const [loading, setLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<any[]>([]);
 
@@ -24,8 +24,8 @@ function useApiSubmit<T>({
       title: string;
       body: string;
     }
-  ) => {
-    if (apiFunc === undefined) return;
+  ): Promise<boolean> => {
+    if (apiFunc === undefined) return false;
 
     setLoading(true);
 
@@ -46,14 +46,13 @@ function useApiSubmit<T>({
 
         onSuccess();
         return true;
-      } else {
-        const errorData = await res.json();
-
-        Object.entries(errorData).forEach(([key, value]) => {
-          const errorMessage = Array.isArray(value) ? value.join(", ") : value;
-          notifyError({ message: `${key}: ${errorMessage}` });
-        });
       }
+      const errorData = await res.json();
+
+      Object.entries(errorData).forEach(([key, value]) => {
+        const errorMessage = Array.isArray(value) ? value.join(", ") : value;
+        notifyError({ message: `${key}: ${errorMessage}` });
+      });
     } catch (err) {
       notifyError({ message: "Network or server error" });
     } finally {
