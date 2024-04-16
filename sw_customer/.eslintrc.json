@@ -10,12 +10,19 @@
     "@typescript-eslint/no-unused-vars": "off",
     "one-var": "off",
     "one-var-declaration-per-line": "off",
+    "react/jsx-one-expression-per-line": "off",
+    "implicit-arrow-linebreak": "off",
     "indent": "off",
+    "object-curly-newline": "off",
     "no-nested-ternary": "off",
     "operator-linebreak": "off",
     "react/jsx-wrap-multilines": "off",
-    "@next/next/no-img-element": "off"
+    "react/jsx-fragments": "off",
+    "@next/next/no-img-element": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-noninteractive-element-interactions": "off",
+    "no-confusing-arrow": "off",
+    "function-paren-newline": "off",
+    "react/jsx-indent": "off"
   }
 }
-
-// "next/core-web-vitals",
