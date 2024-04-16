@@ -10,9 +10,7 @@ interface SessionState {
 
 const SessionContext = createContext<SessionState | undefined>(undefined);
 
-export const SessionProvider: React.FC<PropsWithChildren<{}>> = ({
-  children,
-}) => {
+export function SessionProvider({ children }: PropsWithChildren) {
   const { session, isLoading, isError } = useCustomSession({ required: false });
   const sessionState: SessionState = {
     session: session !== undefined ? session : null, // Ensure session is never undefined
@@ -25,7 +23,7 @@ export const SessionProvider: React.FC<PropsWithChildren<{}>> = ({
       {children}
     </SessionContext.Provider>
   );
-};
+}
 
 export const useSessionContext = (): SessionState => {
   const context = useContext(SessionContext);

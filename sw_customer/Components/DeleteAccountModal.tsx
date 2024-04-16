@@ -1,9 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { Modal, Button, Text, Input, Stack, Group } from "@mantine/core";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 // Internal: Utils
-import { logout } from "@/utils/auth";
+import logout from "@/utils/auth";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -12,12 +12,12 @@ interface DeleteAccountModalProps {
   refreshToken: string | null;
 }
 
-const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
+function DeleteAccountModal({
   isOpen,
   onClose,
   accressToken,
   refreshToken,
-}) => {
+}: DeleteAccountModalProps) {
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
@@ -28,7 +28,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       setLoading(true);
 
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "auth/delete-account/",
+        `${process.env.NEXT_PUBLIC_API_URL}auth/delete-account/`,
         {
           method: "POST",
           credentials: "include",
@@ -110,6 +110,6 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       )}
     </Modal>
   );
-};
+}
 
 export default DeleteAccountModal;

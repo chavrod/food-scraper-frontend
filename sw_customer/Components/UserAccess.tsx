@@ -1,8 +1,4 @@
-import { useState } from "react";
-// Internal: Components
-import LoginForm from "./LoginForm";
-import RegisterForm from "./RegisterForm";
-// External: Style
+import React, { useState } from "react";
 import {
   Button,
   Box,
@@ -21,16 +17,15 @@ import {
 // External: Logic
 import { signIn } from "next-auth/react";
 import { useQueryClient } from "react-query";
+import LoginForm from "./LoginForm";
+import RegisterForm from "./RegisterForm";
 
 interface LoginFormProps {
   isEmailConfirmed: boolean;
   handleLoginSucess: () => void;
 }
 
-const UserAccess: React.FC<LoginFormProps> = ({
-  isEmailConfirmed,
-  handleLoginSucess,
-}) => {
+function UserAccess({ isEmailConfirmed, handleLoginSucess }: LoginFormProps) {
   const queryClient = useQueryClient();
 
   const [isLoginFormVisible, setIsLoginFormVisible] = useState(true);
@@ -77,14 +72,14 @@ const UserAccess: React.FC<LoginFormProps> = ({
             <LoginForm
               isLoginSuccess={isAuthSuccess}
               handleLoginSucess={handleAuthSuccess}
-            ></LoginForm>
+            />
           </>
         ) : (
           <RegisterForm
             isRegistrationSubmitted={isAuthSuccess}
             handleRegistrationSubmission={handleAuthSuccess}
             handleMoveToLogin={handleMoveToLogin}
-          ></RegisterForm>
+          />
         )}
 
         {!isAuthSuccess && (
@@ -102,7 +97,7 @@ const UserAccess: React.FC<LoginFormProps> = ({
                 }}
                 fullWidth
               >
-                {isRedirecting == "google"
+                {isRedirecting === "google"
                   ? "Redirecting to Google..."
                   : "Continue with Google"}
               </Button>
@@ -133,6 +128,6 @@ const UserAccess: React.FC<LoginFormProps> = ({
       </Paper>
     </Box>
   );
-};
+}
 
 export default UserAccess;

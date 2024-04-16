@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import React, { ReactElement } from "react";
 import { TextInput, ActionIcon, Group } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconSearch, IconX } from "@tabler/icons-react";

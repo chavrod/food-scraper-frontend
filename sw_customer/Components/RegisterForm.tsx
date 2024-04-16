@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   TextInput,
   Button,
@@ -14,7 +14,7 @@ import { notifications } from "@mantine/notifications";
 import { useDisclosure } from "@mantine/hooks";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 // Internal: Utils
-import { getCSRF } from "@/utils/getCSRF";
+import getCSRF from "@/utils/getCSRF";
 
 interface RegisterFormProps {
   isRegistrationSubmitted: boolean;
@@ -22,11 +22,11 @@ interface RegisterFormProps {
   handleMoveToLogin: () => void;
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({
+function RegisterForm({
   isRegistrationSubmitted,
   handleRegistrationSubmission,
   handleMoveToLogin,
-}) => {
+}: RegisterFormProps) {
   const form = useForm({
     initialValues: {
       email: "",
@@ -60,7 +60,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       const username = email.includes("@") ? email.split("@")[0] : email;
 
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "auth/register/",
+        `${process.env.NEXT_PUBLIC_API_URL}auth/register/`,
         {
           method: "POST",
           headers: {
@@ -106,7 +106,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
   //   { re: /[a-z]/, label: 'Includes lowercase letter' },
   //   { re: /[0-9]/, label: 'Includes a number' },
   //   { re: /[!@#$%^&*]/, label: 'Includes special character (!@#$%^&*)' },
-  //   { re: /^(?!.*(.)\1{3,}).*$/, label: 'Does not contain repeated characters in sequence more than three times' },
+  //   { re: /^(?!.*(.)\1{3,}).*$/,
+  // label: 'Does not contain
+  // repeated characters in sequence more than three times' },
   // ];
 
   // function getStrength(password: string) {
@@ -131,7 +133,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       if (!csrfToken) return;
 
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "auth/send-validation-email/",
+        `${process.env.NEXT_PUBLIC_API_URL}auth/send-validation-email/`,
         {
           method: "POST",
           credentials: "include",
@@ -156,6 +158,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
   };
 
   return (
+    // eslint-disable-next-line react/jsx-no-useless-fragment
     <>
       {!isRegistrationSubmitted ? (
         <form onSubmit={form.onSubmit(handleFormSubmit)}>
@@ -243,6 +246,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       )}
     </>
   );
-};
+}
 
 export default RegisterForm;

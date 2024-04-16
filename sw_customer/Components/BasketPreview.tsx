@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useSessionContext } from "@/Context/SessionContext";
 
 // External Styling
@@ -169,7 +169,7 @@ export default function BasketPreview() {
   };
 
   if (!isLargerThanSm || !session) {
-    return <></>;
+    return undefined;
   }
 
   return (
@@ -275,7 +275,7 @@ export default function BasketPreview() {
         ) : basketItems.responseData?.data &&
           basketItems.responseData?.data.length > 0 ? (
           basketItems.responseData.data.map((item, index) => (
-            <Paper key={index} shadow="xs" radius="xs" maw={300} withBorder>
+            <Paper key={item.id} shadow="xs" radius="xs" maw={300} withBorder>
               <Flex
                 justify="center"
                 align="flex-start"
@@ -327,7 +327,7 @@ export default function BasketPreview() {
                       color={productStates.decreased[index] ? "teal" : "brand"}
                       variant="transparent"
                       onClick={() => {
-                        item?.id && handleDecreaseQuantity(item.id, index);
+                        if (item?.id) handleDecreaseQuantity(item.id, index);
                       }}
                     >
                       {productStates.decreased[index] ? (
@@ -343,7 +343,7 @@ export default function BasketPreview() {
                       color={productStates.increased[index] ? "teal" : "brand"}
                       variant="transparent"
                       onClick={() => {
-                        item?.id && handleIncreaseQuantity(item.id, index);
+                        if (item?.id) handleIncreaseQuantity(item.id, index);
                       }}
                     >
                       {productStates.increased[index] ? (
@@ -360,9 +360,9 @@ export default function BasketPreview() {
                   variant="transparent"
                   color="red"
                   onClick={() => {
-                    item?.id &&
-                      item.product?.name &&
+                    if (item?.id && item.product?.name) {
                       clearProduct(item.id, item.product.name, index);
+                    }
                   }}
                 >
                   <IconX size="1.2rem" />

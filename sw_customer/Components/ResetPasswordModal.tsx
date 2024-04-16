@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Stack,
   Text,
@@ -26,13 +26,13 @@ interface ResetPasswordModalProps {
   accressToken: string | null;
 }
 
-const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
+function ResetPasswordModal({
   userEmail,
   userPasswordResetAttempts,
   isOpen,
   onClose,
   accressToken,
-}) => {
+}: ResetPasswordModalProps) {
   const DAILY_LIMIT = process.env.NEXT_PUBLIC_EMAIL_RESEND_LIMIT;
 
   const [loading, setLoading] = useState(false);
@@ -48,7 +48,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
       setLoading(true);
 
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "auth/password-reset/",
+        `${process.env.NEXT_PUBLIC_API_URL}auth/password-reset/`,
         {
           method: "POST",
           credentials: "include",
@@ -97,8 +97,9 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
       opened={isOpen}
       onClose={() => {
         onClose();
-        if (showPasswordResetEmailConfirmation)
+        if (showPasswordResetEmailConfirmation) {
           setShowPasswordResetEmailConfirmation(false);
+        }
       }}
       title="Reset Password"
       centered
@@ -193,6 +194,6 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
       </Paper>
     </Modal>
   );
-};
+}
 
 export default ResetPasswordModal;

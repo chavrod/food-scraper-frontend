@@ -1,11 +1,18 @@
-import React, { createContext, useContext, ReactNode, useEffect } from "react";
-import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useEffect,
+  useMemo,
+} from "react";
 import usePaginatedApi, { UseApiReturnType } from "@/utils/usePaginatedApi";
 import { useSessionContext } from "@/Context/SessionContext";
 import {
   SearchedProduct,
   SearchedProductMetadata,
   ScrapeStatsForCustomer,
+  BasketItem,
+  BasketItemMetadata,
 } from "@/types/customer_types";
 import searchedProductsApi from "@/utils/searchedProductsApi";
 
@@ -33,7 +40,7 @@ export const GlobalContext = createContext<GlobalContextType | undefined>(
 );
 
 // Provide the context
-export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
+export function GlobalProvider({ children }: GlobalProviderProps) {
   const { session, isLoading } = useSessionContext();
   const accessToken = session?.access_token;
 
@@ -58,9 +65,8 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
   });
 
   const averageScrapingTime =
-    requestedProducts?.responseData?.metaData &&
-    "average_time_seconds" in requestedProducts?.responseData?.metaData
-      ? requestedProducts?.responseData?.metaData.average_time_seconds
+    "average_time_seconds" in (requestedProducts?.responseData?.metaData || {})
+      ? requestedProducts.responseData.metaData.average_time_seconds
       : undefined;
 
   const searchedProducts = !averageScrapingTime
@@ -73,20 +79,29 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
         | undefined)
     : undefined;
 
+  const contextValue = useMemo(
+    () => ({
+      basketItems,
+      requestedProducts,
+      averageScrapingTime,
+      searchedProducts,
+      searchedProductMetadata,
+    }),
+    [
+      basketItems,
+      requestedProducts,
+      averageScrapingTime,
+      searchedProducts,
+      searchedProductMetadata,
+    ]
+  );
+
   return (
-    <GlobalContext.Provider
-      value={{
-        basketItems,
-        requestedProducts,
-        averageScrapingTime,
-        searchedProducts,
-        searchedProductMetadata,
-      }}
-    >
+    <GlobalContext.Provider value={contextValue}>
       {children}
     </GlobalContext.Provider>
   );
-};
+}
 
 export const useGlobalContext = () => {
   const context = useContext(GlobalContext);

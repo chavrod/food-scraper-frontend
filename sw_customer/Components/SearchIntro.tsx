@@ -26,8 +26,8 @@ export default function SearchIntro() {
           Effortless grocery comparisons in Ireland
         </Title>
         <SearchHeader
-          isLargerThanSm={true}
-          isSearchBarVisible={true}
+          isLargerThanSm
+          isSearchBarVisible
           handleHideSearchBar={() => {}}
         />
       </Stack>

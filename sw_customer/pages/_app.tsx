@@ -8,7 +8,6 @@ import { MantineProvider, ColorSchemeProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import MainAppShell from "@/Components/AppLayout";
 import { QueryClient, QueryClientProvider } from "react-query";
-// import { SessionProvider } from "../Components/Provider";
 import { SessionProvider } from "@/Context/SessionContext";
 import { GlobalProvider } from "@/Context/globalContext";
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { signIn } from "next-auth/react";
 
@@ -10,7 +10,6 @@ import {
   Center,
   Title,
   PasswordInput,
-  Group,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
@@ -22,10 +21,7 @@ interface LoginFormProps {
   isLoginSuccess: boolean;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({
-  handleLoginSucess,
-  isLoginSuccess,
-}) => {
+function LoginForm({ handleLoginSucess, isLoginSuccess }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -63,16 +59,17 @@ const LoginForm: React.FC<LoginFormProps> = ({
       } else {
         handleLoginSucess();
       }
-    } catch (error: any) {
+    } catch (err: any) {
       notifications.show({
         title: "Server Error!",
-        message: error?.message || "Unknown error. Please try again later.",
+        message: err?.message || "Unknown error. Please try again later.",
         color: "red",
       });
     }
   };
 
   return (
+    // eslint-disable-next-line react/jsx-no-useless-fragment
     <>
       {!isLoginSuccess ? (
         <div>
@@ -113,7 +110,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 mt="xs"
                 align="right"
                 size="sm"
-                c={"brand.9"}
+                c="brand.9"
                 sx={{
                   cursor: "pointer",
                   "&:hover": {
@@ -145,6 +142,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
       )}
     </>
   );
-};
+}
 
 export default LoginForm;

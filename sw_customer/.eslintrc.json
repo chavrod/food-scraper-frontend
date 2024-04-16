@@ -17,12 +17,14 @@
     "no-nested-ternary": "off",
     "operator-linebreak": "off",
     "react/jsx-wrap-multilines": "off",
+    "react/jsx-props-no-spreading": "off",
     "react/jsx-fragments": "off",
     "@next/next/no-img-element": "off",
     "jsx-a11y/click-events-have-key-events": "off",
     "jsx-a11y/no-noninteractive-element-interactions": "off",
     "no-confusing-arrow": "off",
     "function-paren-newline": "off",
-    "react/jsx-indent": "off"
+    "react/jsx-indent": "off",
+    "max-len": "off"
   }
 }

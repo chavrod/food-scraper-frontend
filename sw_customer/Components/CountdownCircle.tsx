@@ -1,4 +1,4 @@
-// External Styling
+import React from "react";
 import { Paper, Text, Stack, Title } from "@mantine/core";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 // Intenral: Utils
