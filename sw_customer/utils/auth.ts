@@ -24,6 +24,7 @@ export default async function logout(refreshToken: string | null) {
     // Clear the frontend session
     signOut({ callbackUrl: "/" });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error logging out:", error);
   }
 }

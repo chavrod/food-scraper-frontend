@@ -1,4 +1,9 @@
-import React, { createContext, useContext, PropsWithChildren } from "react";
+import React, {
+  createContext,
+  useContext,
+  PropsWithChildren,
+  useMemo,
+} from "react";
 import { useCustomSession } from "@/hooks/useCustomSession";
 import { Session } from "next-auth";
 
@@ -12,11 +17,14 @@ const SessionContext = createContext<SessionState | undefined>(undefined);
 
 export function SessionProvider({ children }: PropsWithChildren) {
   const { session, isLoading, isError } = useCustomSession({ required: false });
-  const sessionState: SessionState = {
-    session: session !== undefined ? session : null, // Ensure session is never undefined
-    isLoading,
-    isError,
-  };
+  const sessionState = useMemo(
+    () => ({
+      session: session !== undefined ? session : null,
+      isLoading,
+      isError,
+    }),
+    [session, isLoading, isError]
+  );
 
   return (
     <SessionContext.Provider value={sessionState}>

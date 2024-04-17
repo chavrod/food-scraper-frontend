@@ -3,6 +3,7 @@ import NextAuth from "next-auth";
 import { CustomUserDetailsSerializer } from "./customer_types";
 
 // prevents IDEs from removing the unused `NextAuth` import
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 NextAuth.name;
 
 declare module "next-auth" {

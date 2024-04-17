@@ -54,6 +54,7 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
     if (session) {
       basketItems.request();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const requestedProducts = usePaginatedApi<
