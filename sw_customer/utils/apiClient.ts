@@ -1,7 +1,7 @@
 async function request(
   endpoint: string,
+  method: string,
   accessToken: string | undefined,
-  method = "GET",
   data: {} | null = null
 ) {
   const options: any = {
