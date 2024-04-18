@@ -364,7 +364,7 @@ export default function MainAppShell({
                 .map((r, i) =>
                   typeof r.onClick === "function" ? (
                     // When onClick is a function
-                    <Stack key={r.stat} align="center" spacing={0}>
+                    <Stack key={r.link} align="center" spacing={0}>
                       <Indicator
                         disabled={!r.showStats}
                         label={r.stat}
