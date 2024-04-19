@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   IconScale,
   IconDroplet,
@@ -23,6 +23,7 @@ import {
   SearchedProduct,
   SearchedProductMetadata,
 } from "@/types/customer_types";
+import useDeepCompareMemo from "@/utils/useDeepCompareMemo";
 
 type FilterOptionCardProps = {
   unit: SearchedProduct["unit_type"];
@@ -76,6 +77,9 @@ function FilterOptionCard({
     }
   };
 
+  const iconElement = useMemo(() => getIconForUnit(unit), [unit]);
+  const prettyUnitName = useMemo(() => getPrettyUnitName(unit), [unit]);
+
   return (
     <Paper
       h="100%"
@@ -93,9 +97,9 @@ function FilterOptionCard({
       onClick={handleClick}
     >
       <Group spacing="md">
-        {getIconForUnit(unit)}
+        {iconElement}
         <Stack spacing={0}>
-          <Text>{getPrettyUnitName(unit)}</Text>
+          <Text>{prettyUnitName}</Text>
           <Text c="dimmed" size="sm">
             {count}
             {count === 1 ? " item" : " items"}
@@ -117,95 +121,91 @@ type RangeSliderComponentProps = {
   ) => void;
 };
 
-function RangeSliderComponent({
-  unit,
-  min,
-  max,
-  rangeValue,
-  setSliderRangeValues,
-}: RangeSliderComponentProps) {
-  function valueLabelFormat(value: number, currentUnit: string) {
-    let displayUnit = currentUnit;
-    let scaledValue = value;
+const RangeSliderComponent = React.memo(
+  ({
+    unit,
+    min,
+    max,
+    rangeValue,
+    setSliderRangeValues,
+  }: RangeSliderComponentProps) => {
+    function valueLabelFormat(value: number, currentUnit: string) {
+      let displayUnit = currentUnit;
+      let scaledValue = value;
 
-    // Specific case for euros
-    if (currentUnit === "euros") {
-      return `€${Math.round(value)}`;
-    }
-
-    // Handling KG and L with specific scaling and unit changes
-    if (currentUnit === "KG" || currentUnit === "L") {
-      if (value < 1) {
-        scaledValue = Math.round(value * 1000);
-        displayUnit = currentUnit === "KG" ? "mg" : "ml";
-      } else {
-        scaledValue = Math.round(value * 10) / 10; // Keep only one decimal for KG and L
-        displayUnit = currentUnit === "KG" ? "kg" : "litre";
+      // Specific case for euros
+      if (currentUnit === "euros") {
+        return `€${Math.round(value)}`;
       }
+
+      // Handling KG and L with specific scaling and unit changes
+      if (currentUnit === "KG" || currentUnit === "L") {
+        if (value < 1) {
+          scaledValue = Math.round(value * 1000);
+          displayUnit = currentUnit === "KG" ? "mg" : "ml";
+        } else {
+          scaledValue = Math.round(value * 10) / 10;
+          displayUnit = currentUnit === "KG" ? "kg" : "litre";
+        }
+        // Handling M and M2 without changes to scaledValue
+      } else if (currentUnit === "M" || currentUnit === "M2") {
+        displayUnit = currentUnit.toLowerCase();
+        scaledValue = Math.round(scaledValue);
+        // Handling EACH with singular or plural terms
+      } else if (currentUnit === "EACH") {
+        displayUnit = value === 1 ? "item" : "items";
+        scaledValue = Math.round(scaledValue);
+        // Handling HUNDRED_SHEETS as a fixed unit
+      } else if (currentUnit === "HUNDRED_SHEETS") {
+        displayUnit = "(100 sheets)";
+        scaledValue = Math.round(scaledValue);
+      }
+
+      return (
+        <Text size="xs">
+          {scaledValue} {displayUnit}
+        </Text>
+      );
     }
 
-    // Handling M and M2 without changes to scaledValue
-    if (currentUnit === "M" || currentUnit === "M2") {
-      displayUnit = currentUnit.toLowerCase();
+    // Define custom step and minRange based on unit
+    let step, minRange;
+    if (["euros", "M", "EACH", "HUNDRED_SHEETS", "M2"].includes(unit)) {
+      step = 1;
+      minRange = 1;
+    } else if (["KG", "L"].includes(unit)) {
+      step = 0.1;
+      minRange = 0.1;
+    } else {
+      step = 1;
+      minRange = 1;
     }
-
-    // Handling EACH with singular or plural terms
-    if (currentUnit === "EACH") {
-      displayUnit = value === 1 ? "item" : "items";
-    }
-
-    // Handling HUNDRED_SHEETS as a fixed unit
-    if (currentUnit === "HUNDRED_SHEETS") {
-      displayUnit = "(100 sheets)";
-    }
-
-    // For other units or default case, just round the value
-    scaledValue = Math.round(scaledValue);
 
     return (
-      <Text size="xs">
-        {scaledValue} {displayUnit}
-      </Text>
+      <RangeSlider
+        size="lg"
+        py={40}
+        m="xl"
+        step={step}
+        min={min}
+        max={max}
+        minRange={minRange}
+        labelAlwaysOn
+        value={rangeValue}
+        onChange={(val) => {
+          let unitToDisplay: SearchedProduct["unit_type"];
+          if (unit === "euros") {
+            unitToDisplay = "EACH";
+          } else {
+            unitToDisplay = unit;
+          }
+          setSliderRangeValues(unitToDisplay, val);
+        }}
+        label={(value) => valueLabelFormat(value, unit)}
+      />
     );
   }
-
-  // Define custom step and minRange based on unit
-  let step, minRange;
-  if (["euros", "M", "EACH", "HUNDRED_SHEETS", "M2"].includes(unit)) {
-    step = 1;
-    minRange = 1;
-  } else if (["KG", "L"].includes(unit)) {
-    step = 0.1;
-    minRange = 0.1;
-  } else {
-    step = 1;
-    minRange = 1;
-  }
-
-  return (
-    <RangeSlider
-      size="lg"
-      py={40}
-      m="xl"
-      step={step}
-      min={min}
-      max={max}
-      minRange={minRange}
-      labelAlwaysOn
-      value={rangeValue}
-      onChange={(val) => {
-        let unitToDisplay: SearchedProduct["unit_type"];
-        if (unit === "euros") {
-          unitToDisplay = "EACH";
-        } else {
-          unitToDisplay = unit;
-        }
-        setSliderRangeValues(unitToDisplay, val);
-      }}
-      label={(value) => valueLabelFormat(value, unit)}
-    />
-  );
-}
+);
 
 export default function FilterDrawer({
   opened,
@@ -225,38 +225,34 @@ export default function FilterDrawer({
   type SliderValues = {
     [key in SearchedProduct["unit_type"]]?: [number, number];
   };
-  const initialUnitSliderValues: SliderValues = {};
-  // Initialize state for each slider
-  searchedProductsMetaData.units_range_list.forEach((unit_type_data) => {
-    initialUnitSliderValues[unit_type_data.name] = [
-      unit_type_data.min_selected ?? unit_type_data.min,
-      unit_type_data.max_selected ?? unit_type_data.max,
-    ];
-  });
+
+  const initialUnitSliderValues = useDeepCompareMemo(() => {
+    const sliderValues: SliderValues = {};
+    searchedProductsMetaData.units_range_list.forEach((unit_type_data) => {
+      sliderValues[unit_type_data.name] = [
+        unit_type_data.min_selected ?? unit_type_data.min,
+        unit_type_data.max_selected ?? unit_type_data.max,
+      ];
+    });
+    return sliderValues;
+  }, [searchedProductsMetaData]);
 
   const [unitSliderValues, setUnitSliderValues] = useState<SliderValues>(
     initialUnitSliderValues
   );
 
-  const initialPriceRange: [number, number] = [
-    searchedProductsMetaData.price_range_info.min_selected ??
-      searchedProductsMetaData.price_range_info.min,
-    searchedProductsMetaData.price_range_info.max_selected ??
-      searchedProductsMetaData.price_range_info.max,
-  ];
+  const initialPriceRange: [number, number] = useDeepCompareMemo(
+    () => [
+      searchedProductsMetaData.price_range_info.min_selected ??
+        searchedProductsMetaData.price_range_info.min,
+      searchedProductsMetaData.price_range_info.max_selected ??
+        searchedProductsMetaData.price_range_info.max,
+    ],
+    [searchedProductsMetaData]
+  );
 
   const [priceSliderValues, setPriceSliderValues] =
     useState<[number, number]>(initialPriceRange);
-
-  const handleUnitSliderChange = (
-    unit: SearchedProduct["unit_type"],
-    values: [number, number]
-  ) => {
-    setUnitSliderValues((prevValues) => ({
-      ...prevValues,
-      [unit]: values,
-    }));
-  };
 
   const isPriceRangeUpdated =
     JSON.stringify(initialPriceRange) !== JSON.stringify(priceSliderValues);
@@ -410,7 +406,12 @@ export default function FilterDrawer({
                     min={unit_type_data.min}
                     max={unit_type_data.max}
                     rangeValue={unitSliderValues[unit_type_data.name]!}
-                    setSliderRangeValues={handleUnitSliderChange}
+                    setSliderRangeValues={(unit, values) => {
+                      setUnitSliderValues((prevValues) => ({
+                        ...prevValues,
+                        [unit]: values,
+                      }));
+                    }}
                   />
                 );
               }
