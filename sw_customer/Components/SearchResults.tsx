@@ -35,11 +35,6 @@ import { ProductGridSkeleton } from "@/Components/Skeletons";
 import SearchIntro from "./SearchIntro";
 import FilterDrawer from "./FilterDrawer";
 
-export type ItemsLoadingStates = {
-  loadingNew: boolean;
-  loadingCached: boolean;
-};
-
 type ProductStateType = {
   loading: Record<number, boolean>;
   added: Record<number, boolean>;
