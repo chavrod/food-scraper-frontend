@@ -37,6 +37,7 @@ import {
 } from "@tabler/icons-react";
 import { useSessionContext } from "@/Context/SessionContext";
 // Internal: Utils
+import useSearchedProducts from "@/hooks/useProducts";
 import logout from "@/utils/auth";
 import { useGlobalContext } from "@/Context/globalContext";
 import UserAccess from "./UserAccess";
@@ -62,15 +63,18 @@ export default function MainAppShell({
 }) {
   const router = useRouter();
 
+  const { searchedProducts, isLoading: loadingExistingProducts } =
+    useSearchedProducts();
+
   // const isLargerThanSm = useMediaQuery("(min-width: 768px)", undefined, {
   //   getInitialValueInEffect: false,
   // });
   const isLargerThanSm = useMediaQuery("(min-width: 768px)");
 
-  const { basketItems, requestedProducts, searchedProducts } =
-    useGlobalContext();
-  const { metaData: basketItemsMetaData } = basketItems.responseData;
-  const basketQty = basketItemsMetaData?.total_quantity || 0;
+  // TODO: Fix
+  // const { metaData: basketItemsMetaData } = basketItems.responseData;
+  // const basketQty = basketItemsMetaData?.total_quantity || 0;
+  const basketQty = 0;
 
   const [isEmailConfirmed, setIsEmailConfirmed] = useState(false);
   const [isRedirectToLogin, setIsRedirectToLogin] = useState(false);
@@ -87,14 +91,9 @@ export default function MainAppShell({
     setIsPasswordReset(passwordResetQuery === "successful-password-reset");
   }, [router.query]);
 
-  // const [callBackUrl, setCallBackUrl] = useState<string>(() => {
-  //   const queryParam = router.query["callbackUrl"] as string;
-  //   return queryParam || "";
-  // });
-
   const [opened, { open, close }] = useDisclosure(false);
 
-  const { session, isLoading } = useSessionContext();
+  const { session } = useSessionContext();
 
   const routes: Route[] = [
     {
@@ -161,14 +160,6 @@ export default function MainAppShell({
 
   const handleLoginSucess = () => {
     close();
-
-    // if (callBackUrl) {
-    //   console.log("callBackUrl: ", callBackUrl);
-    //   const decodedCallbackUrl = decodeURIComponent(callBackUrl);
-
-    //   console.log("decodedCallbackUrl: ", decodedCallbackUrl);
-    //   router.push(decodedCallbackUrl);
-    // }
   };
 
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
@@ -192,7 +183,7 @@ export default function MainAppShell({
           backgroundImage:
             router.pathname === "/" &&
             !searchQuery &&
-            !requestedProducts.loading &&
+            !loadingExistingProducts &&
             !searchedProducts
               ? "url(landing-background.webp)"
               : "",

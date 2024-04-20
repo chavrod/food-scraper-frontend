@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import { Session } from "next-auth";
 
@@ -14,6 +14,15 @@ interface UseSessionOptions {
   queryConfig?: any;
 }
 
+// onSettled(data, error) {
+//   if (required && !data) {
+//     router.push(redirectTo);
+//   }
+//   if (queryConfig.onSettled) {
+//     queryConfig.onSettled(data, error);
+//   }
+// }
+
 export function useCustomSession({
   required = false,
   redirectTo = "/api/auth/signin?error=SessionExpired",
@@ -24,16 +33,9 @@ export function useCustomSession({
     data: session,
     isLoading,
     isError,
-  } = useQuery<Session | null, Error>("session", fetchSession, {
-    ...queryConfig,
-    onSettled(data, error) {
-      if (required && !data) {
-        router.push(redirectTo);
-      }
-      if (queryConfig.onSettled) {
-        queryConfig.onSettled(data, error);
-      }
-    },
+  } = useQuery<Session | null, Error>({
+    queryKey: ["session"],
+    queryFn: fetchSession,
   });
 
   return { session, isLoading, isError };

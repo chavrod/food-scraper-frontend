@@ -16,7 +16,7 @@ import {
 } from "@tabler/icons-react";
 // External: Logic
 import { signIn } from "next-auth/react";
-import { useQueryClient } from "react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 
@@ -36,7 +36,9 @@ function UserAccess({ isEmailConfirmed, handleLoginSucess }: LoginFormProps) {
   const handleAuthSuccess = () => {
     setIsAuthSuccess(true);
 
-    queryClient.invalidateQueries("session");
+    queryClient.invalidateQueries({
+      queryKey: ["session"],
+    });
 
     if (isLoginFormVisible) {
       setTimeout(() => {

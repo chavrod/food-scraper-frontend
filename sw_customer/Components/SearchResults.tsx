@@ -21,13 +21,9 @@ import {
   Select,
 } from "@mantine/core";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
-import {
-  SearchedProduct,
-  SearchedProductMetadata,
-  BasketProduct,
-} from "@/types/customer_types";
+import { BasketProduct } from "@/types/customer_types";
+import useSearchedProducts from "@/hooks/useProducts";
 import { useSessionContext } from "@/Context/SessionContext";
-import { useGlobalContext } from "@/Context/globalContext";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import CountdownCircle from "@/Components/CountdownCircle";
@@ -40,33 +36,22 @@ type ProductStateType = {
   added: Record<number, boolean>;
 };
 
-interface SearchResultsProps {
-  searchQuery: string | undefined;
-  productsPageLoading: boolean;
-  searchedProducts: SearchedProduct[] | undefined;
-  pageNumber: number;
-  totalPages: number;
-  averageScrapingTime: any;
-  loadingNew: boolean;
-  searchedProductsMetaData: SearchedProductMetadata | undefined;
-}
-
-function SearchResults({
-  searchQuery,
-  productsPageLoading,
-  searchedProducts,
-  pageNumber,
-  totalPages,
-  averageScrapingTime,
-  loadingNew,
-  searchedProductsMetaData,
-}: SearchResultsProps) {
+export default function SearchResults() {
   const [opened, { open, close }] = useDisclosure(false);
+
+  const {
+    query,
+    isLoading,
+    isError,
+    error,
+    searchedProducts,
+    searchedProductsMetadata,
+    isUpdatingProduct,
+  } = useSearchedProducts();
 
   const { session } = useSessionContext();
   const accessToken = session?.access_token;
 
-  const { basketItems } = useGlobalContext();
   const isLargerThanSm = useMediaQuery("(min-width: 768px)", undefined, {
     getInitialValueInEffect: false,
   });
@@ -94,7 +79,7 @@ function SearchResults({
   const { handleSubmit } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
     onSuccess: () => {
-      basketItems.request();
+      // basketItems.request();
     },
     accessToken,
   });
@@ -167,48 +152,48 @@ function SearchResults({
 
   return (
     <>
-      {searchedProductsMetaData && (
+      {searchedProductsMetadata && (
         <FilterDrawer
           opened={opened}
           close={close}
-          searchedProductsMetaData={searchedProductsMetaData}
+          searchedProductsMetaData={searchedProductsMetadata}
         />
       )}
 
-      {!searchQuery && !productsPageLoading && !searchedProducts ? (
+      {!query && !isLoading && !searchedProducts ? (
         <SearchIntro />
-      ) : loadingNew && averageScrapingTime ? (
+      ) : isUpdatingProduct ? (
         <CountdownCircle
-          currentAverageScrapingTime={averageScrapingTime}
-          loading={loadingNew}
+          currentAverageScrapingTime={10}
+          loading={isUpdatingProduct}
         />
-      ) : productsPageLoading ? (
+      ) : isLoading ? (
         <ProductGridSkeleton />
       ) : (
         searchedProducts &&
         searchedProducts.length > 0 && (
           <Stack align="center" spacing={0}>
             <Group px="lg" position="apart" mt="md" style={{ width: "100%" }}>
-              {searchQuery && searchedProductsMetaData?.total_results && (
+              {query && searchedProductsMetadata?.total_results && (
                 <Title order={isLargerThanSm ? 1 : 3}>
-                  {searchedProductsMetaData.total_results} results for &apos;
-                  {searchQuery}
+                  {searchedProductsMetadata.total_results} results for &apos;
+                  {query}
                   &apos;
                 </Title>
               )}
               <Group>
                 <Select
-                  value={searchedProductsMetaData?.order_by ?? "price"}
+                  value={searchedProductsMetadata?.order_by ?? "price"}
                   onChange={handleFilter}
                   placeholder="Pick one"
                   data={orderOptions}
                 />
                 <Group position="center">
                   <Button onClick={open} variant="outline" radius="xs">
-                    {searchedProductsMetaData &&
-                    searchedProductsMetaData.filter_count > 0
-                      ? `${searchedProductsMetaData.filter_count} Filter${
-                          searchedProductsMetaData.filter_count > 1 ? "s" : ""
+                    {searchedProductsMetadata &&
+                    searchedProductsMetadata.filter_count > 0
+                      ? `${searchedProductsMetadata.filter_count} Filter${
+                          searchedProductsMetadata.filter_count > 1 ? "s" : ""
                         }`
                       : "Filters"}
                   </Button>
@@ -357,23 +342,24 @@ function SearchResults({
                 </Grid.Col>
               ))}
             </Grid>
-            {totalPages > 1 ? (
+            {searchedProductsMetadata &&
+            searchedProductsMetadata?.total_pages > 1 ? (
               <Pagination
                 mb={30}
                 py="xl"
                 spacing={5}
-                value={pageNumber}
+                value={searchedProductsMetadata?.page}
                 onChange={(p) => handlePageChange(p)}
-                total={totalPages}
+                total={searchedProductsMetadata?.total_pages}
               />
             ) : null}
           </Stack>
         )
       )}
 
-      {searchQuery &&
-        !productsPageLoading &&
-        !loadingNew &&
+      {query &&
+        !isLoading &&
+        !isUpdatingProduct &&
         searchedProducts &&
         searchedProducts.length === 0 && (
           <Stack
@@ -391,5 +377,3 @@ function SearchResults({
     </>
   );
 }
-
-export default React.memo(SearchResults);

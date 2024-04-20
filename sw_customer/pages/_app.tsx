@@ -7,7 +7,8 @@ import Head from "next/head";
 import { MantineProvider, ColorSchemeProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import MainAppShell from "@/Components/AppLayout";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { SessionProvider } from "@/Context/SessionContext";
 import { GlobalProvider } from "@/Context/globalContext";
 
@@ -75,6 +76,7 @@ export default function App({
                 <MainAppShell>
                   {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                   <Component {...pageProps} />
+                  <ReactQueryDevtools />
                 </MainAppShell>
               </GlobalProvider>
             </SessionProvider>
