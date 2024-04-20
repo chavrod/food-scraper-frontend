@@ -43,9 +43,6 @@ class SearchParams(serializers.Serializer):
     page = serializers.IntegerField(default=1)
     order_by = serializers.CharField(default="price", required=False)
     price_range = serializers.CharField(required=False)
-    # unit_type = serializers.ChoiceField(
-    #     choices=core_models.UnitType.choices, required=False
-    # )
     unit_type = CaseInsensitiveChoiceField(
         choices=core_models.UnitType.choices, required=False
     )
