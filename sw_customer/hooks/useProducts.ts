@@ -20,7 +20,7 @@ function useSearchedProducts() {
 
   const productsQuery = useQuery({
     queryKey: ["products", queryParams],
-    enabled: Boolean(queryParams?.query),
+    enabled: router.pathname === "/" && Boolean(queryParams?.query),
     queryFn: () => searchedProductsApi.list(accessToken, queryParams),
   });
 
