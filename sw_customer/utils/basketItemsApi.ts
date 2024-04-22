@@ -1,9 +1,16 @@
+import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
 import apiClient from "./apiClient";
+
+type BasketItemsResponse = {
+  data: BasketItem[];
+  metadata: BasketItemMetadata;
+};
 
 const list = (
   accessToken: string | undefined,
   params?: { [key: string]: string | number }
-) => apiClient.get("basket_items/", accessToken, params);
+): Promise<BasketItemsResponse> =>
+  apiClient.get("basket_items/", accessToken, params);
 
 const addItemQuantity = (accessToken: string | undefined, data: {}) =>
   apiClient.post("basket_items/add_item_quantity/", accessToken, data);

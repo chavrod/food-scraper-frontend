@@ -1,10 +1,6 @@
 import Link from "next/link";
-
 import React, { useState } from "react";
 import { useSessionContext } from "@/Context/SessionContext";
-
-// External Styling
-
 import {
   Paper,
   Text,
@@ -34,6 +30,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
+import useBasketItems from "@/hooks/useBasketItems";
 
 type ProductStateType = {
   loadingIncrease: Record<number, boolean>;
@@ -51,10 +48,14 @@ export default function BasketPreview() {
   const { session, isLoading } = useSessionContext();
   const accessToken = session?.access_token;
 
-  const { basketItems } = useGlobalContext();
+  const {
+    isLoading: isLoadingBasketItems,
+    basketItemsData,
+    basketItemsMetaData,
+  } = useBasketItems();
 
   const handleSuccess = () => {
-    basketItems.request({});
+    // basketItems.request({});
   };
 
   const [productStates, setProductStates] = useState<ProductStateType>({
@@ -203,7 +204,7 @@ export default function BasketPreview() {
             Basket Preview
           </Title>
           <Text size="sm" c="dimmed">
-            {`${basketItems.loading ? "Loading" : "Showing"} 10 latest items`}
+            {`${isLoadingBasketItems ? "Loading" : "Showing"} 10 latest items`}
           </Text>
           <Divider my="xs" />
           <Stack>
@@ -224,8 +225,8 @@ export default function BasketPreview() {
               <Stack spacing={0}>
                 <Text color="#15AABF" size="xl" fw={700}>
                   €
-                  {basketItems.responseData.metaData?.total_price
-                    ? basketItems.responseData.metaData?.total_price
+                  {basketItemsMetaData?.total_price
+                    ? basketItemsMetaData.total_price
                     : 0}
                 </Text>
                 <Text color="grey" size="sm" fw={600}>
@@ -265,16 +266,15 @@ export default function BasketPreview() {
       </Stack>
 
       {session ? (
-        basketItems.loading ? (
+        isLoadingBasketItems ? (
           <Paper>
             <Stack align="center" m="xl">
               <Loader />
               <Text fw={500}>Loading basket items</Text>
             </Stack>
           </Paper>
-        ) : basketItems.responseData?.data &&
-          basketItems.responseData?.data.length > 0 ? (
-          basketItems.responseData.data.map((item, index) => (
+        ) : basketItemsData && basketItemsData.length > 0 ? (
+          basketItemsData.map((item, index) => (
             <Paper key={item.id} shadow="xs" radius="xs" maw={300} withBorder>
               <Flex
                 justify="center"

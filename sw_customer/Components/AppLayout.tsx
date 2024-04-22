@@ -37,9 +37,9 @@ import {
 } from "@tabler/icons-react";
 import { useSessionContext } from "@/Context/SessionContext";
 // Internal: Utils
+import useBasketItems from "@/hooks/useBasketItems";
 import useSearchedProducts from "@/hooks/useProducts";
 import logout from "@/utils/auth";
-import { useGlobalContext } from "@/Context/globalContext";
 import UserAccess from "./UserAccess";
 import SearchHeader from "./SearchHeader";
 
@@ -65,16 +65,12 @@ export default function MainAppShell({
 
   const { searchedProducts, isLoading: loadingExistingProducts } =
     useSearchedProducts();
+  const { basketQty } = useBasketItems();
 
   // const isLargerThanSm = useMediaQuery("(min-width: 768px)", undefined, {
   //   getInitialValueInEffect: false,
   // });
   const isLargerThanSm = useMediaQuery("(min-width: 768px)");
-
-  // TODO: Fix
-  // const { metaData: basketItemsMetaData } = basketItems.responseData;
-  // const basketQty = basketItemsMetaData?.total_quantity || 0;
-  const basketQty = 0;
 
   const [isEmailConfirmed, setIsEmailConfirmed] = useState(false);
   const [isRedirectToLogin, setIsRedirectToLogin] = useState(false);

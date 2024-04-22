@@ -32,6 +32,7 @@ import { formatDateRelative } from "@/utils/datesUtil";
 // Internal: Types
 import { BasketItemShopBreakdown } from "@/types/customer_types";
 // Intenral: API
+import useBasketItems from "@/hooks/useBasketItems";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
@@ -56,7 +57,12 @@ export default function Basket() {
   const { session, isLoading } = useSessionContext();
   const accessToken = session?.access_token;
 
-  const { basketItems } = useGlobalContext();
+  const {
+    isLoading: isLoadingBasketItems,
+    basketItemsData,
+    basketItemsMetaData,
+  } = useBasketItems();
+
   const isLargerThanLg = useMediaQuery("(min-width: 1184px)", false, {
     getInitialValueInEffect: false,
   });
@@ -66,7 +72,7 @@ export default function Basket() {
 
   const handleFilterByShop = (filter_option: string) => {
     router.push(`?shop=${filter_option}&page=1`);
-    basketItems.request({ shop: filter_option, page: 1 });
+    // basketItems.request({ shop: filter_option, page: 1 });
   };
 
   const handleBasketPageChange = (page: number) => {
@@ -75,13 +81,13 @@ export default function Basket() {
 
     setTimeout(() => {
       router.push(`?shop=${searchShop}&page=${page}`);
-      basketItems.request({ shop: searchShop, page });
+      // basketItems.request({ shop: searchShop, page });
     }, 500);
   };
 
   const handleSuccess = () => {
     // router.push(`?shop=${searchShop}&page=${searchPage}`);
-    basketItems.request({ page: searchPage, shop: searchShop });
+    // basketItems.request({ page: searchPage, shop: searchShop });
   };
 
   const generateShopOptions = (shopBreakdown: BasketItemShopBreakdown[]) => {
@@ -98,8 +104,8 @@ export default function Basket() {
   };
 
   // In your component:
-  const shopOptions = basketItems.responseData.metaData
-    ? generateShopOptions(basketItems.responseData.metaData.shop_breakdown)
+  const shopOptions = basketItemsMetaData
+    ? generateShopOptions(basketItemsMetaData.shop_breakdown)
     : [];
 
   const [productStates, setProductStates] = useState<ProductStateType>({
@@ -243,14 +249,12 @@ export default function Basket() {
       gap="md"
       justify="center"
       align={
-        basketItems.responseData.data &&
-        basketItems.responseData.data?.length === 0
+        basketItemsData && basketItemsData.length === 0
           ? "center"
           : "flex-start"
       }
       direction={
-        basketItems.responseData.data &&
-        basketItems.responseData.data?.length === 0
+        basketItemsData && basketItemsData.length === 0
           ? "row"
           : isLargerThanLg
           ? "row-reverse"
@@ -260,15 +264,14 @@ export default function Basket() {
       mt="sm"
       px="lg"
     >
-      {basketItems.loading ? (
+      {isLoadingBasketItems ? (
         <>
           <BasketSummarySkeleton isLargerThanLg={isLargerThanLg} />
           <BasketItemsSkeleton />
         </>
-      ) : basketItems.responseData.data &&
-        basketItems.responseData.data?.length > 0 ? (
+      ) : basketItemsData && basketItemsData.length > 0 ? (
         <>
-          {basketItems.responseData.metaData && (
+          {basketItemsMetaData && (
             <Paper
               maw={450}
               shadow="md"
@@ -307,47 +310,45 @@ export default function Basket() {
                   },
                 }}
               >
-                {basketItems.responseData.metaData &&
-                  basketItems.responseData.metaData.shop_breakdown?.map(
-                    (shop, index) => (
-                      <Accordion.Item value={shop.name} key={shop.name}>
-                        <Accordion.Control
-                          disabled={isLargerThanLg}
-                          style={{
-                            color: "black",
-                            cursor: isLargerThanLg ? "default" : "auto",
-                            opacity: 1,
-                          }}
-                        >
-                          <Group position="apart">
-                            <Text miw={80} align="left">
-                              {shop.name.charAt(0).toUpperCase() +
-                                shop.name.slice(1).toLowerCase()}
-                            </Text>
+                {basketItemsMetaData &&
+                  basketItemsMetaData.shop_breakdown?.map((shop, index) => (
+                    <Accordion.Item value={shop.name} key={shop.name}>
+                      <Accordion.Control
+                        disabled={isLargerThanLg}
+                        style={{
+                          color: "black",
+                          cursor: isLargerThanLg ? "default" : "auto",
+                          opacity: 1,
+                        }}
+                      >
+                        <Group position="apart">
+                          <Text miw={80} align="left">
+                            {shop.name.charAt(0).toUpperCase() +
+                              shop.name.slice(1).toLowerCase()}
+                          </Text>
 
-                            {isLargerThanLg && (
-                              <Text weight={500} miw={40} align="right">
-                                {shop.total_quantity}
-                              </Text>
-                            )}
-                            <Text weight={500} miw={60} align="right">
-                              €{shop.total_price}
-                            </Text>
-                          </Group>
-                        </Accordion.Control>
-                        <Accordion.Panel>
-                          <Group position="apart">
-                            <Text ml={4} c="dimmed">
-                              Items
-                            </Text>
-                            <Text mr={45} c="dimmed">
+                          {isLargerThanLg && (
+                            <Text weight={500} miw={40} align="right">
                               {shop.total_quantity}
                             </Text>
-                          </Group>
-                        </Accordion.Panel>
-                      </Accordion.Item>
-                    )
-                  )}
+                          )}
+                          <Text weight={500} miw={60} align="right">
+                            €{shop.total_price}
+                          </Text>
+                        </Group>
+                      </Accordion.Control>
+                      <Accordion.Panel>
+                        <Group position="apart">
+                          <Text ml={4} c="dimmed">
+                            Items
+                          </Text>
+                          <Text mr={45} c="dimmed">
+                            {shop.total_quantity}
+                          </Text>
+                        </Group>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                  ))}
               </Accordion>
               <Divider color="dark" />
               <Group mt="xs" position="apart">
@@ -357,11 +358,11 @@ export default function Basket() {
 
                 {isLargerThanLg && (
                   <Text weight={500} miw={40} align="right">
-                    {basketItems.responseData.metaData.total_quantity}
+                    {basketItemsMetaData.total_quantity}
                   </Text>
                 )}
                 <Text mr={59} weight={500} miw={20}>
-                  €{basketItems.responseData.metaData.total_price}
+                  €{basketItemsMetaData.total_price}
                 </Text>
               </Group>
             </Paper>
@@ -378,7 +379,7 @@ export default function Basket() {
               />
             </Group>
             <Grid gutter={0}>
-              {basketItems.responseData.data.map((item, index) => (
+              {basketItemsData.map((item, index) => (
                 <Grid.Col key={item.product?.id} span={12}>
                   <Paper
                     maw={450}
@@ -547,11 +548,11 @@ export default function Basket() {
               wrap="wrap"
               maw={450}
             >
-              {basketItems.pagination.totalPages > 1 && (
+              {basketItemsMetaData && basketItemsMetaData.total_pages > 1 && (
                 <Pagination
-                  value={basketItems.pagination.page}
+                  value={basketItemsMetaData.page}
                   onChange={handleBasketPageChange}
-                  total={basketItems.pagination.totalPages}
+                  total={basketItemsMetaData.total_pages}
                 />
               )}
             </Flex>

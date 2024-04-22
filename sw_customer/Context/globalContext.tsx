@@ -7,9 +7,6 @@ import React, {
   useState,
 } from "react";
 import useSearchedProducts, { CustomRouter } from "@/hooks/useProducts";
-import usePaginatedApi from "@/utils/usePaginatedApi";
-import { BasketItem, BasketItemMetadata } from "@/types/customer_types";
-import basketItemsApi from "@/utils/basketItemsApi";
 import { IconCheck } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/router";
@@ -32,29 +29,8 @@ const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 export function GlobalProvider({ children }: GlobalProviderProps) {
   const router = useRouter() as CustomRouter;
 
-  // TODO: TEMPORARY
-  // const { session } = useSessionContext();
-  const session = null;
-  // const accessToken = session?.access_token;
-  const accessToken = undefined;
-
   const queryClient = useQueryClient();
 
-  const basketItems = usePaginatedApi<BasketItem[], BasketItemMetadata>({
-    apiFunc: basketItemsApi.list,
-    onSuccess: () => {},
-    accessToken,
-  });
-
-  useEffect(() => {
-    if (session) {
-      basketItems.request();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
-
-  // TODO: Check if you need to memoize!
-  // See what to do with accessToken
   const { query, isUpdatingProduct } = useSearchedProducts();
 
   const [loadingNewProducts, setLoadingNewProducts] = useState(false);
