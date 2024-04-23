@@ -1,13 +1,16 @@
-// Function to normalize query parameters
-interface QueryParams {
-  [key: string]: string | number | boolean;
-}
-
 // eslint-disable-next-line import/prefer-default-export
 export const normalizeQueryParams = <T extends Record<string, any>>(
-  params: T
-): Record<string, string> =>
-  Object.entries(params).reduce(
+  params: T,
+  currentPath: string,
+  targetPath: string
+): Record<string, string> | undefined => {
+  if (currentPath !== targetPath) {
+    // If the current path does not match the target path, return undefined
+    return undefined;
+  }
+
+  // If paths match, normalize the query parameters
+  return Object.entries(params).reduce(
     (acc: { [key: string]: string }, [key, value]) => {
       if (value !== undefined) {
         // Check if value is not undefined
@@ -17,3 +20,4 @@ export const normalizeQueryParams = <T extends Record<string, any>>(
     },
     {}
   );
+};
