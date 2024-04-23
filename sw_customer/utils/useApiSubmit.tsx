@@ -5,7 +5,7 @@ import { IconX, IconCheck } from "@tabler/icons-react";
 import notifyError from "./notifyError";
 
 interface UseApiSubmitProps<T> {
-  apiFunc: (accessToken: string | undefined, data: T) => Promise<Response>;
+  apiFunc: (accessToken: string | undefined, data: T) => Promise<any>;
   onSuccess: () => void;
   accessToken: string | undefined;
 }
@@ -32,8 +32,7 @@ function useApiSubmit<T>({
     try {
       const res = await apiFunc(accessToken, data);
 
-      if (res.ok) {
-        await res.json();
+      if (res) {
         if (successMessage) {
           notifications.show({
             title: successMessage.title,
