@@ -20,6 +20,7 @@ import {
   Tooltip,
   Select,
 } from "@mantine/core";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import { BasketProduct } from "@/types/customer_types";
 import useSearchedProducts from "@/hooks/useProducts";
@@ -37,6 +38,8 @@ type ProductStateType = {
 };
 
 export default function SearchResults() {
+  const queryClient = useQueryClient();
+
   const [opened, { open, close }] = useDisclosure(false);
 
   const {
@@ -79,7 +82,10 @@ export default function SearchResults() {
   const { handleSubmit } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
     onSuccess: () => {
-      // basketItems.request();
+      queryClient.invalidateQueries({
+        queryKey: ["basket_items"],
+        refetchType: "active",
+      });
     },
     accessToken,
   });

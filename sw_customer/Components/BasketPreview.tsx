@@ -31,6 +31,7 @@ import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
 import useBasketItems from "@/hooks/useBasketItems";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ProductStateType = {
   loadingIncrease: Record<number, boolean>;
@@ -45,6 +46,8 @@ export default function BasketPreview() {
     getInitialValueInEffect: false,
   });
 
+  const queryClient = useQueryClient();
+
   const { session, isLoading } = useSessionContext();
   const accessToken = session?.access_token;
 
@@ -55,7 +58,10 @@ export default function BasketPreview() {
   } = useBasketItems();
 
   const handleSuccess = () => {
-    // basketItems.request({});
+    queryClient.invalidateQueries({
+      queryKey: ["basket_items"],
+      refetchType: "active",
+    });
   };
 
   const [productStates, setProductStates] = useState<ProductStateType>({
