@@ -27,6 +27,7 @@ import {
   IconSquareRoundedPlusFilled,
   IconCheck,
 } from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMediaQuery } from "@mantine/hooks";
 import { formatDateRelative } from "@/utils/datesUtil";
 // Internal: Types
@@ -51,6 +52,7 @@ type ProductStateType = {
 };
 
 export default function Basket() {
+  const queryClient = useQueryClient();
   // console.log("RENDER");
   const router = useRouter();
 
@@ -58,6 +60,7 @@ export default function Basket() {
   const accessToken = session?.access_token;
 
   const {
+    memoizedQueryParams,
     isLoading: isLoadingBasketItems,
     basketItemsData,
     basketItemsMetaData,
@@ -72,7 +75,6 @@ export default function Basket() {
 
   const handleFilterByShop = (filter_option: string) => {
     router.push(`?shop=${filter_option}&page=1`);
-    // basketItems.request({ shop: filter_option, page: 1 });
   };
 
   const handleBasketPageChange = (page: number) => {
@@ -86,6 +88,10 @@ export default function Basket() {
   };
 
   const handleSuccess = () => {
+    queryClient.invalidateQueries({
+      queryKey: ["basket_items", memoizedQueryParams],
+      refetchType: "active",
+    });
     // router.push(`?shop=${searchShop}&page=${searchPage}`);
     // basketItems.request({ page: searchPage, shop: searchShop });
   };
@@ -118,9 +124,7 @@ export default function Basket() {
 
   const { handleSubmit: submitDecreaseQuantity } = useApiSubmit({
     apiFunc: basketItemsApi.decreaseItemQuantity,
-    onSuccess: () => {
-      handleSuccess();
-    },
+    onSuccess: handleSuccess,
     accessToken,
   });
 
@@ -155,9 +159,7 @@ export default function Basket() {
 
   const { handleSubmit: submitIncreaseQuantity } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
-    onSuccess: () => {
-      handleSuccess();
-    },
+    onSuccess: handleSuccess,
     accessToken,
   });
 
@@ -195,9 +197,7 @@ export default function Basket() {
 
   const { handleSubmit: submitRemoveProductItems } = useApiSubmit({
     apiFunc: basketItemsApi.clearProductItems,
-    onSuccess: () => {
-      handleSuccess();
-    },
+    onSuccess: handleSuccess,
     accessToken,
   });
 
@@ -221,9 +221,7 @@ export default function Basket() {
   const { handleSubmit: submitclearAllProductItems, loading: loadingClearAll } =
     useApiSubmit({
       apiFunc: basketItemsApi.clearAll,
-      onSuccess: () => {
-        handleSuccess();
-      },
+      onSuccess: handleSuccess,
       accessToken,
     });
 
@@ -498,7 +496,7 @@ export default function Basket() {
                             variant="transparent"
                             onClick={() => {
                               if (item?.id) {
-                                handleDecreaseQuantity(item.id, index);
+                                handleIncreaseQuantity(item.id, index);
                               }
                             }}
                           >

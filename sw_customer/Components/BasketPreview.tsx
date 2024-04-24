@@ -52,6 +52,7 @@ export default function BasketPreview() {
   const accessToken = session?.access_token;
 
   const {
+    memoizedQueryParams,
     isLoading: isLoadingBasketItems,
     basketItemsData,
     basketItemsMetaData,
@@ -59,7 +60,7 @@ export default function BasketPreview() {
 
   const handleSuccess = () => {
     queryClient.invalidateQueries({
-      queryKey: ["basket_items"],
+      queryKey: ["basket_items", memoizedQueryParams],
       refetchType: "active",
     });
   };
@@ -74,9 +75,7 @@ export default function BasketPreview() {
 
   const { handleSubmit: submitDecreaseQuantity } = useApiSubmit({
     apiFunc: basketItemsApi.decreaseItemQuantity,
-    onSuccess: () => {
-      handleSuccess();
-    },
+    onSuccess: handleSuccess,
     accessToken,
   });
 
@@ -111,9 +110,7 @@ export default function BasketPreview() {
 
   const { handleSubmit: submitIncreaseQuantity } = useApiSubmit({
     apiFunc: basketItemsApi.addItemQuantity,
-    onSuccess: () => {
-      handleSuccess();
-    },
+    onSuccess: handleSuccess,
     accessToken,
   });
 
@@ -152,9 +149,7 @@ export default function BasketPreview() {
 
   const { handleSubmit: submitRemoveProductItems } = useApiSubmit({
     apiFunc: basketItemsApi.clearProductItems,
-    onSuccess: () => {
-      handleSuccess();
-    },
+    onSuccess: handleSuccess,
     accessToken,
   });
 

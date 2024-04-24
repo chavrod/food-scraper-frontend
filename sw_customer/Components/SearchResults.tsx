@@ -31,6 +31,7 @@ import CountdownCircle from "@/Components/CountdownCircle";
 import { ProductGridSkeleton } from "@/Components/Skeletons";
 import SearchIntro from "./SearchIntro";
 import FilterDrawer from "./FilterDrawer";
+import useBasketItems from "@/hooks/useBasketItems";
 
 type ProductStateType = {
   loading: Record<number, boolean>;
@@ -52,6 +53,7 @@ export default function SearchResults() {
     isUpdatingProduct,
   } = useSearchedProducts();
 
+  const { memoizedQueryParams } = useBasketItems();
   const { session } = useSessionContext();
   const accessToken = session?.access_token;
 
@@ -83,7 +85,7 @@ export default function SearchResults() {
     apiFunc: basketItemsApi.addItemQuantity,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["basket_items"],
+        queryKey: ["basket_items", memoizedQueryParams],
         refetchType: "active",
       });
     },
