@@ -3,10 +3,10 @@ export const normalizeQueryParams = <T extends Record<string, any>>(
   params: T,
   currentPath: string,
   targetPath: string
-): Record<string, string> | undefined => {
+): Record<string, string | never> => {
   if (currentPath !== targetPath) {
     // If the current path does not match the target path, return undefined
-    return undefined;
+    return {};
   }
 
   // If paths match, normalize the query parameters
