@@ -323,9 +323,15 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         total_price_all = aggregated_data.get("total_price_all", 0)
 
         shop_name = request.query_params.get("shop", None)
-        selected_shop = shop_name if shop_name in core_models.ShopName.values else "ALL"
+        selected_shop = "ALL"
+        if shop_name is not None:
+            shop_name = shop_name.upper()
+            print("shop_name", shop_name)
+            selected_shop = (
+                shop_name if shop_name.upper() in core_models.ShopName.values else "ALL"
+            )
 
-        if selected_shop != "ALL":
+        if shop_name != None and selected_shop != "ALL":
             queryset = ordered_queryset.filter(product__shop_name=shop_name)
         else:
             queryset = ordered_queryset
