@@ -4,6 +4,7 @@ import { normalizeQueryParams } from "@/utils/paramsUtil";
 import basketItemsApi from "@/utils/basketItemsApi";
 import { SearchParams } from "@/types/customer_types";
 import { useSessionContext } from "@/Context/SessionContext";
+import useDeepCompareMemo from "@/utils/useDeepCompareMemo";
 
 export type CustomRouter = NextRouter & {
   query: SearchParams;
@@ -15,12 +16,21 @@ function useBasketItems() {
   const { session } = useSessionContext();
   const accessToken = session?.access_token;
 
-  const queryParams = normalizeQueryParams(router.query);
+  const queryParams = normalizeQueryParams(
+    router.query,
+    router.pathname,
+    "/basket"
+  );
+  const memoizedQueryParams = useDeepCompareMemo(
+    () => queryParams,
+    [queryParams]
+  );
 
   const basketItemsQuery = useQuery({
-    queryKey: ["basket_items", queryParams],
+    queryKey: ["basket_items", memoizedQueryParams],
     enabled: Boolean(accessToken),
-    queryFn: () => basketItemsApi.list(accessToken, queryParams),
+    queryFn: () => basketItemsApi.list(accessToken, memoizedQueryParams),
+    staleTime: Infinity,
   });
 
   const basketItemsData = basketItemsQuery.data?.data;
@@ -28,7 +38,7 @@ function useBasketItems() {
   const basketQty = basketItemsMetaData?.total_quantity || 0;
 
   return {
-    query: queryParams?.query,
+    memoizedQueryParams: memoizedQueryParams,
     isLoading: basketItemsQuery.isLoading,
     isError: basketItemsQuery.isError,
     error: basketItemsQuery.error,
