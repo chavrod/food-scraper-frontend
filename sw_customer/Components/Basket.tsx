@@ -60,7 +60,7 @@ export default function Basket() {
   const accessToken = session?.access_token;
 
   const {
-    memoizedQueryParams,
+    queryParams,
     isLoading: isLoadingBasketItems,
     basketItemsData,
     basketItemsMetaData,
@@ -89,11 +89,9 @@ export default function Basket() {
 
   const handleSuccess = () => {
     queryClient.invalidateQueries({
-      queryKey: ["basket_items", memoizedQueryParams],
+      queryKey: ["basket_items", queryParams],
       refetchType: "active",
     });
-    // router.push(`?shop=${searchShop}&page=${searchPage}`);
-    // basketItems.request({ page: searchPage, shop: searchShop });
   };
 
   const generateShopOptions = (shopBreakdown: BasketItemShopBreakdown[]) => {

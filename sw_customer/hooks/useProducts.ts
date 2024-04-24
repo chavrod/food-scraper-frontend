@@ -16,12 +16,14 @@ function useSearchedProducts() {
   const router = useRouter() as CustomRouter;
   const accessToken = undefined; // Define or obtain the access token as needed
 
-  const queryParams = normalizeQueryParams(router.query);
+  const queryParams = normalizeQueryParams(router.query, router.pathname, "/");
 
   const productsQuery = useQuery({
     queryKey: ["products", queryParams],
     enabled: router.pathname === "/" && Boolean(queryParams?.query),
     queryFn: () => searchedProductsApi.list(accessToken, queryParams),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
 
   const isUpdatingProduct = Boolean(

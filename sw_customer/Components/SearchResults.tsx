@@ -53,7 +53,7 @@ export default function SearchResults() {
     isUpdatingProduct,
   } = useSearchedProducts();
 
-  const { memoizedQueryParams } = useBasketItems();
+  const { queryParams } = useBasketItems();
   const { session } = useSessionContext();
   const accessToken = session?.access_token;
 
@@ -85,7 +85,7 @@ export default function SearchResults() {
     apiFunc: basketItemsApi.addItemQuantity,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["basket_items", memoizedQueryParams],
+        queryKey: ["basket_items", queryParams],
         refetchType: "active",
       });
     },
