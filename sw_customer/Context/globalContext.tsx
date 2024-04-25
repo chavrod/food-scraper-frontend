@@ -68,7 +68,6 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
               queryKey: ["products", { query: responseData.query }],
               refetchType: "active",
             });
-            // requestedProducts.request({ query: responseData.query, page: 1 });
           }, 1000);
         } else {
           const errorMsg =
