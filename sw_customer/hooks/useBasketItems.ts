@@ -21,16 +21,13 @@ function useBasketItems() {
     router.pathname,
     "/basket"
   );
-  const memoizedQueryParams = useDeepCompareMemo(
-    () => queryParams,
-    [queryParams]
-  );
 
   const basketItemsQuery = useQuery({
-    queryKey: ["basket_items", memoizedQueryParams],
+    queryKey: ["basket_items", queryParams],
     enabled: Boolean(accessToken),
-    queryFn: () => basketItemsApi.list(accessToken, memoizedQueryParams),
+    queryFn: () => basketItemsApi.list(accessToken, queryParams),
     staleTime: Infinity,
+    gcTime: 60 * 60 * 1000,
   });
 
   const basketItemsData = basketItemsQuery.data?.data;
@@ -38,7 +35,7 @@ function useBasketItems() {
   const basketQty = basketItemsMetaData?.total_quantity || 0;
 
   return {
-    memoizedQueryParams: memoizedQueryParams,
+    queryParams,
     isLoading: basketItemsQuery.isLoading,
     isError: basketItemsQuery.isError,
     error: basketItemsQuery.error,
