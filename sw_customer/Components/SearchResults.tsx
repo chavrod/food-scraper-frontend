@@ -69,7 +69,7 @@ export default function SearchResults() {
     setTimeout(() => {
       router.push(
         {
-          ...router,
+          pathname: router.pathname,
           query: {
             ...router.query,
             page,
@@ -146,7 +146,7 @@ export default function SearchResults() {
   const handleFilter = (order_option: string) => {
     router.push(
       {
-        ...router,
+        pathname: router.pathname,
         query: {
           ...router.query,
           page: 1,

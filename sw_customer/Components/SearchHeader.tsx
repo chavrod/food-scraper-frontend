@@ -34,16 +34,17 @@ export default function SearchHeader({
   });
 
   const handleSubmit = (values: { query: string; page: string }) => {
-    const searchParams = `?query=${values.query}&page=${values.page}`;
-
-    // Check if the current pathname is not the index page
-    if (router.pathname !== "/") {
-      // Navigate to the index page with the search parameters
-      router.push(`/${searchParams}`);
-    } else {
-      // If already on the index page, just push the search parameters
-      router.push(searchParams);
-    }
+    router.push(
+      {
+        pathname: "/",
+        query: {
+          query: values.query,
+          page: values.page,
+        },
+      },
+      undefined,
+      { shallow: true }
+    );
   };
 
   return (

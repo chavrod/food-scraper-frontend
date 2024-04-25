@@ -74,16 +74,38 @@ export default function Basket() {
   const searchShop = router.query.shop?.toString() || "ALL";
 
   const handleFilterByShop = (filter_option: string) => {
-    router.push(`?shop=${filter_option}&page=1`);
+    router.push(
+      {
+        pathname: router.pathname,
+        query: {
+          shop: filter_option,
+          page: 1,
+        },
+      },
+      undefined,
+      {
+        shallow: true,
+      }
+    );
   };
 
   const handleBasketPageChange = (page: number) => {
     // Scroll smoothly to the top of the page
     window.scrollTo({ top: isLargerThanLg ? 0 : 310, behavior: "smooth" });
-
     setTimeout(() => {
-      router.push(`?shop=${searchShop}&page=${page}`);
-      // basketItems.request({ shop: searchShop, page });
+      router.push(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            page,
+          },
+        },
+        undefined,
+        {
+          shallow: true,
+        }
+      );
     }, 500);
   };
 
