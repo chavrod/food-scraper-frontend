@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   AppShell,
   Navbar,
@@ -63,8 +63,11 @@ export default function MainAppShell({
 }) {
   const router = useRouter();
 
-  const { searchedProducts, isLoading: loadingExistingProducts } =
-    useSearchedProducts();
+  const {
+    query,
+    searchedProducts,
+    isLoading: loadingExistingProducts,
+  } = useSearchedProducts();
   const { basketQty } = useBasketItems();
 
   // const isLargerThanSm = useMediaQuery("(min-width: 768px)", undefined, {
@@ -154,14 +157,14 @@ export default function MainAppShell({
     },
   ];
 
-  const handleLoginSucess = () => {
+  const handleLoginSucess = useCallback(() => {
     close();
-  };
+  }, [close]);
 
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
-  const handleHideSearchBar = () => {
+  const handleHideSearchBar = useCallback(() => {
     setIsSearchBarVisible(false);
-  };
+  }, []);
 
   const handleImageClick = async () => {
     await router.push("/");
@@ -170,15 +173,13 @@ export default function MainAppShell({
     }
   };
 
-  const searchQuery = router.query.query?.toString().toLowerCase() || "";
-
   return (
     <AppShell
       styles={(theme) => ({
         main: {
           backgroundImage:
             router.pathname === "/" &&
-            !searchQuery &&
+            !query &&
             !loadingExistingProducts &&
             !searchedProducts
               ? "url(landing-background.webp)"

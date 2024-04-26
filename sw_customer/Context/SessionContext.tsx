@@ -1,9 +1,5 @@
-import React, {
-  createContext,
-  useContext,
-  PropsWithChildren,
-  useMemo,
-} from "react";
+import React, { createContext, useContext, PropsWithChildren } from "react";
+import useDeepCompareMemo from "@/utils/useDeepCompareMemo";
 import { useCustomSession } from "@/hooks/useCustomSession";
 import { Session } from "next-auth";
 
@@ -17,7 +13,7 @@ const SessionContext = createContext<SessionState | undefined>(undefined);
 
 export function SessionProvider({ children }: PropsWithChildren) {
   const { session, isLoading, isError } = useCustomSession({ required: false });
-  const sessionState = useMemo(
+  const sessionState = useDeepCompareMemo(
     () => ({
       session: session !== undefined ? session : null,
       isLoading,

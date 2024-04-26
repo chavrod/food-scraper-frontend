@@ -27,11 +27,11 @@ import useSearchedProducts from "@/hooks/useProducts";
 import { useSessionContext } from "@/Context/SessionContext";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
+import useBasketItems from "@/hooks/useBasketItems";
 import CountdownCircle from "@/Components/CountdownCircle";
 import { ProductGridSkeleton } from "@/Components/Skeletons";
 import SearchIntro from "./SearchIntro";
 import FilterDrawer from "./FilterDrawer";
-import useBasketItems from "@/hooks/useBasketItems";
 
 type ProductStateType = {
   loading: Record<number, boolean>;
@@ -266,117 +266,119 @@ type ProductCardProps = {
   handleAddToBasket: (product: SearchedProduct, index: number) => void;
 };
 
-const SearchedProductCard = ({
+function SearchedProductCard({
   product,
   index,
   productStates,
   accessToken,
   handleAddToBasket,
-}: ProductCardProps) => (
-  <Paper h="190px" shadow="md" withBorder p="sm" m="xs" radius="md">
-    <Group noWrap>
-      <Stack align="center" spacing={0}>
-        <Container
-          w={100}
-          h={100}
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <img
-            src={product.img_src || "no-product-image.jpeg"}
-            alt={product.name}
-            style={{ width: "5rem" }}
-            loading="lazy"
-            decoding="async"
-          />
-        </Container>
-        <Container
-          w={100}
-          h={60}
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <img
-            src={`/brand-logos/${product.shop_name}.jpeg`}
-            alt={product.shop_name}
-            style={{ width: "3rem" }}
-          />
-        </Container>
-      </Stack>
-      <Stack style={{ width: "100%" }} justify="space-between">
-        <Box h={100}>
-          <Text size={15} align="left" lineClamp={2}>
-            {product.name}
-          </Text>
-          <Text fz="sm" c="dimmed">
-            {product.shop_name.charAt(0).toUpperCase() +
-              product.shop_name.slice(1).toLowerCase()}
-          </Text>
-          <Text
-            fz="md"
-            c="brand.7"
-            sx={{
-              cursor: "pointer",
-              "&:hover": { textDecoration: "underline" },
+}: ProductCardProps) {
+  return (
+    <Paper h="190px" shadow="md" withBorder p="sm" m="xs" radius="md">
+      <Group noWrap>
+        <Stack align="center" spacing={0}>
+          <Container
+            w={100}
+            h={100}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
             }}
-            fw={700}
-            component="a"
-            href={product.product_url ? product.product_url : ""}
-            target="_blank"
-            rel="noopener noreferrer"
-            lineClamp={2}
           >
-            Go to source ❯
-          </Text>
-        </Box>
-        <Group spacing={0} h={40} position="apart" noWrap>
-          <Group noWrap spacing={2}>
-            <Text size="lg" align="center">
-              {product.price
-                ? `€${product.price.toFixed(2)}`
-                : "Price not available"}
-            </Text>
-            <Text size="sm" color="dimmed" align="center">
-              {`€${product.price_per_unit.toFixed(2)}/${product.unit_type}`}
-            </Text>
-          </Group>
-          <Tooltip
-            label="Log in to Add"
-            disabled={!!accessToken}
-            events={{ hover: true, focus: false, touch: true }}
+            <img
+              src={product.img_src || "no-product-image.jpeg"}
+              alt={product.name}
+              style={{ width: "5rem" }}
+              loading="lazy"
+              decoding="async"
+            />
+          </Container>
+          <Container
+            w={100}
+            h={60}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
           >
-            <Button
-              loading={productStates.loading[index]}
-              variant="light"
-              radius="xl"
-              size="xs"
-              leftIcon={
-                productStates.added[index] ? (
-                  <IconCheck />
-                ) : (
-                  <IconShoppingBagPlus />
-                )
-              }
-              color={
-                accessToken
-                  ? productStates.added[index]
-                    ? "teal"
-                    : "default"
-                  : "gray.6"
-              }
-              onClick={() => handleAddToBasket(product, index)}
+            <img
+              src={`/brand-logos/${product.shop_name}.jpeg`}
+              alt={product.shop_name}
+              style={{ width: "3rem" }}
+            />
+          </Container>
+        </Stack>
+        <Stack style={{ width: "100%" }} justify="space-between">
+          <Box h={100}>
+            <Text size={15} align="left" lineClamp={2}>
+              {product.name}
+            </Text>
+            <Text fz="sm" c="dimmed">
+              {product.shop_name.charAt(0).toUpperCase() +
+                product.shop_name.slice(1).toLowerCase()}
+            </Text>
+            <Text
+              fz="md"
+              c="brand.7"
+              sx={{
+                cursor: "pointer",
+                "&:hover": { textDecoration: "underline" },
+              }}
+              fw={700}
+              component="a"
+              href={product.product_url ? product.product_url : ""}
+              target="_blank"
+              rel="noopener noreferrer"
+              lineClamp={2}
             >
-              {productStates.added[index] ? "Added!" : "Add"}
-            </Button>
-          </Tooltip>
-        </Group>
-      </Stack>
-    </Group>
-  </Paper>
-);
+              Go to source ❯
+            </Text>
+          </Box>
+          <Group spacing={0} h={40} position="apart" noWrap>
+            <Group noWrap spacing={2}>
+              <Text size="lg" align="center">
+                {product.price
+                  ? `€${product.price.toFixed(2)}`
+                  : "Price not available"}
+              </Text>
+              <Text size="sm" color="dimmed" align="center">
+                {`€${product.price_per_unit.toFixed(2)}/${product.unit_type}`}
+              </Text>
+            </Group>
+            <Tooltip
+              label="Log in to Add"
+              disabled={!!accessToken}
+              events={{ hover: true, focus: false, touch: true }}
+            >
+              <Button
+                loading={productStates.loading[index]}
+                variant="light"
+                radius="xl"
+                size="xs"
+                leftIcon={
+                  productStates.added[index] ? (
+                    <IconCheck />
+                  ) : (
+                    <IconShoppingBagPlus />
+                  )
+                }
+                color={
+                  accessToken
+                    ? productStates.added[index]
+                      ? "teal"
+                      : "default"
+                    : "gray.6"
+                }
+                onClick={() => handleAddToBasket(product, index)}
+              >
+                {productStates.added[index] ? "Added!" : "Add"}
+              </Button>
+            </Tooltip>
+          </Group>
+        </Stack>
+      </Group>
+    </Paper>
+  );
+}
