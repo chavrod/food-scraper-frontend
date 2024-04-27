@@ -1,21 +1,8 @@
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import timedelta
-from collections import OrderedDict
 
 from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
-from django.db.models import (
-    Sum,
-    F,
-    Value,
-    IntegerField,
-    DecimalField,
-    Min,
-    Max,
-    QuerySet,
-    Count,
-)
-from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.utils import timezone
