@@ -5,7 +5,7 @@ export interface Customer {
     user: number | string;
 }
 
-export interface SearchParams {
+export interface SearchedProductParams {
     query: string;
     page?: number;
     order_by?: string;
@@ -67,6 +67,11 @@ export interface BasketProduct {
     shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
     created_at?: string;
     updated_at?: string;
+}
+
+export interface BasketItemParams {
+    page?: number;
+    shop?: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
 }
 
 export interface BasketItem {
