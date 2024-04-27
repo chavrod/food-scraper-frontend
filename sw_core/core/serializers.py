@@ -38,7 +38,7 @@ class CaseInsensitiveChoiceField(serializers.ChoiceField):
 
 
 @ts_interface()
-class SearchParams(serializers.Serializer):
+class SearchedProductParams(serializers.Serializer):
     query = serializers.CharField(max_length=30, required=True)
     page = serializers.IntegerField(default=1)
     order_by = serializers.CharField(default="price", required=False)
@@ -291,6 +291,14 @@ class BasketProductCreateOrUpdate(serializers.ModelSerializer):
             "product_url": {"required": False},
             "shop_name": {"required": False},
         }
+
+
+@ts_interface()
+class BasketItemParams(serializers.Serializer):
+    page = serializers.IntegerField(default=1)
+    shop = CaseInsensitiveChoiceField(
+        choices=core_models.ShopName.choices, required=False
+    )
 
 
 @ts_interface()

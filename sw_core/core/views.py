@@ -85,12 +85,14 @@ class SearchedProductViewSet(
         )
 
     def list(self, request, *args, **kwargs):
-        serializer = core_serializers.SearchParams(data=request.query_params)
+        serializer = core_serializers.SearchedProductParams(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         validated_params = serializer.validated_data
 
         # Check if we have up to date data for this query
-        recent_products = self.get_queryset().recent_products(validated_params["query"])
+        recent_products = core_models.SearchedProduct.objects.all().recent_products(
+            validated_params["query"]
+        )
         if not recent_products.exists():
             return self._begin_scraping_and_notify_client(validated_params["query"])
 
@@ -185,99 +187,44 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         return basket_item, None
 
     def list(self, request, pk=None):
+        # Get customers basket
         customer = request.user.customer
         basket, created = core_models.Basket.objects.get_or_create(customer=customer)
+        # Validated search params
+        serializer = core_serializers.BasketItemParams(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        validated_params = serializer.validated_data
 
-        # Queryset for listing items, ordered by product's updated_at
-        ordered_queryset = (
-            core_models.BasketItem.objects.filter(basket=basket)
-            .select_related("product")
-            .order_by("-product__updated_at")
-        )
+        # Get the queryset, paginate, and serialize
+        queryset = core_models.BasketItem.objects.customer_ordered_basket(
+            basket=basket
+        ).filtered_by_shop(validated_params.get("shop"))
 
-        # Separate queryset for shop breakdown, without the ordering
-        shop_breakdown_queryset = (
-            core_models.BasketItem.objects.filter(basket=basket)
-            .select_related("product")
-            .annotate(total_price=F("product__price") * F("quantity"))
-        )
-
-        # Group by shop name and aggregate total quantity and price
-        shop_breakdown = shop_breakdown_queryset.values("product__shop_name").annotate(
-            total_quantity=Coalesce(
-                Sum("quantity", output_field=IntegerField()),
-                Value(0, output_field=IntegerField()),
-            ),
-            total_price=Coalesce(
-                Sum(
-                    "total_price",
-                    output_field=DecimalField(max_digits=100, decimal_places=2),
-                ),
-                Value(0, output_field=DecimalField(max_digits=100, decimal_places=2)),
-            ),
-        )
-        # Transform the shop_breakdown QuerySet into a list of dictionaries
-        shop_breakdown_list = [
-            {
-                "name": item["product__shop_name"],
-                "total_price": item["total_price"].quantize(
-                    Decimal("0.01"), rounding=ROUND_HALF_UP
-                ),
-                "total_quantity": item["total_quantity"],
-            }
-            for item in shop_breakdown
-        ]
-
-        # Calculating the total quantity and price across all items
-        aggregated_data = shop_breakdown_queryset.aggregate(
-            total_quantity_all=Coalesce(
-                Sum("quantity", output_field=IntegerField()),
-                Value(0, output_field=IntegerField()),
-            ),
-            total_price_all=Coalesce(
-                Sum(
-                    "total_price",
-                    output_field=DecimalField(max_digits=100, decimal_places=2),
-                ),
-                Value(0, output_field=DecimalField(max_digits=100, decimal_places=2)),
-            ),
-        )
-        total_quantity_all = aggregated_data.get("total_quantity_all", 0)
-        total_price_all = aggregated_data.get("total_price_all", 0)
-
-        shop_name = request.query_params.get("shop", None)
-        selected_shop = "ALL"
-        if shop_name is not None:
-            shop_name = shop_name.upper()
-            print("shop_name", shop_name)
-            selected_shop = (
-                shop_name if shop_name.upper() in core_models.ShopName.values else "ALL"
-            )
-
-        if shop_name != None and selected_shop != "ALL":
-            queryset = ordered_queryset.filter(product__shop_name=shop_name)
-        else:
-            queryset = ordered_queryset
-
-        # Get page number from request query params
-        page_number = request.query_params.get("page", 1)
         paginator = Paginator(queryset, self.pagination_class.page_size)
-        page_obj = paginator.get_page(page_number)
+        page_obj = paginator.get_page(validated_params.get("page"))
 
         serializer = core_serializers.BasketItem(page_obj, many=True)
 
+        # Aggregated total qty and price
+        total_qty, total_price = (
+            core_models.BasketItem.objects.customer_basket_total_qty_and_price(
+                basket=basket
+            )
+        )
         # Serialize the metadata
         metadata_serializer = core_serializers.BasketItemMetadata(
             data={
                 "total_items": queryset.count(),
-                "total_quantity": total_quantity_all,
-                "total_price": total_price_all.quantize(
+                "total_quantity": total_qty,
+                "total_price": total_price.quantize(
                     Decimal("0.01"), rounding=ROUND_HALF_UP
                 ),
-                "shop_breakdown": shop_breakdown_list,
+                "shop_breakdown": core_models.BasketItem.objects.customer_basket_summary_by_shop(
+                    basket
+                ),
                 "page": page_obj.number,
                 "total_pages": paginator.num_pages,
-                "selected_shop": selected_shop,
+                "selected_shop": validated_params.get("shop", "ALL"),
             }
         )
         metadata_serializer.is_valid(raise_exception=True)

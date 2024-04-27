@@ -1,10 +1,12 @@
 from datetime import timedelta
 from collections import OrderedDict
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.conf import settings
 from django.utils import timezone
+from django.db.models.functions import Coalesce
 from django.db.models import (
     Sum,
     F,
@@ -216,7 +218,92 @@ class Basket(models.Model):
         return f"{self.customer.user.username}'s Basket"
 
 
+class BasketItemQuerySet(models.QuerySet):
+    def with_total_product_price(self, basket):
+        return (
+            self.filter(basket=basket)
+            .select_related("product")
+            .annotate(total_price=F("product__price") * F("quantity"))
+        )
+
+    def filtered_by_shop(self, shop_name):
+        selected_shop = (
+            shop_name.upper()
+            if shop_name
+            and shop_name.upper() != "ALL"
+            and shop_name.upper() in ShopName.values
+            else None
+        )
+        if selected_shop:
+            return self.filter(product__shop_name=selected_shop)
+        else:
+            return self
+
+
+class BasketItemManager(models.Manager):
+    def get_queryset(self):
+        return BasketItemQuerySet(self.model)
+
+    def customer_ordered_basket(self, basket):
+        return (
+            self.filter(basket=basket)
+            .select_related("product")
+            .order_by("-product__updated_at")
+        )
+
+    def customer_basket_summary_by_shop(self, basket):
+        shop_breakdown_queryset = self.get_queryset().with_total_product_price(basket)
+        # Group by shop name and aggregate total quantity and price
+        shop_breakdown = shop_breakdown_queryset.values("product__shop_name").annotate(
+            total_quantity=Coalesce(
+                Sum("quantity", output_field=IntegerField()),
+                Value(0, output_field=IntegerField()),
+            ),
+            total_price=Coalesce(
+                Sum(
+                    "total_price",
+                    output_field=DecimalField(max_digits=100, decimal_places=2),
+                ),
+                Value(0, output_field=DecimalField(max_digits=100, decimal_places=2)),
+            ),
+        )
+        # Transform the shop_breakdown QuerySet into a list of dictionaries
+        shop_breakdown_list = [
+            {
+                "name": item["product__shop_name"],
+                "total_price": item["total_price"].quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP
+                ),
+                "total_quantity": item["total_quantity"],
+            }
+            for item in shop_breakdown
+        ]
+        return shop_breakdown_list
+
+    def customer_basket_total_qty_and_price(self, basket):
+        shop_breakdown_queryset = self.get_queryset().with_total_product_price(basket)
+        # Calculating the total quantity and price across all items
+        aggregated_data = shop_breakdown_queryset.aggregate(
+            total_quantity_all=Coalesce(
+                Sum("quantity", output_field=IntegerField()),
+                Value(0, output_field=IntegerField()),
+            ),
+            total_price_all=Coalesce(
+                Sum(
+                    "total_price",
+                    output_field=DecimalField(max_digits=100, decimal_places=2),
+                ),
+                Value(0, output_field=DecimalField(max_digits=100, decimal_places=2)),
+            ),
+        )
+        total_qty = aggregated_data.get("total_quantity_all", 0)
+        total_price = aggregated_data.get("total_price_all", 0)
+        return total_qty, total_price
+
+
 class BasketItem(models.Model):
+    objects = BasketItemManager()
+
     basket = models.ForeignKey(Basket, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(BasketProduct, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
