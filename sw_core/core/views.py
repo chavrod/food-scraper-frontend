@@ -89,115 +89,34 @@ class SearchedProductViewSet(
         serializer.is_valid(raise_exception=True)
         validated_params = serializer.validated_data
 
-        filter_created_date = timezone.now() - timedelta(days=RESULTS_EXPIRY_DAYS)
-        recent_products: QuerySet[
-            core_models.SearchedProduct
-        ] = self.get_queryset().filter(
-            query=validated_params["query"], created__gte=filter_created_date
-        )
-
         # Check if we have up to date data for this query
+        recent_products = self.get_queryset().recent_products(validated_params["query"])
         if not recent_products.exists():
             return self._begin_scraping_and_notify_client(validated_params["query"])
 
+        # If recent products exists, gather relevant data
         filtered_products = core_filters.SearchedProductFilter(
             validated_params, recent_products
         ).qs
 
-        # TODO: Can we refactor it ????
-        # 1. One query
-        # 2. Moved to queryset manager (potentially just aggregated on the recent_products queryset right away)
-        price_ranges = recent_products.aggregate(Min("price"), Max("price"))
-        min_selected_price, max_selected_price = None, None
-        if validated_params.get("price_range"):
-            parts = validated_params.get("price_range").split(",")
-            min_selected_price, max_selected_price = float(parts[0]), float(parts[1])
-        price_range_info = {
-            "name": "euros",
-            "min": round(price_ranges["price__min"], 2),
-            "max": round(price_ranges["price__max"], 2),
-            "min_selected": min_selected_price,
-            "max_selected": max_selected_price,
-        }
-
-        ordered_unit_type_values = [
-            unit_type.value for unit_type in core_models.UnitType
-        ]
-        # Pre-populate an ordered dictionary with placeholders for each unit type
-        ordered_unit_range_info_dict = OrderedDict(
-            (unit_type, None) for unit_type in ordered_unit_type_values
-        )
-        unit_types_present = (
-            recent_products.values("unit_type").annotate(total=Count("id")).order_by()
-        )
-        # Loop through each unit_type and calculate the min and max unit_measurement values
-        for entry in unit_types_present:
-            unit_type = entry["unit_type"]
-            unit_type_products = recent_products.filter(unit_type=unit_type)
-            ranges = unit_type_products.aggregate(Max("unit_measurement"))
-            unit_range_info = {
-                "name": unit_type,
-                "count": entry["total"],
-                "min": 0,
-                "max": round(ranges["unit_measurement__max"], 2),
-                "min_selected": None,
-                "max_selected": None,
-            }
-            # If this unit_type is the selected type, add the selected ranges
-            if unit_type == validated_params.get("unit_type"):
-                min_selected = 0
-                max_selected = round(ranges["unit_measurement__max"], 2)
-                if validated_params.get("unit_measurement_range"):
-                    parts = validated_params.get("unit_measurement_range").split(",")
-                    min_selected, max_selected = float(parts[0]), float(parts[1])
-                unit_range_info["min_selected"] = min_selected
-                unit_range_info["max_selected"] = max_selected
-
-            # Update the placeholder in the ordered dictionary with actual data
-            if unit_type in ordered_unit_range_info_dict:
-                ordered_unit_range_info_dict[unit_type] = unit_range_info
-
-        # Convert the dictionary back to a list, filtering out placeholders
-        total_unit_range_info_list = [
-            info for info in ordered_unit_range_info_dict.values() if info is not None
-        ]
-
-        # If requested page is greater than the greatest cached page, return the latest available page
+        # Paginate and serilize results
         paginator = Paginator(filtered_products, self.pagination_class.page_size)
         page_obj = paginator.get_page(validated_params["page"])
+        serializer = core_serializers.SearchedProduct(page_obj, many=True)
 
-        serializer = self.get_serializer(page_obj, many=True)
-
-        def count_filters() -> int:
-            filter_count = 0
-            # Condition 1: In "price_range_info", check if "min" != "min_selected" or "max" != "max_selected"
-            if (
-                price_range_info["min_selected"] is not None
-                and price_range_info["max_selected"] is not None
-            ):
-                if (
-                    price_range_info["min_selected"] != 0
-                    or price_range_info["max"] > price_range_info["max_selected"]
-                ):
-                    print(price_range_info["min"], price_range_info["min_selected"])
-                    print(price_range_info["max"], price_range_info["max_selected"])
-                    filter_count += 1
-
-            active_unit = validated_params.get("unit_type")
-            # Condition 2: Check if "active_unit" is not None
-            if active_unit:
-                filter_count += 1
-
-                for unit_info in total_unit_range_info_list:
-                    if unit_info["name"] == active_unit:
-                        min_selected = unit_info.get("min_selected")
-                        max_selected = unit_info.get("max_selected")
-                        if min_selected is not None and max_selected is not None:
-                            if min_selected != 0 or unit_info["max"] > max_selected:
-                                filter_count += 1
-                                break  # Since we found the active unit and checked it, we can break the loop
-
-            return filter_count
+        # Get range summaries
+        price_range_info = (
+            core_models.SearchedProduct.objects.get_selected_price_range_info(
+                recent_products, validated_params.get("price_range")
+            )
+        )
+        total_unit_range_info_list = (
+            core_models.SearchedProduct.objects.get_selected_unit_range_info_list(
+                recent_products,
+                validated_params.get("unit_type"),
+                validated_params.get("unit_measurement_range"),
+            )
+        )
 
         metadata_serializer = core_serializers.SearchedProductMetadata(
             data={
@@ -208,7 +127,11 @@ class SearchedProductViewSet(
                 "active_unit": validated_params.get("unit_type"),
                 "units_range_list": total_unit_range_info_list,
                 "price_range_info": price_range_info,
-                "filter_count": count_filters(),
+                "filter_count": core_models.SearchedProduct.objects.count_filters(
+                    price_range_info,
+                    validated_params.get("unit_type"),
+                    total_unit_range_info_list,
+                ),
             }
         )
         metadata_serializer.is_valid(raise_exception=True)

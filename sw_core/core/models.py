@@ -1,6 +1,23 @@
-from django.db import models, transaction
+from datetime import timedelta
+from collections import OrderedDict
+
+from django.db import models
 from django.core.validators import MinValueValidator
 from django.conf import settings
+from django.utils import timezone
+from django.db.models import (
+    Sum,
+    F,
+    Value,
+    IntegerField,
+    DecimalField,
+    Min,
+    Max,
+    QuerySet,
+    Count,
+)
+
+from shop_wiz.settings import RESULTS_EXPIRY_DAYS
 
 
 class Customer(models.Model):
@@ -34,7 +51,113 @@ class UnitType(models.TextChoices):
     HUNDRED_SHEETS = "HUNDRED_SHEETS"
 
 
+class SearchedProductQuerySet(models.QuerySet):
+    def recent_products(self, query):
+        filter_created_date = timezone.now() - timedelta(days=RESULTS_EXPIRY_DAYS)
+        return self.filter(query=query, created__gte=filter_created_date)
+
+
+class SearchedProductManager(models.Manager):
+    def get_queryset(self):
+        return SearchedProductQuerySet(self.model)
+
+    def get_selected_price_range_info(self, all_recent_products, selected_price_range):
+        price_ranges = all_recent_products.aggregate(Min("price"), Max("price"))
+        min_selected_price, max_selected_price = None, None
+        if selected_price_range:
+            parts = selected_price_range.split(",")
+            min_selected_price, max_selected_price = float(parts[0]), float(parts[1])
+        return {
+            "name": "euros",
+            "min": round(price_ranges["price__min"], 2),
+            "max": round(price_ranges["price__max"], 2),
+            "min_selected": min_selected_price,
+            "max_selected": max_selected_price,
+        }
+
+    def get_selected_unit_range_info_list(
+        self, all_recent_products, selected_unit_type, selected_unit_range
+    ):
+        # Pre-populate an ordered dictionary with placeholders for each unit type
+        ordered_unit_type_values = [unit_type.value for unit_type in UnitType]
+        ordered_unit_range_info_dict = OrderedDict(
+            (unit_type, None) for unit_type in ordered_unit_type_values
+        )
+        # Get unit types present in recent_products
+        unit_types_present = (
+            all_recent_products.values("unit_type")
+            .annotate(total=Count("id"))
+            .order_by()
+        )
+        # Loop through each unit_type and calculate the min and max unit_measurement values
+        for entry in unit_types_present:
+            unit_type = entry["unit_type"]
+            unit_type_products = all_recent_products.filter(unit_type=unit_type)
+            ranges = unit_type_products.aggregate(Max("unit_measurement"))
+            unit_range_info = {
+                "name": unit_type,
+                "count": entry["total"],
+                "min": 0,
+                "max": round(ranges["unit_measurement__max"], 2),
+                "min_selected": None,
+                "max_selected": None,
+            }
+            # If this unit_type is the selected type, add the selected ranges
+            if unit_type == selected_unit_type:
+                min_selected = 0
+                max_selected = round(ranges["unit_measurement__max"], 2)
+                if selected_unit_range:
+                    parts = selected_unit_range.split(",")
+                    min_selected, max_selected = float(parts[0]), float(parts[1])
+                unit_range_info["min_selected"] = min_selected
+                unit_range_info["max_selected"] = max_selected
+
+            # Update the placeholder in the ordered dictionary with actual data
+            if unit_type in ordered_unit_range_info_dict:
+                ordered_unit_range_info_dict[unit_type] = unit_range_info
+
+        # Convert the dictionary back to a list, filtering out placeholders
+        total_unit_range_info_list = [
+            info for info in ordered_unit_range_info_dict.values() if info is not None
+        ]
+        return total_unit_range_info_list
+
+    def count_filters(
+        self, price_range_info, active_unit, total_unit_range_info_list
+    ) -> int:
+        filter_count = 0
+        # Condition 1: In "price_range_info", check if "min" != "min_selected" or "max" != "max_selected"
+        if (
+            price_range_info["min_selected"] is not None
+            and price_range_info["max_selected"] is not None
+        ):
+            if (
+                price_range_info["min_selected"] != 0
+                or price_range_info["max"] > price_range_info["max_selected"]
+            ):
+                print(price_range_info["min"], price_range_info["min_selected"])
+                print(price_range_info["max"], price_range_info["max_selected"])
+                filter_count += 1
+
+        # Condition 2: Check if "active_unit" is not None
+        if active_unit:
+            filter_count += 1
+
+            for unit_info in total_unit_range_info_list:
+                if unit_info["name"] == active_unit:
+                    min_selected = unit_info.get("min_selected")
+                    max_selected = unit_info.get("max_selected")
+                    if min_selected is not None and max_selected is not None:
+                        if min_selected != 0 or unit_info["max"] > max_selected:
+                            filter_count += 1
+                            break  # Since we found the active unit and checked it, we can break the loop
+
+        return filter_count
+
+
 class SearchedProduct(models.Model):
+    objects = SearchedProductManager()
+
     query = models.CharField(max_length=30)
     name = models.CharField(max_length=300)
     price = models.DecimalField(max_digits=10, decimal_places=2)
