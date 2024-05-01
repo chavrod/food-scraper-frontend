@@ -4,8 +4,14 @@ import re
 import asyncio
 import json
 import time
+from datetime import timedelta
+
+from django.utils import timezone
 
 import core.models as core_models
+from shop_wiz.settings import (
+    RESULTS_EXPIRY_DAYS,
+)
 
 
 class ScrapedPageConsumer(AsyncWebsocketConsumer):
@@ -77,4 +83,10 @@ class ScrapedPageConsumer(AsyncWebsocketConsumer):
 
     @staticmethod
     def entry_exists(query):
-        return core_models.SearchedProduct.objects.filter(query=query).exists()
+        # Calculate the date before which no similar batch upload should exist
+        expiry_date = timezone.now() - timedelta(days=RESULTS_EXPIRY_DAYS)
+
+        # Check for recent batch uploads with the same query
+        return core_models.BatchUpload.objects.filter(
+            query=query, upload_date__gte=expiry_date
+        ).exists()
