@@ -55,9 +55,6 @@ class UnitType(models.TextChoices):
 
 class SearchedProductQuerySet(models.QuerySet):
     pass
-    # def recent_products(self, query):
-    #     filter_created_date = timezone.now() - timedelta(days=RESULTS_EXPIRY_DAYS)
-    #     return self.filter(query=query, created__gte=filter_created_date)
 
 
 class SearchedProductManager(models.Manager):
