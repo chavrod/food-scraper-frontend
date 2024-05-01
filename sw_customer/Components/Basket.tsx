@@ -60,7 +60,6 @@ export default function Basket() {
   const accessToken = session?.access_token;
 
   const {
-    queryParams,
     isLoading: isLoadingBasketItems,
     basketItemsData,
     basketItemsMetaData,
@@ -111,7 +110,7 @@ export default function Basket() {
 
   const handleSuccess = () => {
     queryClient.invalidateQueries({
-      queryKey: ["basket_items", queryParams],
+      queryKey: ["basket_items"],
       refetchType: "active",
     });
   };
