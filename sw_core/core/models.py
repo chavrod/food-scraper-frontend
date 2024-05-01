@@ -54,14 +54,42 @@ class UnitType(models.TextChoices):
 
 
 class SearchedProductQuerySet(models.QuerySet):
-    def recent_products(self, query):
-        filter_created_date = timezone.now() - timedelta(days=RESULTS_EXPIRY_DAYS)
-        return self.filter(query=query, created__gte=filter_created_date)
+    pass
+    # def recent_products(self, query):
+    #     filter_created_date = timezone.now() - timedelta(days=RESULTS_EXPIRY_DAYS)
+    #     return self.filter(query=query, created__gte=filter_created_date)
 
 
 class SearchedProductManager(models.Manager):
     def get_queryset(self):
         return SearchedProductQuerySet(self.model)
+
+    def get_most_recent_and_check_freshness(self, query):
+        print("Checking for most recent batch...")
+        most_recent_batch = BatchUpload.objects.filter(query=query).first()
+        print("most_recent_batch: ", most_recent_batch)
+        if most_recent_batch:
+            print("Retrieve all products that were created on maximum date")
+            # Retrieve all products that were created on maximum date
+            products = self.filter(batch=most_recent_batch)
+            print("products: ", products.count())
+
+            # Check if an update is needed (i.e., if the max date is within the expiry date)
+            filter_created_date = timezone.now().date() - timedelta(
+                days=RESULTS_EXPIRY_DAYS
+            )
+            print("Check if an update is needed")
+            update_needed = most_recent_batch.upload_date <= filter_created_date
+            print("update_needed: ", update_needed)
+        else:
+            print(
+                "No products found: ",
+            )
+            # No products found, return empty queryset and False for update_needed
+            products = self.none()
+            update_needed = True
+
+        return products, update_needed
 
     def get_selected_price_range_info(self, all_recent_products, selected_price_range):
         price_ranges = all_recent_products.aggregate(Min("price"), Max("price"))
@@ -160,7 +188,9 @@ class SearchedProductManager(models.Manager):
 class SearchedProduct(models.Model):
     objects = SearchedProductManager()
 
-    query = models.CharField(max_length=30)
+    batch = models.ForeignKey(
+        "BatchUpload", on_delete=models.CASCADE, related_name="products"
+    )
     name = models.CharField(max_length=300)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
@@ -184,14 +214,28 @@ class SearchedProduct(models.Model):
                 check=models.Q(unit_measurement__gt=0), name="unit_measurement_gt_0"
             ),
             models.CheckConstraint(check=~models.Q(name=""), name="name_not_empty"),
-            models.CheckConstraint(check=~models.Q(query=""), name="query_not_empty"),
             models.CheckConstraint(
                 check=~models.Q(shop_name=""), name="shop_name_not_empty"
             ),
         ]
 
     def __str__(self) -> str:
-        return f"{self.query}: {self.price} for {self.unit_measurement} {self.unit_type} ({self.price_per_unit}) {self.name} - {self.created}"
+        return f"{self.name}: {self.price} for {self.unit_measurement} {self.unit_type} ({self.price_per_unit}) {self.name} - {self.created}"
+
+
+class BatchUpload(models.Model):
+    query = models.CharField(max_length=60)
+    # upload_date = models.DateField(auto_now_add=True)
+    upload_date = models.DateField()
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=~models.Q(query=""), name="query_not_empty"),
+        ]
+        ordering = ["-upload_date"]  # Orders by upload_date in descending order
+
+    def __str__(self) -> str:
+        return f"Batch Upload of {self.query} on {self.upload_date}"
 
 
 class BasketProduct(models.Model):
