@@ -2,16 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter, NextRouter } from "next/router";
 import { normalizeQueryParams } from "@/utils/paramsUtil";
 import basketItemsApi from "@/utils/basketItemsApi";
-import { SearchParams } from "@/types/customer_types";
 import { useSessionContext } from "@/Context/SessionContext";
-import useDeepCompareMemo from "@/utils/useDeepCompareMemo";
-
-export type CustomRouter = NextRouter & {
-  query: SearchParams;
-};
 
 function useBasketItems() {
-  const router = useRouter() as CustomRouter;
+  const router = useRouter();
 
   const { session } = useSessionContext();
   const accessToken = session?.access_token;
