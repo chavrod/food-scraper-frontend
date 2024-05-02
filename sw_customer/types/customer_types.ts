@@ -15,7 +15,6 @@ export interface SearchedProductParams {
 }
 
 export interface SearchedProduct {
-    query: string;
     name: string;
     price: number;
     price_per_unit: number;
@@ -24,6 +23,7 @@ export interface SearchedProduct {
     img_src: string | null;
     product_url: string | null;
     shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
+    created?: string;
 }
 
 export interface SearchedProductAvailableUnitRangesInfo {
@@ -44,6 +44,8 @@ export interface SearchedProductPriceRangeInfo {
 }
 
 export interface SearchedProductMetadata {
+    query: string;
+    is_update_needed: boolean;
     page: number;
     total_pages: number;
     order_by: string;
@@ -52,10 +54,6 @@ export interface SearchedProductMetadata {
     units_range_list: SearchedProductAvailableUnitRangesInfo[];
     price_range_info: SearchedProductPriceRangeInfo;
     filter_count: number;
-}
-
-export interface ScrapeStatsForCustomer {
-    average_time_seconds: number;
 }
 
 export interface BasketProduct {
