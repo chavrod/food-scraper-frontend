@@ -45,15 +45,15 @@ export default function SearchResults() {
 
   const {
     query,
+    isUpdateNeeded,
     isLoading,
     isError,
     error,
     searchedProducts,
     searchedProductsMetadata,
-    isUpdatingProduct,
+    noProductButScrapingUnderWay,
   } = useSearchedProducts();
 
-  const { queryParams } = useBasketItems();
   const { session } = useSessionContext();
   const accessToken = session?.access_token;
 
@@ -85,7 +85,7 @@ export default function SearchResults() {
     apiFunc: basketItemsApi.addItemQuantity,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["basket_items", queryParams],
+        queryKey: ["basket_items"],
         refetchType: "active",
       });
     },
@@ -170,10 +170,10 @@ export default function SearchResults() {
 
       {!query && !isLoading && !searchedProducts ? (
         <SearchIntro />
-      ) : isUpdatingProduct ? (
+      ) : noProductButScrapingUnderWay ? (
         <CountdownCircle
           currentAverageScrapingTime={10}
-          loading={isUpdatingProduct}
+          loading={noProductButScrapingUnderWay}
         />
       ) : isLoading ? (
         <ProductGridSkeleton />
@@ -195,9 +195,15 @@ export default function SearchResults() {
                   onChange={handleFilter}
                   placeholder="Pick one"
                   data={orderOptions}
+                  disabled={isUpdateNeeded}
                 />
                 <Group position="center">
-                  <Button onClick={open} variant="outline" radius="xs">
+                  <Button
+                    onClick={open}
+                    variant="outline"
+                    radius="xs"
+                    disabled={isUpdateNeeded}
+                  >
                     {searchedProductsMetadata &&
                     searchedProductsMetadata.filter_count > 0
                       ? `${searchedProductsMetadata.filter_count} Filter${
@@ -239,7 +245,7 @@ export default function SearchResults() {
 
       {query &&
         !isLoading &&
-        !isUpdatingProduct &&
+        !noProductButScrapingUnderWay &&
         searchedProducts &&
         searchedProducts.length === 0 && (
           <Stack
@@ -313,7 +319,7 @@ function SearchedProductCard({
         <Stack style={{ width: "100%" }} justify="space-between">
           <Box h={100}>
             <Text size={15} align="left" lineClamp={2}>
-              {product.name}
+              {product.name} {product.created}
             </Text>
             <Text fz="sm" c="dimmed">
               {product.shop_name.charAt(0).toUpperCase() +
