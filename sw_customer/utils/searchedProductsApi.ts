@@ -1,24 +1,23 @@
 import {
   SearchedProduct,
   SearchedProductMetadata,
-  ScrapeStatsForCustomer,
 } from "@/types/customer_types";
 import apiClient from "./apiClient";
 
-type UpToDateProductResponse = {
+type ExistingProductResponse = {
   data: SearchedProduct[];
   metadata: SearchedProductMetadata;
 };
 
-type OutdatedProductResponse = {
+type NoProductResponse = {
   data: {};
-  metadata: ScrapeStatsForCustomer;
+  metadata: { scraping_under_way: boolean };
 };
 
 const list = (
   accessToken: string | undefined,
   params?: { [key: string]: string | number }
-): Promise<UpToDateProductResponse | OutdatedProductResponse> =>
+): Promise<ExistingProductResponse | NoProductResponse> =>
   apiClient.get("products/", accessToken, params);
 
 const searchedProductsApi = { list };
