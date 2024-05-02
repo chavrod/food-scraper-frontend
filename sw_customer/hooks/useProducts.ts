@@ -5,50 +5,60 @@ import searchedProductsApi from "@/utils/searchedProductsApi";
 import {
   SearchedProduct,
   SearchedProductMetadata,
-  SearchParams,
+  SearchedProductParams,
 } from "@/types/customer_types";
 
 export type CustomRouter = NextRouter & {
-  query: SearchParams;
+  query: SearchedProductParams;
 };
 
 function useSearchedProducts() {
   const router = useRouter() as CustomRouter;
   const accessToken = undefined; // Define or obtain the access token as needed
 
-  const queryParams = normalizeQueryParams(router.query, router.pathname, "/");
+  const originalQueryParams = normalizeQueryParams(
+    router.query,
+    router.pathname,
+    "/"
+  );
+  const { query, ...restWithoutQuery } = originalQueryParams;
 
   const productsQuery = useQuery({
-    queryKey: ["products", queryParams],
-    enabled: router.pathname === "/" && Boolean(queryParams?.query),
-    queryFn: () => searchedProductsApi.list(accessToken, queryParams),
+    queryKey: ["products", query, restWithoutQuery],
+    enabled: router.pathname === "/" && Boolean(query),
+    queryFn: () => searchedProductsApi.list(accessToken, originalQueryParams),
     staleTime: 5 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
   });
 
-  const isUpdatingProduct = Boolean(
+  const noProductButScrapingUnderWay = Boolean(
     productsQuery?.data?.metadata &&
-      "average_time_seconds" in productsQuery.data.metadata
-      ? productsQuery.data.metadata.average_time_seconds
+      "scraping_under_way" in productsQuery.data.metadata
+      ? productsQuery.data.metadata.scraping_under_way
       : undefined
   );
 
-  const searchedProducts = !isUpdatingProduct
+  const searchedProducts = !noProductButScrapingUnderWay
     ? (productsQuery?.data?.data as SearchedProduct[] | undefined)
     : undefined;
 
-  const searchedProductsMetadata = !isUpdatingProduct
+  const searchedProductsMetadata = !noProductButScrapingUnderWay
     ? (productsQuery?.data?.metadata as SearchedProductMetadata | undefined)
     : undefined;
 
+  const isUpdateNeeded =
+    searchedProductsMetadata && searchedProductsMetadata.is_update_needed;
+
   return {
-    query: queryParams?.query,
+    query: query,
+    queryParams: restWithoutQuery,
     isLoading: productsQuery.isLoading,
     isError: productsQuery.isError,
     error: productsQuery.error,
     searchedProducts,
     searchedProductsMetadata,
-    isUpdatingProduct,
+    noProductButScrapingUnderWay,
+    isUpdateNeeded,
   };
 }
 
