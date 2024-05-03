@@ -16,29 +16,25 @@ from shop_wiz.settings import (
 
 class ScrapedPageConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        print("connection OPENED")
+        query = self.scope["url_route"]["kwargs"]["query"]
+        self.cleaned_query = re.sub(r"\s+", " ", query.strip()).lower()
+        print(f"connection OPENED for {self.cleaned_query}")
         await self.accept()
 
     async def disconnect(self, close_code):
-        print("connection CLOSED: ", close_code)
+        print(f"connection CLOSED for {self.cleaned_query}")
         pass
 
     async def receive(self, text_data=None, bytes_data=None):
         try:
-
-            text_data_json = json.loads(text_data)
-
-            query = text_data_json["query"].rstrip()
-            # Remove leading and trailing whitespaces, replace multiple spaces with one, and convert to lowercase
-            cleaned_query = re.sub(r"\s+", " ", query.strip()).lower()
-            cached_page_exists = await self.check_for_entry(cleaned_query)
+            cached_page_exists = await self.check_for_entry(self.cleaned_query)
 
             # Check if entry_data was found and send relevant information
             if cached_page_exists:
                 await self.send(
                     text_data=json.dumps(
                         {
-                            "query": cleaned_query,
+                            "query": self.cleaned_query,
                             "sender": "Server",
                         }
                     )
