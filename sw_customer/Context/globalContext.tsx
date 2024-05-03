@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  useRef,
 } from "react";
 import useSearchedProducts, { CustomRouter } from "@/hooks/useProducts";
 import { IconCheck } from "@tabler/icons-react";
@@ -22,82 +23,166 @@ interface GlobalProviderProps {
   children: ReactNode;
 }
 
+type Sockets = {
+  [key: string]: WebSocket;
+};
+
 // Create the context
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 // Provide the context
 export function GlobalProvider({ children }: GlobalProviderProps) {
-  const router = useRouter() as CustomRouter;
-
   const queryClient = useQueryClient();
 
-  const { query, isUpdatingProduct } = useSearchedProducts();
+  const { query, queryParams, noProductButScrapingUnderWay, isUpdateNeeded } =
+    useSearchedProducts();
 
   const [loadingNewProducts, setLoadingNewProducts] = useState(false);
-  useEffect(() => {
-    if (isUpdatingProduct && query) {
+  const [sockets, setSockets] = useState<Sockets>({});
+
+  console.log("sockets: ", sockets);
+
+  const openWebsocket = (
+    query: string,
+    isUpdateNeeded: boolean,
+    noProductButScrapingUnderWay: boolean
+  ) => {
+    if (isUpdateNeeded) {
+      notifications.show({
+        id: `update-needed-${query}`,
+        title: "Records are outdated!",
+        message: `We updating results for ${query}.`,
+        color: "blue",
+        loading: true,
+        withBorder: true,
+        autoClose: false,
+        withCloseButton: false,
+      });
+    }
+    if (noProductButScrapingUnderWay) {
       setLoadingNewProducts(true);
+    }
 
-      const socket = new WebSocket("ws://localhost:8000/ws/scraped_result/");
+    const newSocket = new WebSocket(
+      `ws://localhost:8000/ws/scraped_result/${query}/`
+    );
 
-      socket.onopen = () => {
-        // Sending a message to the server after connection
-        const messageData = {
+    newSocket.onopen = () => {
+      const messageData = {
+        sender: "Client",
+      };
+
+      newSocket.send(JSON.stringify(messageData));
+    };
+
+    newSocket.onmessage = (event) => {
+      const responseData = JSON.parse(event.data);
+
+      setLoadingNewProducts(false);
+
+      if (responseData.query) {
+        handleWebsocketSuccess(
           query,
-          sender: "Client",
-        };
-
-        socket.send(JSON.stringify(messageData));
-      };
-
-      socket.onmessage = (event) => {
-        const responseData = JSON.parse(event.data);
-        setLoadingNewProducts(false);
-
-        if (responseData.query) {
-          notifications.show({
-            title: "Success!",
-            message: `We finished putting together results for ${responseData.query}`,
-            icon: <IconCheck size="1rem" />,
-            color: "green",
-            withBorder: true,
-          });
-
-          setTimeout(() => {
-            queryClient.invalidateQueries({
-              queryKey: ["products", { query: responseData.query }],
-              refetchType: "active",
-            });
-          }, 1000);
-        } else {
-          const errorMsg =
-            responseData.message ||
-            "Sorry, we were not able to get any results from your request.";
-          notifyError({
-            title: "Something went wrong, redirecting to home page...",
-            message: errorMsg,
-          });
-          router.push("/");
-        }
-        socket.close();
-      };
-
-      socket.onerror = (error) => {
+          responseData.query,
+          isUpdateNeeded,
+          noProductButScrapingUnderWay
+        );
+      } else {
+        const errorMsg =
+          responseData.message ||
+          "Sorry, we were not able to get any results from your request.";
         notifyError({
           title: "Something went wrong, redirecting to home page...",
-          message: "Lost connection.",
+          message: errorMsg,
         });
-        router.push("/");
-      };
+        // TODO: Handle error well
+        // router.push("/");
+        newSocket.close();
+        setSockets((prevSockets) => {
+          const { [query]: _, ...remainingSockets } = prevSockets;
+          return remainingSockets;
+        });
+      }
+    };
 
-      // Cleanup the socket connection on component unmount
-      return () => {
-        socket.close();
-      };
+    newSocket.onerror = (error) => {
+      notifications.hide("update-needed");
+      notifyError({
+        title: "Something went wrong, redirecting to home page...",
+        message: "Lost connection.",
+      });
+      newSocket.close();
+      setSockets((prevSockets) => {
+        const { [query]: _, ...remainingSockets } = prevSockets;
+        return remainingSockets;
+      });
+    };
+
+    setSockets((prevSockets) => ({ ...prevSockets, [query]: newSocket }));
+  };
+
+  useEffect(() => {
+    if ((noProductButScrapingUnderWay || isUpdateNeeded) && query) {
+      if (!sockets[query]) {
+        openWebsocket(
+          query,
+          Boolean(isUpdateNeeded),
+          noProductButScrapingUnderWay
+        );
+      }
     }
-    return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isUpdatingProduct]);
+  }, [query, isUpdateNeeded, noProductButScrapingUnderWay]);
+
+  const handleWebsocketSuccess = (
+    query: string,
+    responseDataQuery: string,
+    isUpdateNeeded: boolean,
+    noProductButScrapingUnderWay: boolean
+  ) => {
+    console.log("query", query);
+    console.log("responseDataQuery", responseDataQuery);
+    if (isUpdateNeeded) {
+      notifications.update({
+        id: `update-needed-${query}`,
+        title: "Success!",
+        message: `We finished putting updating records for ${query}`,
+        icon: <IconCheck size="1rem" />,
+        color: "green",
+        withBorder: true,
+        withCloseButton: true,
+      });
+    }
+    if (noProductButScrapingUnderWay) {
+      notifications.show({
+        title: "Success!",
+        message: `We finished putting together results for ${query}`,
+        icon: <IconCheck size="1rem" />,
+        color: "green",
+        withBorder: true,
+        withCloseButton: true,
+      });
+    }
+
+    // console.log("query === responseDataQuery", query === responseDataQuery);
+    // console.log("queryParams.page.toString() ", queryParams.page.toString());
+    if (query === responseDataQuery) {
+      queryClient.refetchQueries({
+        queryKey: [
+          "products",
+          responseDataQuery,
+          { page: queryParams.page.toString() },
+        ],
+        exact: false,
+      });
+    }
+    setTimeout(() => {
+      queryClient.removeQueries({
+        queryKey: ["products", responseDataQuery],
+        exact: false,
+      });
+    }, 2000);
+  };
 
   const contextValue = useMemo(
     () => ({
