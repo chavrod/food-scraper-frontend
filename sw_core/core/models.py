@@ -62,31 +62,26 @@ class SearchedProductManager(models.Manager):
         return SearchedProductQuerySet(self.model)
 
     def get_most_recent_and_check_freshness(self, query):
-        print("Checking for most recent batch...")
         most_recent_batch = BatchUpload.objects.filter(query=query).first()
-        print("most_recent_batch: ", most_recent_batch)
         if most_recent_batch:
-            print("Retrieve all products that were created on maximum date")
             # Retrieve all products that were created on maximum date
             products = self.filter(batch=most_recent_batch)
-            print("products: ", products.count())
-
             # Check if an update is needed (i.e., if the max date is within the expiry date)
             filter_created_date = timezone.now().date() - timedelta(
                 days=RESULTS_EXPIRY_DAYS
             )
-            print("Check if an update is needed")
-            update_needed = most_recent_batch.upload_date <= filter_created_date
-            print("update_needed: ", update_needed)
+            update_date = most_recent_batch.upload_date
+            update_needed = update_date <= filter_created_date
         else:
             print(
                 "No products found: ",
             )
             # No products found, return empty queryset and False for update_needed
             products = self.none()
+            update_date = None
             update_needed = True
 
-        return products, update_needed
+        return products, update_date, update_needed
 
     def get_selected_price_range_info(self, all_recent_products, selected_price_range):
         price_ranges = all_recent_products.aggregate(Min("price"), Max("price"))
@@ -196,7 +191,6 @@ class SearchedProduct(models.Model):
     img_src = models.URLField(null=True)
     product_url = models.URLField(null=True)
     shop_name = models.CharField(max_length=300, choices=ShopName.choices)
-    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
@@ -222,8 +216,7 @@ class SearchedProduct(models.Model):
 
 class BatchUpload(models.Model):
     query = models.CharField(max_length=60)
-    # upload_date = models.DateField(auto_now_add=True)
-    upload_date = models.DateField()
+    upload_date = models.DateField(auto_now_add=True)
 
     class Meta:
         constraints = [

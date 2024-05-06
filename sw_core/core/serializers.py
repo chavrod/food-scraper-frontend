@@ -39,7 +39,7 @@ class CaseInsensitiveChoiceField(serializers.ChoiceField):
 
 @ts_interface()
 class SearchedProductParams(serializers.Serializer):
-    query = serializers.CharField(max_length=30, required=True)
+    query = serializers.CharField(max_length=60, required=True)
     page = serializers.IntegerField(default=1)
     order_by = serializers.CharField(default="price", required=False)
     price_range = serializers.CharField(required=False)
@@ -125,7 +125,6 @@ class SearchedProductParams(serializers.Serializer):
 
 @ts_interface()
 class SearchedProduct(serializers.Serializer):
-    query = serializers.CharField(max_length=30, required=True, allow_blank=False)
     name = serializers.CharField(required=True, allow_blank=False)
     price = serializers.FloatField(required=True)
     price_per_unit = serializers.FloatField(required=True)
@@ -147,6 +146,16 @@ class SearchedProduct(serializers.Serializer):
     class Meta:
         model = core_models.SearchedProduct
         exclude = ["id"]
+
+
+# @ts_interface()
+# class BatchUpload(serializers.Serializer):
+#     query = serializers.CharField(max_length=30, required=True, allow_blank=False)
+#     upload_date = serializers.DateField()
+
+#     class Meta:
+#         model = core_models.BatchUpload
+#         exclude = ["id"]
 
 
 @ts_interface()
@@ -215,6 +224,9 @@ class SearchedProductPriceRangeInfo(serializers.Serializer):
 
 @ts_interface()
 class SearchedProductMetadata(serializers.Serializer):
+    query = serializers.CharField(max_length=60, required=True)
+    is_update_needed = serializers.BooleanField()
+    update_date = serializers.DateField(allow_null=True)
     page = serializers.IntegerField()
     total_pages = serializers.IntegerField()
     order_by = serializers.CharField()
@@ -227,13 +239,6 @@ class SearchedProductMetadata(serializers.Serializer):
     )
     price_range_info = SearchedProductPriceRangeInfo()
     filter_count = serializers.IntegerField()
-
-
-@ts_interface()
-class ScrapeStatsForCustomer(serializers.Serializer):
-    average_time_seconds = serializers.DecimalField(
-        max_digits=100, decimal_places=0, coerce_to_string=False
-    )
 
 
 @ts_interface()

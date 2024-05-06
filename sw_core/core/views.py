@@ -1,25 +1,20 @@
 from decimal import Decimal, ROUND_HALF_UP
-from datetime import timedelta
 
 from django.views.decorators.csrf import csrf_protect
 from django.middleware.csrf import get_token
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.utils import timezone
-from django.core.cache import cache
 
 from rest_framework import status, viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
-from tasks.cache_data import cache_data
+from tasks.cache_data import begin_scraping
 import core.serializers as core_serializers
 import core.models as core_models
 import core.pagination as core_paginaton
 import core.filters as core_filters
-
-from shop_wiz.settings import CACHE_SHOP_SCRAPE_EXECUTION_SECONDS, RESULTS_EXPIRY_DAYS
 
 
 @csrf_protect
@@ -37,51 +32,22 @@ class SearchedProductViewSet(
     queryset = core_models.SearchedProduct.objects.all()
     pagination_class = core_paginaton.SearchedProductsPagination
 
-    def _begin_scraping_and_notify_client(self, query_param):
-        cache_key = f"scrape_query_{query_param}"
-        last_update = cache.get(cache_key)
-
-        average_time_seconds = CACHE_SHOP_SCRAPE_EXECUTION_SECONDS
-
-        if last_update and timezone.now() - last_update < timedelta(
-            seconds=CACHE_SHOP_SCRAPE_EXECUTION_SECONDS
-        ):
-            elapsed_time = timezone.now() - last_update
-            elapsed_seconds = elapsed_time.total_seconds()
-            seconds_left = average_time_seconds - elapsed_seconds
-            average_time_seconds = Decimal(int(max(0, seconds_left)))
-            pass
-        else:
-            # Start the scraping process and set the cache
-            # TODO: Rethink
-            is_relevant_only_param = True
-            cache_data.delay(query_param, is_relevant_only_param)
-            cache.set(
-                cache_key,
-                timezone.now(),
-                timeout=CACHE_SHOP_SCRAPE_EXECUTION_SECONDS,
-            )
-            print(f"SETTING NEW CACHE FOR {cache_key}")
-
-        scrape_stats_for_customer_serializer = core_serializers.ScrapeStatsForCustomer(
-            data={"average_time_seconds": average_time_seconds}
-        )
-        scrape_stats_for_customer_serializer.is_valid(raise_exception=True)
-        return Response(
-            {"data": {}, "metadata": scrape_stats_for_customer_serializer.data}
-        )
-
     def list(self, request, *args, **kwargs):
         serializer = core_serializers.SearchedProductParams(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         validated_params = serializer.validated_data
 
         # Check if we have up to date data for this query
-        recent_products = core_models.SearchedProduct.objects.all().recent_products(
-            validated_params["query"]
+        recent_products, update_date, update_needed = (
+            core_models.SearchedProduct.objects.get_most_recent_and_check_freshness(
+                validated_params["query"]
+            )
         )
-        if not recent_products.exists():
-            return self._begin_scraping_and_notify_client(validated_params["query"])
+
+        if update_needed:
+            begin_scraping(validated_params["query"])
+        if not recent_products:
+            return Response({"data": {}, "metadata": {"scraping_under_way": True}})
 
         # If recent products exists, gather relevant data
         filtered_products = core_filters.SearchedProductFilter(
@@ -109,6 +75,9 @@ class SearchedProductViewSet(
 
         metadata_serializer = core_serializers.SearchedProductMetadata(
             data={
+                "query": validated_params["query"],
+                "is_update_needed": update_needed,
+                "update_date": update_date,
                 "page": page_obj.number,
                 "total_pages": paginator.num_pages,
                 "order_by": validated_params["order_by"],
