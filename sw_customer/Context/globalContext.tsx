@@ -40,29 +40,24 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
   const [loadingNewProducts, setLoadingNewProducts] = useState(false);
   const [sockets, setSockets] = useState<Sockets>({});
 
-  console.log("sockets: ", sockets);
+  useEffect(() => {
+    if ((noProductButScrapingUnderWay || isUpdateNeeded) && query) {
+      if (!sockets[query]) {
+        openWebsocket(
+          query,
+          Boolean(isUpdateNeeded),
+          noProductButScrapingUnderWay
+        );
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, isUpdateNeeded, noProductButScrapingUnderWay]);
 
   const openWebsocket = (
     query: string,
     isUpdateNeeded: boolean,
     noProductButScrapingUnderWay: boolean
   ) => {
-    if (isUpdateNeeded) {
-      notifications.show({
-        id: `update-needed-${query}`,
-        title: "Records are outdated!",
-        message: `We updating results for ${query}.`,
-        color: "blue",
-        loading: true,
-        withBorder: true,
-        autoClose: false,
-        withCloseButton: false,
-      });
-    }
-    if (noProductButScrapingUnderWay) {
-      setLoadingNewProducts(true);
-    }
-
     const newSocket = new WebSocket(
       `ws://localhost:8000/ws/scraped_result/${query}/`
     );
@@ -73,6 +68,22 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
       };
 
       newSocket.send(JSON.stringify(messageData));
+
+      if (isUpdateNeeded) {
+        notifications.show({
+          id: `update-needed-${query}`,
+          title: "Records are outdated!",
+          message: `We updating results for ${query}.`,
+          color: "blue",
+          loading: true,
+          withBorder: true,
+          autoClose: false,
+          withCloseButton: false,
+        });
+      }
+      if (noProductButScrapingUnderWay) {
+        setLoadingNewProducts(true);
+      }
     };
 
     newSocket.onmessage = (event) => {
@@ -88,15 +99,13 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
           noProductButScrapingUnderWay
         );
       } else {
-        const errorMsg =
-          responseData.message ||
-          "Sorry, we were not able to get any results from your request.";
+        notifications.hide(`update-needed-${query}`);
         notifyError({
-          title: "Something went wrong, redirecting to home page...",
-          message: errorMsg,
+          title: "Something went wrong, please try again...",
+          message:
+            responseData.message ||
+            "Sorry, we were not able to get any results from your request.",
         });
-        // TODO: Handle error well
-        // router.push("/");
         newSocket.close();
         setSockets((prevSockets) => {
           const { [query]: _, ...remainingSockets } = prevSockets;
@@ -106,7 +115,7 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
     };
 
     newSocket.onerror = (error) => {
-      notifications.hide("update-needed");
+      notifications.hide(`update-needed-${query}`);
       notifyError({
         title: "Something went wrong, redirecting to home page...",
         message: "Lost connection.",
@@ -121,18 +130,9 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
     setSockets((prevSockets) => ({ ...prevSockets, [query]: newSocket }));
   };
 
-  useEffect(() => {
-    if ((noProductButScrapingUnderWay || isUpdateNeeded) && query) {
-      if (!sockets[query]) {
-        openWebsocket(
-          query,
-          Boolean(isUpdateNeeded),
-          noProductButScrapingUnderWay
-        );
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, isUpdateNeeded, noProductButScrapingUnderWay]);
+  const [websocketResponseQuery, setWebsocketResponseQuery] = useState<
+    string | null
+  >(null);
 
   const handleWebsocketSuccess = (
     query: string,
@@ -140,8 +140,6 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
     isUpdateNeeded: boolean,
     noProductButScrapingUnderWay: boolean
   ) => {
-    console.log("query", query);
-    console.log("responseDataQuery", responseDataQuery);
     if (isUpdateNeeded) {
       notifications.update({
         id: `update-needed-${query}`,
@@ -164,25 +162,29 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
       });
     }
 
-    // console.log("query === responseDataQuery", query === responseDataQuery);
-    // console.log("queryParams.page.toString() ", queryParams.page.toString());
-    if (query === responseDataQuery) {
-      queryClient.refetchQueries({
-        queryKey: [
-          "products",
-          responseDataQuery,
-          { page: queryParams.page.toString() },
-        ],
-        exact: false,
-      });
-    }
-    setTimeout(() => {
-      queryClient.removeQueries({
-        queryKey: ["products", responseDataQuery],
-        exact: false,
-      });
-    }, 2000);
+    setWebsocketResponseQuery(responseDataQuery);
   };
+
+  useEffect(() => {
+    if (websocketResponseQuery) {
+      if (query === websocketResponseQuery && queryParams?.page) {
+        queryClient.refetchQueries({
+          queryKey: [
+            "products",
+            websocketResponseQuery,
+            { page: queryParams?.page.toString() },
+          ],
+          exact: false,
+        });
+      }
+      setTimeout(() => {
+        queryClient.removeQueries({
+          queryKey: ["products", websocketResponseQuery],
+          exact: false,
+        });
+      }, 2000);
+    }
+  }, [websocketResponseQuery]);
 
   const contextValue = useMemo(
     () => ({
