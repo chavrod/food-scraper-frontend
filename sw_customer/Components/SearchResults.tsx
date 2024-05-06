@@ -27,11 +27,11 @@ import useSearchedProducts from "@/hooks/useProducts";
 import { useSessionContext } from "@/Context/SessionContext";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
-import useBasketItems from "@/hooks/useBasketItems";
 import CountdownCircle from "@/Components/CountdownCircle";
 import { ProductGridSkeleton } from "@/Components/Skeletons";
 import SearchIntro from "./SearchIntro";
 import FilterDrawer from "./FilterDrawer";
+import { formatDateRelative } from "@/utils/datesUtil";
 
 type ProductStateType = {
   loading: Record<number, boolean>;
@@ -183,11 +183,18 @@ export default function SearchResults() {
           <Stack align="center" spacing={0}>
             <Group px="lg" position="apart" mt="md" style={{ width: "100%" }}>
               {query && searchedProductsMetadata?.total_results && (
-                <Title order={isLargerThanSm ? 1 : 3}>
-                  {searchedProductsMetadata.total_results} results for &apos;
-                  {query}
-                  &apos;
-                </Title>
+                <Stack spacing={2}>
+                  <Title order={isLargerThanSm ? 1 : 3}>
+                    {searchedProductsMetadata.total_results} results for &apos;
+                    {query}
+                    &apos;
+                  </Title>
+                  <Text size={isLargerThanSm ? "lg" : "md"} c="dimmed">
+                    {`Last update: ${formatDateRelative(
+                      searchedProductsMetadata.update_date
+                    )}`}
+                  </Text>
+                </Stack>
               )}
               <Group>
                 <Select
@@ -319,7 +326,7 @@ function SearchedProductCard({
         <Stack style={{ width: "100%" }} justify="space-between">
           <Box h={100}>
             <Text size={15} align="left" lineClamp={2}>
-              {product.name} {product.created}
+              {product.name}
             </Text>
             <Text fz="sm" c="dimmed">
               {product.shop_name.charAt(0).toUpperCase() +
