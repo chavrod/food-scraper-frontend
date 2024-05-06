@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Paper, Text, Stack, Title } from "@mantine/core";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 // Intenral: Utils
@@ -26,6 +27,24 @@ export default function CountdownCircle({
             Almost there! Gathering fresh supermarket data. Max seconds left...
           </Text>
         )}
+
+        <Link href="/" legacyBehavior>
+          <Text
+            mt="xs"
+            align="right"
+            fw={600}
+            size="lg"
+            c="brand.9"
+            sx={{
+              cursor: "pointer",
+              "&:hover": {
+                textDecoration: "underline",
+              },
+            }}
+          >
+            Return to Homepage
+          </Text>
+        </Link>
 
         {currentAverageScrapingTime && (
           <CountdownCircleTimer
