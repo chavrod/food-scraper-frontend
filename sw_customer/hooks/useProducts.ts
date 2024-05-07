@@ -31,18 +31,30 @@ function useSearchedProducts() {
     gcTime: 5 * 60 * 1000,
   });
 
-  const noProductButScrapingUnderWay = Boolean(
+  // firstTimeSearch = True
+  // "first_time_search": False,
+  // "update_needed": True,
+
+  // firstTimeSearch = False
+  // "first_time_search": True,
+  // "update_needed": True,
+
+  // firstTimeSearch = False
+  // "first_time_search": True,
+  // "update_needed": False,
+
+  const firstTimeSearch = Boolean(
     productsQuery?.data?.metadata &&
-      "scraping_under_way" in productsQuery.data.metadata
-      ? productsQuery.data.metadata.scraping_under_way
+      "first_time_search" in productsQuery.data.metadata
+      ? productsQuery.data.metadata.first_time_search
       : undefined
   );
 
-  const searchedProducts = !noProductButScrapingUnderWay
+  const searchedProducts = !firstTimeSearch
     ? (productsQuery?.data?.data as SearchedProduct[] | undefined)
     : undefined;
 
-  const searchedProductsMetadata = !noProductButScrapingUnderWay
+  const searchedProductsMetadata = !firstTimeSearch
     ? (productsQuery?.data?.metadata as SearchedProductMetadata | undefined)
     : undefined;
 
@@ -57,7 +69,7 @@ function useSearchedProducts() {
     error: productsQuery.error,
     searchedProducts,
     searchedProductsMetadata,
-    noProductButScrapingUnderWay,
+    firstTimeSearch,
     isUpdateNeeded,
   };
 }

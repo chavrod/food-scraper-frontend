@@ -3,6 +3,9 @@ import {
   IconShoppingBagPlus,
   IconCheck,
   IconTelescope,
+  IconAbc,
+  IconKey,
+  IconQuoteOff,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import normalizeUrl from "normalize-url";
@@ -19,6 +22,7 @@ import {
   Title,
   Tooltip,
   Select,
+  Flex,
 } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
@@ -32,6 +36,7 @@ import { ProductGridSkeleton } from "@/Components/Skeletons";
 import SearchIntro from "./SearchIntro";
 import FilterDrawer from "./FilterDrawer";
 import { formatDateRelative } from "@/utils/datesUtil";
+import SearchHeader from "./SearchHeader";
 
 type ProductStateType = {
   loading: Record<number, boolean>;
@@ -51,7 +56,7 @@ export default function SearchResults() {
     error,
     searchedProducts,
     searchedProductsMetadata,
-    noProductButScrapingUnderWay,
+    firstTimeSearch,
   } = useSearchedProducts();
 
   const { session } = useSessionContext();
@@ -160,20 +165,22 @@ export default function SearchResults() {
 
   return (
     <>
-      {searchedProductsMetadata && (
-        <FilterDrawer
-          opened={opened}
-          close={close}
-          searchedProductsMetaData={searchedProductsMetadata}
-        />
-      )}
+      {searchedProducts &&
+        searchedProductsMetadata &&
+        Boolean(searchedProductsMetadata?.is_full_metadata) && (
+          <FilterDrawer
+            opened={opened}
+            close={close}
+            searchedProductsMetaData={searchedProductsMetadata}
+          />
+        )}
 
       {!query && !isLoading && !searchedProducts ? (
         <SearchIntro />
-      ) : noProductButScrapingUnderWay ? (
+      ) : firstTimeSearch ? (
         <CountdownCircle
           currentAverageScrapingTime={10}
-          loading={noProductButScrapingUnderWay}
+          loading={firstTimeSearch}
         />
       ) : isLoading ? (
         <ProductGridSkeleton />
@@ -252,7 +259,7 @@ export default function SearchResults() {
 
       {query &&
         !isLoading &&
-        !noProductButScrapingUnderWay &&
+        !firstTimeSearch &&
         searchedProducts &&
         searchedProducts.length === 0 && (
           <Stack
@@ -261,10 +268,51 @@ export default function SearchResults() {
             style={{ height: "calc(100vh - 130px)" }}
           >
             <IconTelescope size="5rem" />
-            <Text size="lg" fw={500}>
-              Sorry, there was nothing found!
-            </Text>
-            <Button onClick={open}>Adjust filters</Button>
+
+            {Boolean(searchedProductsMetadata?.is_full_metadata) ? (
+              // If we are in this block, it means products exists, but nothing was found
+              // for selected filters
+              <Stack align="center">
+                <Text align="center" size="lg" fw={500}>
+                  No products match your filters
+                </Text>
+                <Button onClick={open}>Adjust filters</Button>
+              </Stack>
+            ) : isUpdateNeeded ? (
+              <Stack spacing={5} align="center">
+                <Text align="center" size="lg" fw={500}>
+                  {`No products were found in previous searches for "${query}"`}
+                </Text>
+                <Text align="center" size="lg" fw={500}>
+                  {"We are now checking to see if this has changed..."}
+                </Text>
+              </Stack>
+            ) : (
+              <Stack spacing="md" align="center">
+                <Text align="center" size="lg" fw={500}>
+                  {`No products have been found for "${query}"`}
+                </Text>
+                <SearchHeader
+                  isLargerThanSm
+                  isSearchBarVisible
+                  handleHideSearchBar={() => {}}
+                />
+                <Stack spacing={5} align="center">
+                  <Group w="100%">
+                    <IconAbc size="2.3rem" />
+                    <Text>Check everything is spelt right</Text>
+                  </Group>
+                  <Group w="100%">
+                    <IconKey size="2.3rem" />
+                    <Text>Use just a few keywords</Text>
+                  </Group>
+                  <Group w="100%">
+                    <IconQuoteOff size="2.3rem" />
+                    <Text>Don't use punctuation</Text>
+                  </Group>
+                </Stack>
+              </Stack>
+            )}
           </Stack>
         )}
     </>

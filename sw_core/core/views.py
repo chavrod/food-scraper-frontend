@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
-from tasks.cache_data import begin_scraping
+from tasks.update_products import begin_updating_products
 import core.serializers as core_serializers
 import core.models as core_models
 import core.pagination as core_paginaton
@@ -38,16 +38,54 @@ class SearchedProductViewSet(
         validated_params = serializer.validated_data
 
         # Check if we have up to date data for this query
-        recent_products, update_date, update_needed = (
+        recent_batch, recent_products, update_date, update_needed = (
             core_models.SearchedProduct.objects.get_most_recent_and_check_freshness(
                 validated_params["query"]
             )
         )
 
-        if update_needed:
-            begin_scraping(validated_params["query"])
+        # Potential scenarious
+        # 1. no recent_batch -> no products -> yes update_needed
+        # 2. yes recent_batch -> yes products -> yes update_needed
+        # 3. yes recent_batch -> yes products -> no update_needed
+        # 4. yes recent_batch -> no products -> yes update_needed
+        # 5. yes recent_batch -> no products -> no update_needed
+
+        # 1. no recent_batch -> no products -> yes update_needed
+        if not recent_batch:
+            begin_updating_products(validated_params["query"])
+            return Response(
+                {
+                    "data": [],
+                    "metadata": {
+                        "is_full_metadata": False,
+                        "first_time_search": True,
+                        "is_update_needed": True,
+                    },
+                }
+            )
+        # 4. yes recent_batch -> no products -> yes update_needed
+        # 5. yes recent_batch -> no products -> no update_needed
         if not recent_products:
-            return Response({"data": {}, "metadata": {"scraping_under_way": True}})
+            if update_needed:
+                begin_updating_products(validated_params["query"])
+            return Response(
+                {
+                    "data": [],
+                    "metadata": {
+                        "is_full_metadata": False,
+                        "first_time_search": False,
+                        "is_update_needed": update_needed,
+                    },
+                }
+            )
+
+        # LOGIC BELOW COVERS THOSE 2 CASES
+        # 2. yes recent_batch -> yes products -> yes update_needed
+        # 3. yes recent_batch -> yes products -> no update_needed
+
+        if update_needed:
+            begin_updating_products(validated_params["query"])
 
         # If recent products exists, gather relevant data
         filtered_products = core_filters.SearchedProductFilter(
@@ -75,6 +113,7 @@ class SearchedProductViewSet(
 
         metadata_serializer = core_serializers.SearchedProductMetadata(
             data={
+                "is_full_metadata": True,
                 "query": validated_params["query"],
                 "is_update_needed": update_needed,
                 "update_date": update_date,

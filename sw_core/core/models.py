@@ -73,15 +73,11 @@ class SearchedProductManager(models.Manager):
             update_date = most_recent_batch.upload_date
             update_needed = update_date <= filter_created_date
         else:
-            print(
-                "No products found: ",
-            )
-            # No products found, return empty queryset and False for update_needed
             products = self.none()
             update_date = None
             update_needed = True
 
-        return products, update_date, update_needed
+        return most_recent_batch, products, update_date, update_needed
 
     def get_selected_price_range_info(self, all_recent_products, selected_price_range):
         price_ranges = all_recent_products.aggregate(Min("price"), Max("price"))
@@ -211,7 +207,7 @@ class SearchedProduct(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.name}: {self.price} for {self.unit_measurement} {self.unit_type} ({self.price_per_unit}) {self.name} - {self.created}"
+        return f"{self.name}: {self.price} for {self.unit_measurement} {self.unit_type} ({self.price_per_unit}) {self.name}"
 
 
 class BatchUpload(models.Model):

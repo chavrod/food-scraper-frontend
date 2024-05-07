@@ -34,29 +34,25 @@ const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 export function GlobalProvider({ children }: GlobalProviderProps) {
   const queryClient = useQueryClient();
 
-  const { query, queryParams, noProductButScrapingUnderWay, isUpdateNeeded } =
+  const { query, queryParams, firstTimeSearch, isUpdateNeeded } =
     useSearchedProducts();
 
   const [loadingNewProducts, setLoadingNewProducts] = useState(false);
   const [sockets, setSockets] = useState<Sockets>({});
 
   useEffect(() => {
-    if ((noProductButScrapingUnderWay || isUpdateNeeded) && query) {
+    if ((firstTimeSearch || isUpdateNeeded) && query) {
       if (!sockets[query]) {
-        openWebsocket(
-          query,
-          Boolean(isUpdateNeeded),
-          noProductButScrapingUnderWay
-        );
+        openWebsocket(query, Boolean(isUpdateNeeded), firstTimeSearch);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, isUpdateNeeded, noProductButScrapingUnderWay]);
+  }, [query, isUpdateNeeded, firstTimeSearch]);
 
   const openWebsocket = (
     query: string,
     isUpdateNeeded: boolean,
-    noProductButScrapingUnderWay: boolean
+    firstTimeSearch: boolean
   ) => {
     const newSocket = new WebSocket(
       `ws://localhost:8000/ws/scraped_result/${query}/`
@@ -81,7 +77,7 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
           withCloseButton: false,
         });
       }
-      if (noProductButScrapingUnderWay) {
+      if (firstTimeSearch) {
         setLoadingNewProducts(true);
       }
     };
@@ -96,7 +92,7 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
           query,
           responseData.query,
           isUpdateNeeded,
-          noProductButScrapingUnderWay
+          firstTimeSearch
         );
       } else {
         notifications.hide(`update-needed-${query}`);
@@ -138,7 +134,7 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
     query: string,
     responseDataQuery: string,
     isUpdateNeeded: boolean,
-    noProductButScrapingUnderWay: boolean
+    firstTimeSearch: boolean
   ) => {
     if (isUpdateNeeded) {
       notifications.update({
@@ -151,7 +147,7 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
         withCloseButton: true,
       });
     }
-    if (noProductButScrapingUnderWay) {
+    if (firstTimeSearch) {
       notifications.show({
         title: "Success!",
         message: `We finished putting together results for ${query}`,

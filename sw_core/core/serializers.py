@@ -225,7 +225,8 @@ class SearchedProductPriceRangeInfo(serializers.Serializer):
 @ts_interface()
 class SearchedProductMetadata(serializers.Serializer):
     query = serializers.CharField(max_length=60, required=True)
-    is_update_needed = serializers.BooleanField()
+    is_full_metadata = serializers.BooleanField(required=True)
+    is_update_needed = serializers.BooleanField(required=True)
     update_date = serializers.DateField(allow_null=True)
     page = serializers.IntegerField()
     total_pages = serializers.IntegerField()
