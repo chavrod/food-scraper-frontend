@@ -24,7 +24,7 @@ export function formatDateRelative(dateString: string | null) {
     return `${diffInDays} day ago`;
   }
 
-  if (diffInDays <= 5) {
+  if (diffInDays <= 10) {
     return `${diffInDays} days ago`;
   }
 

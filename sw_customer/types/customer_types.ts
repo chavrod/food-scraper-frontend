@@ -23,7 +23,6 @@ export interface SearchedProduct {
     img_src: string | null;
     product_url: string | null;
     shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
-    created?: string;
 }
 
 export interface SearchedProductAvailableUnitRangesInfo {
@@ -45,7 +44,9 @@ export interface SearchedProductPriceRangeInfo {
 
 export interface SearchedProductMetadata {
     query: string;
+    is_full_metadata: boolean;
     is_update_needed: boolean;
+    update_date: string | null;
     page: number;
     total_pages: number;
     order_by: string;
