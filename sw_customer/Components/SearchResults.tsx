@@ -327,6 +327,25 @@ type ProductCardProps = {
   handleAddToBasket: (product: SearchedProduct, index: number) => void;
 };
 
+const getPrettyUnitName = (currentUnit: SearchedProduct["unit_type"]) => {
+  switch (currentUnit) {
+    case "KG":
+      return "kg";
+    case "L":
+      return "litre";
+    case "M":
+      return "meter";
+    case "M2":
+      return "m²";
+    case "HUNDRED_SHEETS":
+      return "100sht";
+    case "EACH":
+      return "each";
+    default:
+      return "each";
+  }
+};
+
 function SearchedProductCard({
   product,
   index,
@@ -336,7 +355,7 @@ function SearchedProductCard({
 }: ProductCardProps) {
   return (
     <Paper h="190px" shadow="md" withBorder p="sm" m="xs" radius="md">
-      <Group noWrap>
+      <Group noWrap spacing={0}>
         <Stack align="center" spacing={0}>
           <Container
             w={100}
@@ -405,7 +424,9 @@ function SearchedProductCard({
                   : "Price not available"}
               </Text>
               <Text size="sm" color="dimmed" align="center">
-                {`€${product.price_per_unit.toFixed(2)}/${product.unit_type}`}
+                {`€${product.price_per_unit.toFixed(2)}/${getPrettyUnitName(
+                  product.unit_type
+                )}`}
               </Text>
             </Group>
             <Tooltip
