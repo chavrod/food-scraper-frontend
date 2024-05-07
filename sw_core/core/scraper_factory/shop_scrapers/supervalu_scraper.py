@@ -41,6 +41,13 @@ class SuperValuScraper(ShopScraper):
                 while True:
                     page.goto(self._build_url(query, is_relevant_only))
 
+                    # Check if anything was found was this search
+                    no_results_element = page.query_selector(
+                        'h1[class^="NoResultsTitle"]'
+                    )
+                    if no_results_element:
+                        break
+
                     page.wait_for_selector('[class^="Listing"]')
 
                     if not is_relevant_only and self.total_number_of_pages:

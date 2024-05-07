@@ -40,6 +40,21 @@ class AldiScraper(ShopScraper):
                 while True:
                     page.goto(self._build_url(query, is_relevant_only))
 
+                    # Check if anything was found was this search
+                    total_number_of_items_element = page.query_selector(
+                        "div#vueSearchSummary"
+                    )
+                    total_number_of_items_attribute = (
+                        total_number_of_items_element.get_attribute("data-totalcount")
+                    )
+                    total_number_of_items = (
+                        int(total_number_of_items_attribute)
+                        if total_number_of_items_attribute
+                        else 0
+                    )
+                    if total_number_of_items == 0:
+                        break
+
                     page.wait_for_selector('[data-qa="search-results"]')
 
                     if not is_relevant_only and self.total_number_of_pages:

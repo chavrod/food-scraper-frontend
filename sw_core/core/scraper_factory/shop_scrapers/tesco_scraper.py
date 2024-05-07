@@ -40,6 +40,20 @@ class TescoScraper(ShopScraper):
                 while True:
                     page.goto(self._build_url(query, is_relevant_only))
 
+                    # Check if anything was found was this search
+                    # 1st scenario: no exact match
+                    heading_element = page.wait_for_selector(".heading.query")
+                    heading_text = heading_element.inner_text()
+                    if "no products found for" in heading_text.lower():
+                        break
+
+                    # 2nd scenario: nothing found
+                    empty_section = page.query_selector(
+                        '[data-auto="empty-section--message"]'
+                    )
+                    if empty_section:
+                        break
+
                     page.wait_for_selector(".product-list-container")
 
                     if not is_relevant_only and self.total_number_of_pages:

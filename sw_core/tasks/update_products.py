@@ -32,7 +32,7 @@ from core.scraper_factory.shop_scrapers import ShopScraper
 factory = ScraperFactory()
 
 
-def begin_scraping(query_param):
+def begin_updating_products(query_param):
     cache_key = f"scrape_query_{query_param}"
     last_update = cache.get(cache_key)
 
@@ -44,7 +44,7 @@ def begin_scraping(query_param):
     else:
         # TODO: Rethink
         is_relevant_only_param = True
-        cache_data.delay(query_param, is_relevant_only_param)
+        update_products.delay(query_param, is_relevant_only_param)
         cache.set(
             cache_key,
             timezone.now(),
@@ -53,14 +53,12 @@ def begin_scraping(query_param):
 
 
 @shared_task
-def cache_data(query: str, is_relevant_only: bool):
+def update_products(query: str, is_relevant_only: bool):
     print(f"Passing to cache_data query: {query}; is_relevant_only: {is_relevant_only}")
 
     scraped_data = scrape_data(query, is_relevant_only)
     print("data scraped")
     products = scraped_data["products"]
-    if not products:
-        return
 
     save_results_to_db(
         query,
