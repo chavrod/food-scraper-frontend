@@ -67,7 +67,7 @@ function FilterOptionCard({
       case "M":
         return "Metres";
       case "M2":
-        return "Square metre";
+        return "Sq. metres";
       case "HUNDRED_SHEETS":
         return "100 Sheets";
       case "EACH":
@@ -85,7 +85,7 @@ function FilterOptionCard({
       h="100%"
       shadow="lg"
       withBorder
-      p="lg"
+      p="md"
       radius="lg"
       style={{ cursor: "pointer" }}
       sx={(theme) => ({
@@ -96,13 +96,14 @@ function FilterOptionCard({
       })}
       onClick={handleClick}
     >
-      <Group spacing="md">
+      <Group spacing="sm">
         {iconElement}
         <Stack spacing={0}>
           <Text>{prettyUnitName}</Text>
           <Text c="dimmed" size="sm">
             {count}
             {count === 1 ? " item" : " items"}
+            {/* {`(total)`} */}
           </Text>
         </Stack>
       </Group>
@@ -185,7 +186,8 @@ const RangeSliderComponent = React.memo(
       <RangeSlider
         size="lg"
         py={40}
-        m="xl"
+        mx="xl"
+        mt="lg"
         step={step}
         min={min}
         max={max}
@@ -359,66 +361,75 @@ export default function FilterDrawer({
         </Text>
       }
     >
-      <Flex direction="column" style={{ height: "calc(100vh - 80px)" }}>
-        <div style={{ flexGrow: 1 }}>
-          <Text mb="md">Filter by price</Text>
-          <RangeSliderComponent
-            unit="euros"
-            min={searchedProductsMetaData.price_range_info.min}
-            max={searchedProductsMetaData.price_range_info.max}
-            rangeValue={priceSliderValues}
-            setSliderRangeValues={(_, val) => {
-              setPriceSliderValues(val);
-            }}
-          />
-          <Text mb="md">Filter by available measurment types</Text>
+      <Stack style={{ height: "calc(100vh - 80px)" }}>
+        <Stack style={{ overflowY: "scroll", overflowX: "clip", flexGrow: 1 }}>
+          <Text>
+            query:
+            <span style={{ fontWeight: 600 }}>
+              {" "}
+              {searchedProductsMetaData.query}
+            </span>
+          </Text>
+          <div style={{ flexGrow: 1 }}>
+            <Text mb="md">Filter by price</Text>
+            <RangeSliderComponent
+              unit="euros"
+              min={searchedProductsMetaData.price_range_info.min}
+              max={searchedProductsMetaData.price_range_info.max}
+              rangeValue={priceSliderValues}
+              setSliderRangeValues={(_, val) => {
+                setPriceSliderValues(val);
+              }}
+            />
+            <Text mb="md">Filter by available measurment types</Text>
 
-          <Grid>
+            <Grid m="xs">
+              {searchedProductsMetaData.units_range_list.map(
+                (unit_type_data, index) => (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <Grid.Col span={6} key={index}>
+                    <FilterOptionCard
+                      unit={unit_type_data.name}
+                      count={unit_type_data.count}
+                      handleClick={() => {
+                        if (unit_type_data.name === activeUnit) {
+                          setActiveUnit(null);
+                        } else {
+                          setActiveUnit(unit_type_data.name);
+                        }
+                        setUnitSliderValues(initialUnitSliderValues);
+                      }}
+                      isSelected={activeUnit === unit_type_data.name}
+                    />
+                  </Grid.Col>
+                )
+              )}
+            </Grid>
+
             {searchedProductsMetaData.units_range_list.map(
-              (unit_type_data, index) => (
-                // eslint-disable-next-line react/no-array-index-key
-                <Grid.Col span={6} key={index}>
-                  <FilterOptionCard
-                    unit={unit_type_data.name}
-                    count={unit_type_data.count}
-                    handleClick={() => {
-                      if (unit_type_data.name === activeUnit) {
-                        setActiveUnit(null);
-                      } else {
-                        setActiveUnit(unit_type_data.name);
-                      }
-                      setUnitSliderValues(initialUnitSliderValues);
-                    }}
-                    isSelected={activeUnit === unit_type_data.name}
-                  />
-                </Grid.Col>
-              )
-            )}
-          </Grid>
-
-          {searchedProductsMetaData.units_range_list.map(
-            (unit_type_data, index) => {
-              if (activeUnit === unit_type_data.name) {
-                return (
-                  <RangeSliderComponent
-                    key={unit_type_data.name}
-                    unit={unit_type_data.name}
-                    min={unit_type_data.min}
-                    max={unit_type_data.max}
-                    rangeValue={unitSliderValues[unit_type_data.name]!}
-                    setSliderRangeValues={(unit, values) => {
-                      setUnitSliderValues((prevValues) => ({
-                        ...prevValues,
-                        [unit]: values,
-                      }));
-                    }}
-                  />
-                );
+              (unit_type_data, index) => {
+                if (activeUnit === unit_type_data.name) {
+                  return (
+                    <RangeSliderComponent
+                      key={unit_type_data.name}
+                      unit={unit_type_data.name}
+                      min={unit_type_data.min}
+                      max={unit_type_data.max}
+                      rangeValue={unitSliderValues[unit_type_data.name]!}
+                      setSliderRangeValues={(unit, values) => {
+                        setUnitSliderValues((prevValues) => ({
+                          ...prevValues,
+                          [unit]: values,
+                        }));
+                      }}
+                    />
+                  );
+                }
+                return null;
               }
-              return null;
-            }
-          )}
-        </div>
+            )}
+          </div>
+        </Stack>
         <Button
           size="md"
           disabled={filterRequestDisabled}
@@ -430,7 +441,7 @@ export default function FilterDrawer({
         >
           LOAD RESULTS
         </Button>
-      </Flex>
+      </Stack>
     </Drawer>
   );
 }
