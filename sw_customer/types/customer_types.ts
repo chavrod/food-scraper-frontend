@@ -74,9 +74,9 @@ export interface BasketItemParams {
 }
 
 export interface BasketItem {
-    id?: number;
-    product?: BasketProduct;
-    quantity?: number;
+    id: number;
+    product: BasketProduct;
+    quantity: number;
 }
 
 export interface BasketItemShopBreakdown {

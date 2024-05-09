@@ -308,12 +308,14 @@ class BasketItemParams(serializers.Serializer):
 
 
 @ts_interface()
-class BasketItem(serializers.ModelSerializer):
-    product = BasketProduct(read_only=True)
+class BasketItem(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
+    product = BasketProduct(required=True)
+    quantity = serializers.IntegerField(required=True)
 
     class Meta:
         model = core_models.BasketItem
-        fields = ["id", "product", "quantity"]
+        exclude = []
 
 
 @ts_interface()
