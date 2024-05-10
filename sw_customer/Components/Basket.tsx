@@ -31,22 +31,25 @@ import {
   IconCheck,
   IconList,
   IconLayoutGrid,
+  IconInfoCircle,
+  IconTrash,
 } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMediaQuery } from "@mantine/hooks";
 import { formatDateRelative } from "@/utils/datesUtil";
 // Internal: Types
-import { BasketItem, BasketItemShopBreakdown } from "@/types/customer_types";
+import {
+  BasketItem,
+  BasketItemMetadata,
+  BasketItemShopBreakdown,
+} from "@/types/customer_types";
 // Intenral: API
 import useBasketItems from "@/hooks/useBasketItems";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import { useGlobalContext } from "@/Context/globalContext";
 import { useSessionContext } from "@/Context/SessionContext";
-import {
-  BasketSummarySkeleton,
-  BasketItemsSkeleton,
-} from "@/Components/Skeletons";
+import BasketViewSkeleton from "@/Components/Skeletons";
 
 type ProductStateType = {
   loadingIncrease: Record<number, boolean>;
@@ -55,6 +58,8 @@ type ProductStateType = {
   decreased: Record<number, boolean>;
   increased: Record<number, boolean>;
 };
+
+export type BasketViewMode = "grid" | "list" | "summary";
 
 export default function Basket() {
   const queryClient = useQueryClient();
@@ -74,7 +79,6 @@ export default function Basket() {
     getInitialValueInEffect: false,
   });
 
-  const searchPage = router.query.page?.toString() || "1";
   const searchShop = router.query.shop?.toString() || "ALL";
 
   const tooltipRef = useRef<HTMLTableCellElement>(null);
@@ -276,22 +280,15 @@ export default function Basket() {
     });
   };
 
-  const [viewAsGrid, setViewAsGrid] = useState(true);
+  const [viewMode, setViewMode] = useState<BasketViewMode>("grid");
 
   const basketItemsRows =
     basketItemsData &&
-    basketItemsData.map((item) => (
-      <tr key={item.id}>
-        {basketItemsMetaData?.selected_shop === "ALL" && (
-          <td>
-            <img
-              src={`/brand-logos/${item.product.shop_name}.jpeg`}
-              alt={item.product.shop_name}
-              style={{ width: "2rem" }}
-            />
-          </td>
-        )}
-
+    basketItemsData.map((item, index) => (
+      <tr key={index}>
+        <td>
+          <Checkbox />
+        </td>
         <td ref={tooltipRef}>
           <Tooltip
             label={item.product.name}
@@ -314,10 +311,29 @@ export default function Basket() {
             </Text>
           </Tooltip>
         </td>
+        {basketItemsMetaData?.selected_shop === "ALL" && (
+          <td>
+            <img
+              src={`/brand-logos/${item.product.shop_name}.jpeg`}
+              alt={item.product.shop_name}
+              style={{ width: "2rem" }}
+            />
+          </td>
+        )}
         <td>{item.product.price}</td>
         <td>{item.quantity}</td>
         <td>
-          <Checkbox />
+          <ActionIcon
+            size="sm"
+            color="red"
+            variant="transparent"
+            onClick={() => {
+              clearProduct(item.id, item.product.name, index);
+            }}
+            loading={productStates.loadingClearing[index]}
+          >
+            <IconTrash size="0.5 rem" />
+          </ActionIcon>
         </td>
       </tr>
     ));
@@ -334,222 +350,143 @@ export default function Basket() {
   return (
     <Flex
       gap="md"
-      justify="center"
-      align={
+      justify={
         basketItemsData && basketItemsData.length === 0
           ? "center"
           : "flex-start"
       }
-      direction={
-        basketItemsData && basketItemsData.length === 0
-          ? "row"
-          : isLargerThanLg
-          ? "row-reverse"
-          : "column"
-      }
+      align="center"
+      direction="column"
       style={{ width: "100%", height: "100%" }}
       mt="sm"
       px="lg"
     >
       {isLoadingBasketItems ? (
-        <>
-          <BasketSummarySkeleton isLargerThanLg={isLargerThanLg} />
-          <BasketItemsSkeleton viewAsGrid={viewAsGrid} />
-        </>
+        <BasketViewSkeleton
+          viewMode={viewMode}
+          isLargerThanLg={isLargerThanLg}
+        />
       ) : basketItemsData && basketItemsData.length > 0 ? (
-        <>
-          {basketItemsMetaData && (
-            <Paper
-              maw={450}
-              shadow="md"
-              withBorder
-              p="md"
-              radius="md"
-              mt="xs"
-              style={{ width: "100%" }}
-            >
-              <Title mb="xs" order={4} align="left">
-                Basket Summary by Shop
-              </Title>
-              {isLargerThanLg && (
-                <Group position="apart" noWrap>
-                  <Text miw={120} ml={20} c="dimmed">
-                    Shop
-                  </Text>
-                  <Text mr={40} c="dimmed">
-                    Items
-                  </Text>
-                  <Text miw={90} mr={27} c="dimmed">
-                    Amount
-                  </Text>
-                </Group>
-              )}
-              <Divider />
-
-              <Accordion
-                multiple
-                chevron={isLargerThanLg ? "" : <IconPlus size="1rem" />}
-                styles={{
-                  chevron: {
-                    "&[data-rotate]": {
-                      transform: "rotate(45deg)",
-                    },
-                  },
-                }}
-              >
-                {basketItemsMetaData &&
-                  basketItemsMetaData.shop_breakdown?.map((shop, index) => (
-                    <Accordion.Item value={shop.name} key={shop.name}>
-                      <Accordion.Control
-                        disabled={isLargerThanLg}
-                        style={{
-                          color: "black",
-                          cursor: isLargerThanLg ? "default" : "auto",
-                          opacity: 1,
-                        }}
-                      >
-                        <Group position="apart">
-                          <Text miw={80} align="left">
-                            {shop.name.charAt(0).toUpperCase() +
-                              shop.name.slice(1).toLowerCase()}
-                          </Text>
-
-                          {isLargerThanLg && (
-                            <Text weight={500} miw={40} align="right">
-                              {shop.total_quantity}
-                            </Text>
-                          )}
-                          <Text weight={500} miw={60} align="right">
-                            €{shop.total_price}
-                          </Text>
-                        </Group>
-                      </Accordion.Control>
-                      <Accordion.Panel>
-                        <Group position="apart">
-                          <Text ml={4} c="dimmed">
-                            Items
-                          </Text>
-                          <Text mr={45} c="dimmed">
-                            {shop.total_quantity}
-                          </Text>
-                        </Group>
-                      </Accordion.Panel>
-                    </Accordion.Item>
-                  ))}
-              </Accordion>
-              <Divider color="dark" />
-              <Group mt="xs" position="apart">
-                <Text ml={21} weight={500} miw={80} align="left">
-                  {isLargerThanLg ? "" : "Total"}
-                </Text>
-
-                {isLargerThanLg && (
-                  <Text weight={500} miw={40} align="right">
-                    {basketItemsMetaData.total_quantity}
-                  </Text>
-                )}
-                <Text mr={59} weight={500} miw={20}>
-                  €{basketItemsMetaData.total_price}
-                </Text>
-              </Group>
-            </Paper>
-          )}
-
-          <Stack maw={450}>
-            <Group maw={450} position="apart">
-              <Select
-                maw="50%"
-                value={searchShop}
-                onChange={handleFilterByShop}
-                placeholder="Pick one"
-                data={shopOptions}
-              />
-              <Group mr="sm">
-                <Text size="sm">View: </Text>
-                <Group>
-                  <ActionIcon
-                    color={viewAsGrid ? "brand.7" : "gray"}
-                    onClick={() => setViewAsGrid(true)}
-                    variant="transparent"
-                  >
-                    <IconLayoutGrid size="1.5rem" />
-                  </ActionIcon>
-                  <ActionIcon
-                    color={viewAsGrid ? "gray" : "brand.7"}
-                    onClick={() => setViewAsGrid(false)}
-                    variant="transparent"
-                  >
-                    <IconList size="1.5rem" />
-                  </ActionIcon>
-                </Group>
+        <Stack maw={450}>
+          <Group
+            maw={450}
+            py="xs"
+            position="apart"
+            style={{
+              position: "sticky",
+              top: 80,
+              zIndex: 10,
+              backgroundColor: "#f1f3f5",
+            }}
+          >
+            <Select
+              maw="50%"
+              value={searchShop}
+              onChange={handleFilterByShop}
+              placeholder="Pick one"
+              data={shopOptions}
+            />
+            <Group mr="sm">
+              <Group>
+                <ActionIcon
+                  color={viewMode === "grid" ? "brand.7" : "gray"}
+                  onClick={() => setViewMode("grid")}
+                  variant="transparent"
+                >
+                  <IconLayoutGrid size="1.5rem" />
+                </ActionIcon>
+                <ActionIcon
+                  color={viewMode === "list" ? "brand.7" : "gray"}
+                  onClick={() => setViewMode("list")}
+                  variant="transparent"
+                >
+                  <IconList size="1.5rem" />
+                </ActionIcon>
+                <ActionIcon
+                  color={viewMode === "summary" ? "brand.7" : "gray"}
+                  onClick={() => setViewMode("summary")}
+                  variant="transparent"
+                >
+                  <IconInfoCircle size="1.5rem" />
+                </ActionIcon>
               </Group>
             </Group>
-            {viewAsGrid ? (
-              <Grid gutter={0}>
-                {basketItemsData.map((item, index) => (
-                  <Grid.Col key={item.product.id} span={12}>
-                    <ItemGridView
-                      index={index}
-                      isLargerThanLg={isLargerThanLg}
-                      item={item}
-                      productStates={productStates}
-                      handleIncreaseQuantity={handleIncreaseQuantity}
-                      handleDecreaseQuantity={handleDecreaseQuantity}
-                      clearProduct={clearProduct}
-                    />
-                  </Grid.Col>
-                ))}
-              </Grid>
-            ) : (
-              <Table>
-                <thead>
-                  <tr>
-                    {basketItemsMetaData?.selected_shop === "ALL" && (
-                      <th>Shop</th>
-                    )}
-                    <th>Product</th>
-                    <th>Price</th>
-                    <th>Qty</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>{basketItemsRows}</tbody>
-              </Table>
-            )}
+          </Group>
+          {viewMode == "grid" ? (
+            <Grid gutter={0} mx={3}>
+              {basketItemsData.map((item, index) => (
+                <Grid.Col key={item.product.id} span={12}>
+                  <ItemGridView
+                    index={index}
+                    isLargerThanLg={isLargerThanLg}
+                    item={item}
+                    productStates={productStates}
+                    handleIncreaseQuantity={handleIncreaseQuantity}
+                    handleDecreaseQuantity={handleDecreaseQuantity}
+                    clearProduct={clearProduct}
+                  />
+                </Grid.Col>
+              ))}
+            </Grid>
+          ) : viewMode == "list" ? (
+            <Table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Product</th>
+                  {basketItemsMetaData?.selected_shop === "ALL" && (
+                    <th>Shop</th>
+                  )}
+                  <th>Price</th>
+                  <th>Qty</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>{basketItemsRows}</tbody>
+            </Table>
+          ) : (
+            <BasketInfoView
+              isLargerThanLg={isLargerThanLg}
+              basketItemsMetaData={basketItemsMetaData}
+            />
+          )}
 
-            <Flex
-              style={{
-                width: "100%",
-              }}
-              justify="center"
-              align="center"
-              direction="row"
-              wrap="wrap"
-              maw={450}
-            >
-              {basketItemsMetaData && basketItemsMetaData.total_pages > 1 && (
-                <Pagination
-                  value={basketItemsMetaData.page}
-                  onChange={handleBasketPageChange}
-                  total={basketItemsMetaData.total_pages}
-                />
-              )}
-            </Flex>
+          {viewMode !== "summary" && (
+            <>
+              <Flex
+                style={{
+                  width: "100%",
+                }}
+                justify="center"
+                align="center"
+                direction="row"
+                wrap="wrap"
+                maw={450}
+              >
+                {basketItemsMetaData && basketItemsMetaData.total_pages > 1 && (
+                  <Pagination
+                    value={basketItemsMetaData.page}
+                    onChange={handleBasketPageChange}
+                    total={basketItemsMetaData.total_pages}
+                  />
+                )}
+              </Flex>
 
-            <Button
-              onClick={clearBasket}
-              color="red"
-              variant="outline"
-              maw={450}
-              fullWidth
-              mt={15}
-              mb={65}
-              loading={loadingClearAll}
-            >
-              Empty basket
-            </Button>
-          </Stack>
-        </>
+              <Button
+                onClick={clearBasket}
+                color="red"
+                variant="outline"
+                maw={450}
+                fullWidth
+                mt={15}
+                mb={65}
+                loading={loadingClearAll}
+              >
+                Empty basket
+              </Button>
+            </>
+          )}
+        </Stack>
       ) : (
         <Stack
           align="center"
@@ -670,9 +607,7 @@ function ItemGridView({
               color={productStates.decreased[index] ? "teal" : "brand"}
               variant="transparent"
               onClick={() => {
-                if (item?.id) {
-                  handleDecreaseQuantity(item.id, index);
-                }
+                handleDecreaseQuantity(item.id, index);
               }}
             >
               {productStates.decreased[index] ? (
@@ -688,9 +623,7 @@ function ItemGridView({
               color={productStates.increased[index] ? "teal" : "brand"}
               variant="transparent"
               onClick={() => {
-                if (item?.id) {
-                  handleIncreaseQuantity(item.id, index);
-                }
+                handleIncreaseQuantity(item.id, index);
               }}
             >
               {productStates.increased[index] ? (
@@ -707,9 +640,7 @@ function ItemGridView({
             variant="transparent"
             color="red"
             onClick={() => {
-              if (item?.id && item.product?.name) {
-                clearProduct(item.id, item.product.name, index);
-              }
+              clearProduct(item.id, item.product.name, index);
             }}
           >
             <IconX size="1.2rem" />
@@ -724,6 +655,111 @@ function ItemGridView({
             </Text>
           </Stack>
         </Stack>
+      </Group>
+    </Paper>
+  );
+}
+
+function BasketInfoView({
+  isLargerThanLg,
+  basketItemsMetaData,
+}: {
+  isLargerThanLg: boolean;
+  basketItemsMetaData: BasketItemMetadata | undefined;
+}) {
+  return (
+    <Paper
+      maw={450}
+      shadow="md"
+      withBorder
+      p="md"
+      radius="md"
+      mt="xs"
+      style={{ width: "100%" }}
+    >
+      <Title mb="xs" order={4} align="left">
+        Basket Summary by Shop
+      </Title>
+      {isLargerThanLg && (
+        <Group position="apart" noWrap>
+          <Text miw={120} ml={20} c="dimmed">
+            Shop
+          </Text>
+          <Text mr={40} c="dimmed">
+            Items
+          </Text>
+          <Text miw={90} mr={27} c="dimmed">
+            Amount
+          </Text>
+        </Group>
+      )}
+      <Divider />
+
+      <Accordion
+        multiple
+        chevron={isLargerThanLg ? "" : <IconPlus size="1rem" />}
+        styles={{
+          chevron: {
+            "&[data-rotate]": {
+              transform: "rotate(45deg)",
+            },
+          },
+        }}
+      >
+        {basketItemsMetaData &&
+          basketItemsMetaData.shop_breakdown?.map((shop, index) => (
+            <Accordion.Item value={shop.name} key={shop.name}>
+              <Accordion.Control
+                disabled={isLargerThanLg}
+                style={{
+                  color: "black",
+                  cursor: isLargerThanLg ? "default" : "auto",
+                  opacity: 1,
+                }}
+              >
+                <Group position="apart">
+                  <Text miw={80} align="left">
+                    {shop.name.charAt(0).toUpperCase() +
+                      shop.name.slice(1).toLowerCase()}
+                  </Text>
+
+                  {isLargerThanLg && (
+                    <Text weight={500} miw={40} align="right">
+                      {shop.total_quantity}
+                    </Text>
+                  )}
+                  <Text weight={500} miw={60} align="right">
+                    €{shop.total_price}
+                  </Text>
+                </Group>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <Group position="apart">
+                  <Text ml={4} c="dimmed">
+                    Items
+                  </Text>
+                  <Text mr={45} c="dimmed">
+                    {shop.total_quantity}
+                  </Text>
+                </Group>
+              </Accordion.Panel>
+            </Accordion.Item>
+          ))}
+      </Accordion>
+      <Divider color="dark" />
+      <Group mt="xs" position="apart">
+        <Text ml={21} weight={500} miw={80} align="left">
+          {isLargerThanLg ? "" : "Total"}
+        </Text>
+
+        {isLargerThanLg && (
+          <Text weight={500} miw={40} align="right">
+            {basketItemsMetaData?.total_quantity || 0}
+          </Text>
+        )}
+        <Text mr={59} weight={500} miw={20}>
+          €{basketItemsMetaData?.total_price || 0}
+        </Text>
       </Group>
     </Paper>
   );
