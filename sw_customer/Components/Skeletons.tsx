@@ -134,7 +134,7 @@ export function BasketSummarySkeleton({
 }
 
 // Basket Items Component
-function BasketItemSkeleton() {
+function BasketItemGridSkeleton() {
   return (
     <Grid.Col span={12}>
       <Paper
@@ -182,19 +182,46 @@ function BasketItemSkeleton() {
   );
 }
 
+// Basket Items Component
+function BasketItemListSkeleton() {
+  return (
+    <Grid.Col span={12}>
+      <Stack spacing={2}>
+        <Group position="apart" noWrap>
+          <Skeleton my="xs" height={35} width={40} />
+          <Skeleton my="xs" height={35} width={100} />
+          <Skeleton my="xs" height={35} width={60} />
+          <Skeleton my="xs" height={35} width={30} />
+        </Group>
+        <Skeleton animate={false} my="xs" mr="lg" height={2} width="100%" />
+      </Stack>
+    </Grid.Col>
+  );
+}
+
 // Basket Items Skeleton Component
-export function BasketItemsSkeleton() {
+export function BasketItemsSkeleton({ viewAsGrid }: { viewAsGrid: boolean }) {
   return (
     <Grid gutter={0} mb={65} maw={450}>
       {/* Shop filter skeleton */}
-      <Paper withBorder>
-        <Skeleton height={40} width={150} />
-      </Paper>
+      <Group position="apart" w="100%" mb="sm">
+        <Skeleton height={30} width={150} />
+        <Group>
+          <Skeleton height={30} width={40} />
+          <Skeleton height={30} width={40} />
+        </Group>
+      </Group>
 
-      {/* Basket items skeleton */}
-      {Array.from({ length: 8 }).map((_, index) => (
-        <BasketItemSkeleton key={index} />
-      ))}
+      {/* Conditionally render Basket items skeleton based on viewAsGrid */}
+      {!viewAsGrid
+        ? // Render the list skeleton if viewAsGrid is true
+          Array.from({ length: 8 }).map((_, index) => (
+            <BasketItemListSkeleton key={index} />
+          ))
+        : // Render the grid skeleton if viewAsGrid is false
+          Array.from({ length: 8 }).map((_, index) => (
+            <BasketItemGridSkeleton key={index} />
+          ))}
     </Grid>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
 import {
   Text,
@@ -19,6 +19,7 @@ import {
   Select,
   Checkbox,
   Table,
+  Tooltip,
 } from "@mantine/core";
 import {
   IconShoppingCartOff,
@@ -75,6 +76,25 @@ export default function Basket() {
 
   const searchPage = router.query.page?.toString() || "1";
   const searchShop = router.query.shop?.toString() || "ALL";
+
+  const tooltipRef = useRef<HTMLTableCellElement>(null);
+  const [openedTextTooltip, setOpenedTextTooltip] = useState<number | null>(
+    null
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node; // type the event target for contains method
+      if (tooltipRef.current && !tooltipRef.current.contains(target)) {
+        setOpenedTextTooltip(null); // Close the tooltip if click is outside
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleFilterByShop = (filter_option: string) => {
     router.push(
@@ -262,15 +282,37 @@ export default function Basket() {
     basketItemsData &&
     basketItemsData.map((item) => (
       <tr key={item.id}>
-        <td>
-          <img
-            src={`/brand-logos/${item.product.shop_name}.jpeg`}
-            alt={item.product.shop_name}
-            style={{ width: "2rem" }}
-          />
-        </td>
-        <td>
-          <Text lineClamp={2}>{item.product.name}</Text>
+        {basketItemsMetaData?.selected_shop === "ALL" && (
+          <td>
+            <img
+              src={`/brand-logos/${item.product.shop_name}.jpeg`}
+              alt={item.product.shop_name}
+              style={{ width: "2rem" }}
+            />
+          </td>
+        )}
+
+        <td ref={tooltipRef}>
+          <Tooltip
+            label={item.product.name}
+            opened={!isLargerThanLg && openedTextTooltip === item.id}
+            multiline
+            width={220}
+          >
+            <Text
+              lineClamp={2}
+              onClick={() =>
+                setOpenedTextTooltip((current) => {
+                  if (isLargerThanLg) {
+                    return current;
+                  }
+                  return current === item.id ? null : item.id;
+                })
+              }
+            >
+              {item.product.name}
+            </Text>
+          </Tooltip>
         </td>
         <td>{item.product.price}</td>
         <td>{item.quantity}</td>
@@ -312,7 +354,7 @@ export default function Basket() {
       {isLoadingBasketItems ? (
         <>
           <BasketSummarySkeleton isLargerThanLg={isLargerThanLg} />
-          <BasketItemsSkeleton />
+          <BasketItemsSkeleton viewAsGrid={viewAsGrid} />
         </>
       ) : basketItemsData && basketItemsData.length > 0 ? (
         <>
@@ -462,7 +504,9 @@ export default function Basket() {
               <Table>
                 <thead>
                   <tr>
-                    <th>Shop</th>
+                    {basketItemsMetaData?.selected_shop === "ALL" && (
+                      <th>Shop</th>
+                    )}
                     <th>Product</th>
                     <th>Price</th>
                     <th>Qty</th>
@@ -683,16 +727,4 @@ function ItemGridView({
       </Group>
     </Paper>
   );
-}
-
-function ItemListView({
-  index,
-  isLargerThanLg,
-  item,
-  productStates,
-  handleIncreaseQuantity,
-  handleDecreaseQuantity,
-  clearProduct,
-}: ItemViewProps) {
-  return <Checkbox label="Custom icon: indeterminate" />;
 }
