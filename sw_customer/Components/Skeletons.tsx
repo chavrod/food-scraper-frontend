@@ -15,6 +15,7 @@ import {
 } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import React from "react";
+import { BasketViewMode } from "./Basket";
 
 // Skeleton for a single product item
 function ProductSkeleton() {
@@ -200,7 +201,13 @@ function BasketItemListSkeleton() {
 }
 
 // Basket Items Skeleton Component
-export function BasketItemsSkeleton({ viewAsGrid }: { viewAsGrid: boolean }) {
+export default function BasketViewSkeleton({
+  viewMode,
+  isLargerThanLg,
+}: {
+  viewMode: BasketViewMode;
+  isLargerThanLg: boolean;
+}) {
   return (
     <Grid gutter={0} mb={65} maw={450}>
       {/* Shop filter skeleton */}
@@ -213,15 +220,19 @@ export function BasketItemsSkeleton({ viewAsGrid }: { viewAsGrid: boolean }) {
       </Group>
 
       {/* Conditionally render Basket items skeleton based on viewAsGrid */}
-      {!viewAsGrid
-        ? // Render the list skeleton if viewAsGrid is true
-          Array.from({ length: 8 }).map((_, index) => (
-            <BasketItemListSkeleton key={index} />
-          ))
-        : // Render the grid skeleton if viewAsGrid is false
-          Array.from({ length: 8 }).map((_, index) => (
-            <BasketItemGridSkeleton key={index} />
-          ))}
+      {viewMode == "grid" ? (
+        // Render the grid skeleton if viewAsGrid is false
+        Array.from({ length: 8 }).map((_, index) => (
+          <BasketItemGridSkeleton key={index} />
+        ))
+      ) : viewMode == "list" ? (
+        // Render the list skeleton if viewAsGrid is true
+        Array.from({ length: 8 }).map((_, index) => (
+          <BasketItemListSkeleton key={index} />
+        ))
+      ) : (
+        <BasketSummarySkeleton isLargerThanLg={isLargerThanLg} />
+      )}
     </Grid>
   );
 }
