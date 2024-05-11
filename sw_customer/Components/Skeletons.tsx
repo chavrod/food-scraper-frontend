@@ -210,15 +210,6 @@ export default function BasketViewSkeleton({
 }) {
   return (
     <Grid gutter={0} mb={65} maw={450}>
-      {/* Shop filter skeleton */}
-      <Group position="apart" w="100%" mb="sm">
-        <Skeleton height={30} width={150} />
-        <Group>
-          <Skeleton height={30} width={40} />
-          <Skeleton height={30} width={40} />
-        </Group>
-      </Group>
-
       {/* Conditionally render Basket items skeleton based on viewAsGrid */}
       {viewMode == "grid" ? (
         // Render the grid skeleton if viewAsGrid is false

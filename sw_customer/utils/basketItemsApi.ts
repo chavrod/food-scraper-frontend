@@ -24,8 +24,8 @@ const decreaseItemQuantity = (accessToken: string | undefined, id: number) =>
 const clearProductItems = (accessToken: string | undefined, id: number) =>
   apiClient.delete(`basket_items/${id}/remove_product_items/`, accessToken);
 
-const clearAll = (accessToken: string | undefined) =>
-  apiClient.delete("basket_items/clear_all/", accessToken);
+const clearAll = (accessToken: string | undefined, data: {}) =>
+  apiClient.delete("basket_items/clear_all/", accessToken, data);
 
 const basketItemsApi = {
   list,

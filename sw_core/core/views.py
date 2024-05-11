@@ -324,6 +324,16 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             return Response(
                 {"error": "Basket not found."}, status=status.HTTP_404_NOT_FOUND
             )
-        # Delete all items related to the basket
-        basket.items.all().delete()
-        return Response({"status": "basket cleared"}, status=status.HTTP_200_OK)
+        # Validated shop name if present
+        serializer = core_serializers.BasketItemParams(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_shop_name = serializer.validated_data.get("shop", None)
+
+        if validated_shop_name != "ALL":
+            # Delete only items from a specific shop
+            basket.items.filter(product__shop_name=validated_shop_name).delete()
+        else:
+            # Delete all items related to the basket
+            basket.items.all().delete()
+
+        return Response({"status": "basket items cleared"}, status=status.HTTP_200_OK)

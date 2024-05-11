@@ -47,7 +47,6 @@ import {
 import useBasketItems from "@/hooks/useBasketItems";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
-import { useGlobalContext } from "@/Context/globalContext";
 import { useSessionContext } from "@/Context/SessionContext";
 import BasketViewSkeleton from "@/Components/Skeletons";
 
@@ -137,11 +136,14 @@ export default function Basket() {
     }, 500);
   };
 
-  const handleSuccess = () => {
+  const handleSuccess = (resetParams?: boolean) => {
     queryClient.invalidateQueries({
       queryKey: ["basket_items"],
       refetchType: "active",
     });
+    if (resetParams) {
+      handleFilterByShop("ALL");
+    }
   };
 
   const generateShopOptions = (shopBreakdown: BasketItemShopBreakdown[]) => {
@@ -290,16 +292,22 @@ export default function Basket() {
   const { handleSubmit: submitclearAllProductItems, loading: loadingClearAll } =
     useApiSubmit({
       apiFunc: basketItemsApi.clearAll,
-      onSuccess: handleSuccess,
+      onSuccess: () => handleSuccess(true),
       accessToken,
     });
 
-  const clearBasket = () => {
-    const data = "";
-    submitclearAllProductItems(data, {
-      title: "Cleared basket",
-      body: "Removed all items from basket ",
-    });
+  const clearBasket = (shopName: string) => {
+    const shopNameFormatted =
+      shopName !== "ALL"
+        ? shopName.charAt(0).toUpperCase() + shopName.slice(1).toLowerCase()
+        : "all";
+    submitclearAllProductItems(
+      { shop: shopName },
+      {
+        title: "Cleared basket",
+        body: `Removed ${shopNameFormatted} items from basket`,
+      }
+    );
   };
 
   const [viewMode, setViewMode] = useState<BasketViewMode>("grid");
@@ -376,7 +384,7 @@ export default function Basket() {
     <Flex
       gap="md"
       justify={
-        basketItemsData && basketItemsData.length === 0
+        !isLoadingBasketItems && basketItemsData && basketItemsData.length === 0
           ? "center"
           : "flex-start"
       }
@@ -386,57 +394,60 @@ export default function Basket() {
       mt="sm"
       px="lg"
     >
+      {/* Navigation menue */}
+      <Group
+        maw={450}
+        py="xs"
+        position="apart"
+        style={{
+          position: "sticky",
+          top: 80,
+          zIndex: 10,
+          backgroundColor: "#f1f3f5",
+        }}
+      >
+        <Select
+          maw="50%"
+          value={searchShop}
+          onChange={handleFilterByShop}
+          placeholder="Pick one"
+          data={shopOptions}
+        />
+        <Group mr="sm">
+          <Group>
+            <ActionIcon
+              color={viewMode === "grid" ? "brand.7" : "gray"}
+              onClick={() => setViewMode("grid")}
+              variant="transparent"
+            >
+              <IconLayoutGrid size="1.5rem" />
+            </ActionIcon>
+            <ActionIcon
+              color={viewMode === "list" ? "brand.7" : "gray"}
+              onClick={() => setViewMode("list")}
+              variant="transparent"
+            >
+              <IconList size="1.5rem" />
+            </ActionIcon>
+            <ActionIcon
+              color={viewMode === "summary" ? "brand.7" : "gray"}
+              onClick={() => setViewMode("summary")}
+              variant="transparent"
+            >
+              <IconInfoCircle size="1.5rem" />
+            </ActionIcon>
+          </Group>
+        </Group>
+      </Group>
       {isLoadingBasketItems ? (
         <BasketViewSkeleton
           viewMode={viewMode}
           isLargerThanLg={isLargerThanLg}
         />
-      ) : basketItemsData && basketItemsData.length > 0 ? (
+      ) : basketItemsMetaData &&
+        basketItemsData &&
+        basketItemsData.length > 0 ? (
         <Stack maw={450}>
-          <Group
-            maw={450}
-            py="xs"
-            position="apart"
-            style={{
-              position: "sticky",
-              top: 80,
-              zIndex: 10,
-              backgroundColor: "#f1f3f5",
-            }}
-          >
-            <Select
-              maw="50%"
-              value={searchShop}
-              onChange={handleFilterByShop}
-              placeholder="Pick one"
-              data={shopOptions}
-            />
-            <Group mr="sm">
-              <Group>
-                <ActionIcon
-                  color={viewMode === "grid" ? "brand.7" : "gray"}
-                  onClick={() => setViewMode("grid")}
-                  variant="transparent"
-                >
-                  <IconLayoutGrid size="1.5rem" />
-                </ActionIcon>
-                <ActionIcon
-                  color={viewMode === "list" ? "brand.7" : "gray"}
-                  onClick={() => setViewMode("list")}
-                  variant="transparent"
-                >
-                  <IconList size="1.5rem" />
-                </ActionIcon>
-                <ActionIcon
-                  color={viewMode === "summary" ? "brand.7" : "gray"}
-                  onClick={() => setViewMode("summary")}
-                  variant="transparent"
-                >
-                  <IconInfoCircle size="1.5rem" />
-                </ActionIcon>
-              </Group>
-            </Group>
-          </Group>
           {viewMode == "grid" ? (
             <Grid gutter={0} mx={3}>
               {basketItemsData.map((item, index) => (
@@ -498,7 +509,7 @@ export default function Basket() {
               </Flex>
 
               <Button
-                onClick={clearBasket}
+                onClick={() => clearBasket(basketItemsMetaData.selected_shop)}
                 color="red"
                 variant="outline"
                 maw={450}
@@ -507,7 +518,14 @@ export default function Basket() {
                 mb={65}
                 loading={loadingClearAll}
               >
-                Empty basket
+                {`Empty ${
+                  basketItemsMetaData.selected_shop !== "ALL"
+                    ? basketItemsMetaData.selected_shop
+                        .charAt(0)
+                        .toUpperCase() +
+                      basketItemsMetaData.selected_shop.slice(1).toLowerCase()
+                    : "all"
+                } basket items`}
               </Button>
             </>
           )}
@@ -693,15 +711,7 @@ function BasketInfoView({
   basketItemsMetaData: BasketItemMetadata | undefined;
 }) {
   return (
-    <Paper
-      maw={450}
-      shadow="md"
-      withBorder
-      p="md"
-      radius="md"
-      mt="xs"
-      style={{ width: "100%" }}
-    >
+    <Paper miw={300} shadow="md" withBorder p="md" radius="md">
       <Title mb="xs" order={4} align="left">
         Basket Summary by Shop
       </Title>
