@@ -77,6 +77,7 @@ export interface BasketItem {
     id: number;
     product: BasketProduct;
     quantity: number;
+    checked: boolean;
 }
 
 export interface BasketItemShopBreakdown {

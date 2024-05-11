@@ -12,6 +12,9 @@ const list = (
 ): Promise<BasketItemsResponse> =>
   apiClient.get("basket_items/", accessToken, params);
 
+const toggleChecked = (accessToken: string | undefined, id: number) =>
+  apiClient.post(`basket_items/${id}/toggle_checked/`, accessToken);
+
 const addItemQuantity = (accessToken: string | undefined, data: {}) =>
   apiClient.post("basket_items/add_item_quantity/", accessToken, data);
 
@@ -26,6 +29,7 @@ const clearAll = (accessToken: string | undefined) =>
 
 const basketItemsApi = {
   list,
+  toggleChecked,
   addItemQuantity,
   decreaseItemQuantity,
   clearProductItems,

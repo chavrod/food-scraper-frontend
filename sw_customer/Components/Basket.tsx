@@ -52,6 +52,7 @@ import { useSessionContext } from "@/Context/SessionContext";
 import BasketViewSkeleton from "@/Components/Skeletons";
 
 type ProductStateType = {
+  loadingChecking: Record<number, boolean>;
   loadingIncrease: Record<number, boolean>;
   loadingDecrease: Record<number, boolean>;
   loadingClearing: Record<number, boolean>;
@@ -162,6 +163,7 @@ export default function Basket() {
     : [];
 
   const [productStates, setProductStates] = useState<ProductStateType>({
+    loadingChecking: {},
     loadingIncrease: {},
     loadingDecrease: {},
     loadingClearing: {},
@@ -265,6 +267,26 @@ export default function Basket() {
     }));
   };
 
+  const { handleSubmit: toggleCheckedItem } = useApiSubmit({
+    apiFunc: basketItemsApi.toggleChecked,
+    onSuccess: handleSuccess,
+    accessToken,
+  });
+
+  const toggleChecked = async (itemId: number, index: number) => {
+    setProductStates((prevStates) => ({
+      ...prevStates,
+      loadingChecking: { ...prevStates.loadingChecking, [index]: true },
+    }));
+
+    await toggleCheckedItem(itemId);
+
+    setProductStates((prevStates) => ({
+      ...prevStates,
+      loadingChecking: { ...prevStates.loadingChecking, [index]: false },
+    }));
+  };
+
   const { handleSubmit: submitclearAllProductItems, loading: loadingClearAll } =
     useApiSubmit({
       apiFunc: basketItemsApi.clearAll,
@@ -287,7 +309,10 @@ export default function Basket() {
     basketItemsData.map((item, index) => (
       <tr key={index}>
         <td>
-          <Checkbox />
+          <Checkbox
+            checked={item.checked}
+            onChange={() => toggleChecked(item.id, index)}
+          />
         </td>
         <td ref={tooltipRef}>
           <Tooltip
@@ -332,7 +357,7 @@ export default function Basket() {
             }}
             loading={productStates.loadingClearing[index]}
           >
-            <IconTrash size="0.5 rem" />
+            <IconTrash />
           </ActionIcon>
         </td>
       </tr>

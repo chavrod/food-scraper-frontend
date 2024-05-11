@@ -312,6 +312,7 @@ class BasketItem(serializers.Serializer):
     id = serializers.IntegerField(required=True)
     product = BasketProduct(required=True)
     quantity = serializers.IntegerField(required=True)
+    checked = serializers.BooleanField(required=True)
 
     class Meta:
         model = core_models.BasketItem

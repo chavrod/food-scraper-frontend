@@ -156,9 +156,6 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         customer = request.user.customer
         try:
             basket = core_models.Basket.objects.get(customer=customer)
-            print("basket", basket)
-            for item in basket.items.all():
-                print(item.pk, item)
         except core_models.Basket.DoesNotExist:
             return (
                 None,
@@ -169,7 +166,6 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         try:
             basket_item = core_models.BasketItem.objects.get(pk=pk, basket=basket)
-            print("basket_item", basket_item)
         except core_models.BasketItem.DoesNotExist:
             return (
                 None,
@@ -229,6 +225,19 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                 "data": serializer.data,
                 "metadata": metadata_serializer.data,
             }
+        )
+
+    @action(detail=True, methods=["post"])
+    def toggle_checked(self, request, pk=None):
+        basket_item, error_response = self._get_basket_item(request, pk)
+        if error_response:
+            return error_response
+
+        basket_item.checked = not basket_item.checked
+        basket_item.save()
+        return Response(
+            {"status": "Item checked", "item_id": basket_item.pk},
+            status=status.HTTP_200_OK,
         )
 
     @action(detail=False, methods=["post"])

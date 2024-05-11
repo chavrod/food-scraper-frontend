@@ -337,6 +337,7 @@ class BasketItem(models.Model):
     basket = models.ForeignKey(Basket, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(BasketProduct, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    checked = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
