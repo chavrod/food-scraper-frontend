@@ -27,7 +27,7 @@ from shop_wiz.settings import (
 import core.models as core_models
 from core.scraper_factory import ScraperFactory
 from core.scraper_factory.shop_scrapers import ShopScraper
-
+from tools import websocket_util
 
 factory = ScraperFactory()
 
@@ -121,6 +121,7 @@ def save_results_to_db(query, products_list):
             products_to_create.append(product_instance)
 
         core_models.SearchedProduct.objects.bulk_create(products_to_create)
+        websocket_util.notify_scrape_completion(query)
 
 
 if __name__ == "__main__":
