@@ -23,6 +23,7 @@ load_dotenv(find_dotenv())
 SIGNING_KEY = os.environ["SIGNING_KEY"]
 GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
 GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
+DJANGO_SALT_KEY = os.environ["DJANGO_SALT_KEY"]
 ENV = os.environ["ENV"]
 
 if ENV == "DEV":
@@ -58,9 +59,7 @@ SITE_ID = 1
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-t93ipdy)sdc_)x)qjqv=*djc37)9@epx@9e06_u9a)$&&n#gqj"
-
+SECRET_KEY = DJANGO_SALT_KEY
 
 # Application definition
 
@@ -84,20 +83,20 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
-    "dj_rest_auth",
-    "dj_rest_auth.registration",
 ]
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
-    }
-}
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
+#     }
+# }
 
 APPEND_SLASH = True
 
@@ -140,8 +139,7 @@ TEMPLATES = [
 ]
 
 
-# WSGI_APPLICATION = "shop_wiz.wsgi.application"
-ASGI_APPLICATION = "shop_wiz.asgi.application"
+WSGI_APPLICATION = "shop_wiz.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -222,7 +220,8 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # CACHE
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        # "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379",
     }
 }
@@ -266,7 +265,6 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "\u200B"
-ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN = 0
 
 # Optional: Use this if you want the user to confirm their email before they can login.
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
@@ -274,6 +272,8 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    # "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
+    # "REFRESH_TOKEN_LIFETIME": timedelta(minutes=2),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
@@ -300,8 +300,9 @@ SOCIALACCOUNT_PROVIDERS = {
             "email",
         ],
         "AUTH_PARAMS": {
-            "access_type": "online",
+            "access_type": "offline",
         },
+        "OAUTH_PKCE_ENABLED": True,
         "VERIFIED_EMAIL": True,
     },
 }
