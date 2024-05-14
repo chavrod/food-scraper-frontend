@@ -20,8 +20,6 @@ async def handler(websocket, path):
         # Parse the query parameter from the connection path
         parsed_query = path.strip("/")  # Assuming path comes as '/somequery'
         cleaned_query = re.sub(r"\s+", " ", parsed_query.strip()).lower()
-        print(f"WEBSOCKET New connection with query: {cleaned_query}")
-
         # Register the connection with the query
         if cleaned_query not in CONNECTIONS:
             CONNECTIONS[cleaned_query] = []
@@ -51,14 +49,14 @@ async def process_events():
             continue
         payload = json.loads(message["data"].decode())
         query = payload["query"].lower()
-        print("WEBSOCKET scraping_queries message", query)
         status = payload["status"]
 
         # Broadcast event to all clients connected with the specific query
         if query in CONNECTIONS:
             recipients = CONNECTIONS[query]
+            print("RECEPIRENTS: ", recipients)
             message_to_send = json.dumps({"query": query, "status": status})
-            await websockets.broadcast(recipients, message_to_send)
+            websockets.broadcast(recipients, message_to_send)
 
 
 async def main():

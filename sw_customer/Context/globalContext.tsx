@@ -54,7 +54,7 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
     isUpdateNeeded: boolean,
     firstTimeSearch: boolean
   ) => {
-    const newSocket = new WebSocket(`ws://localhost:8888/ws/${query}/`);
+    const newSocket = new WebSocket(`ws://localhost:8888/${query}/`);
 
     newSocket.onopen = () => {
       const messageData = {
