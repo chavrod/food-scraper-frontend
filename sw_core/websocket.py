@@ -59,9 +59,9 @@ async def process_events():
             websockets.broadcast(recipients, message_to_send)
 
 
-async def handle_or_exit(websocket):
+async def handle_or_exit(websocket, path):
     try:
-        await handler(websocket)
+        await handler(websocket, path)
     except Exception as e:
         # TODO: See if more specific code might prove useful
         exit(11)
