@@ -59,8 +59,16 @@ async def process_events():
             websockets.broadcast(recipients, message_to_send)
 
 
+async def handle_or_exit(websocket):
+    try:
+        await handler(websocket)
+    except Exception as e:
+        # TODO: See if more specific code might prove useful
+        exit(11)
+
+
 async def main():
-    async with websockets.serve(handler, "localhost", 8888):
+    async with websockets.serve(handle_or_exit, "localhost", 8888):
         await process_events()  # runs forever
 
 
