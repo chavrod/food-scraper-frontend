@@ -19,6 +19,7 @@ import {
   Checkbox,
   Table,
   Tooltip,
+  Modal,
 } from "@mantine/core";
 import {
   IconShoppingCartOff,
@@ -319,6 +320,17 @@ export default function Basket() {
 
   const [viewMode, setViewMode] = useState<BasketViewMode>("card");
 
+  // Modal logic
+  const [isModalOpen, setModalOpen] = useState(false);
+
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
+
+  const clearBasketConfirmed = (shopName: string) => {
+    clearBasket(shopName);
+    closeModal();
+  };
+
   const basketItemsRows =
     basketItemsData &&
     basketItemsData.map((item, index) => (
@@ -517,13 +529,12 @@ export default function Basket() {
               )}
 
               <Button
-                onClick={() => clearBasket(basketItemsMetaData.selected_shop)}
+                onClick={openModal}
                 color="red"
                 variant="outline"
                 maw={450}
                 fullWidth
-                mt={15}
-                mb={65}
+                mt={60}
                 loading={loadingClearAll}
                 mx="sm"
               >
@@ -536,6 +547,30 @@ export default function Basket() {
                     : "all"
                 } basket items`}
               </Button>
+              <Modal
+                opened={isModalOpen}
+                onClose={closeModal}
+                title="Confirm Clearing Basket"
+                centered
+              >
+                <Text>
+                  Are you sure you want to clear items from the basket?
+                </Text>
+                <Group>
+                  <Button
+                    m="sm"
+                    onClick={() =>
+                      clearBasketConfirmed(basketItemsMetaData.selected_shop)
+                    }
+                    color="red"
+                  >
+                    Yes
+                  </Button>
+                  <Button m="sm" onClick={closeModal} color="gray">
+                    No, Keep Items
+                  </Button>
+                </Group>
+              </Modal>
             </Flex>
           </>
         )}
