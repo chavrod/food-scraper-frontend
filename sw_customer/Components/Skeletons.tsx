@@ -135,68 +135,63 @@ export function BasketSummarySkeleton({
 }
 
 // Basket Items Component
-function BasketItemGridSkeleton() {
+function BasketItemCardSkeleton() {
   return (
-    <Grid.Col span={12}>
-      <Paper
-        maw={450}
-        h="200px"
-        shadow="md"
-        withBorder
-        p="md"
-        my="xs"
-        radius="md"
-        style={{ width: "100%" }}
-      >
-        <Group position="apart" noWrap>
-          <Stack>
-            <Skeleton height={50} width={50} />
-            <Skeleton height={50} width={50} />
-          </Stack>
+    <Paper
+      maw={450}
+      h="200px"
+      shadow="md"
+      withBorder
+      p="md"
+      my="xs"
+      radius="md"
+    >
+      <Group position="apart" noWrap>
+        <Stack>
+          <Skeleton height={50} width={50} />
+          <Skeleton height={50} width={50} />
+        </Stack>
 
-          <Stack spacing={5}>
-            <Box h={45}>
-              <Skeleton height={20} width={150} />
-              <Skeleton height={20} width={120} mt={5} />
-            </Box>
+        <Stack spacing={5}>
+          <Box h={45}>
+            <Skeleton height={20} width={180} />
+            <Skeleton height={20} width={120} mt={5} />
+          </Box>
 
-            <Stack spacing={0} mt="lg">
-              <Group noWrap>
-                <Skeleton height={35} width={100} />
-              </Group>
-            </Stack>
-
-            <Group noWrap mt="md">
-              <Skeleton height={40} width={40} radius="lg" />
-              <Skeleton height={15} width={30} />
-              <Skeleton height={40} width={40} radius="lg" />
+          <Stack spacing={0} mt="lg">
+            <Group noWrap>
+              <Skeleton height={35} width={100} />
             </Group>
           </Stack>
-          <Stack align="flex-end" justify="space-between">
-            <Skeleton height={20} width={20} />
 
-            <Skeleton height={40} width={50} mt={90} />
-          </Stack>
-        </Group>
-      </Paper>
-    </Grid.Col>
+          <Group noWrap mt="md">
+            <Skeleton height={40} width={40} radius="lg" />
+            <Skeleton height={15} width={20} />
+            <Skeleton height={40} width={40} radius="lg" />
+          </Group>
+        </Stack>
+        <Stack align="flex-end" justify="space-between">
+          <Skeleton height={20} width={20} />
+
+          <Skeleton height={40} width={40} mt={90} />
+        </Stack>
+      </Group>
+    </Paper>
   );
 }
 
 // Basket Items Component
 function BasketItemListSkeleton() {
   return (
-    <Grid.Col span={12}>
-      <Stack spacing={2}>
-        <Group position="apart" noWrap>
-          <Skeleton my="xs" height={35} width={40} />
-          <Skeleton my="xs" height={35} width={100} />
-          <Skeleton my="xs" height={35} width={60} />
-          <Skeleton my="xs" height={35} width={30} />
-        </Group>
-        <Skeleton animate={false} my="xs" mr="lg" height={2} width="100%" />
-      </Stack>
-    </Grid.Col>
+    <Stack spacing={2}>
+      <Group position="apart" noWrap>
+        <Skeleton my="xs" height={35} width={40} />
+        <Skeleton my="xs" height={35} width={130} />
+        <Skeleton my="xs" height={35} width={60} />
+        <Skeleton my="xs" height={35} width={35} />
+      </Group>
+      <Skeleton animate={false} my="xs" mr="lg" height={2} width="100%" />
+    </Stack>
   );
 }
 
@@ -209,12 +204,12 @@ export default function BasketViewSkeleton({
   isLargerThanLg: boolean;
 }) {
   return (
-    <Grid gutter={0} mb={65} maw={450}>
+    <Stack mb={65} maw={450}>
       {/* Conditionally render Basket items skeleton based on viewAsGrid */}
-      {viewMode == "grid" ? (
+      {viewMode == "card" ? (
         // Render the grid skeleton if viewAsGrid is false
         Array.from({ length: 8 }).map((_, index) => (
-          <BasketItemGridSkeleton key={index} />
+          <BasketItemCardSkeleton key={index} />
         ))
       ) : viewMode == "list" ? (
         // Render the list skeleton if viewAsGrid is true
@@ -224,6 +219,6 @@ export default function BasketViewSkeleton({
       ) : (
         <BasketSummarySkeleton isLargerThanLg={isLargerThanLg} />
       )}
-    </Grid>
+    </Stack>
   );
 }

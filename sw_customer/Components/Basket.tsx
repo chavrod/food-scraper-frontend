@@ -8,7 +8,6 @@ import {
   Group,
   Container,
   ActionIcon,
-  Grid,
   Paper,
   Box,
   Title,
@@ -59,7 +58,7 @@ type ProductStateType = {
   increased: Record<number, boolean>;
 };
 
-export type BasketViewMode = "grid" | "list" | "summary";
+export type BasketViewMode = "card" | "list" | "summary";
 
 export default function Basket() {
   const queryClient = useQueryClient();
@@ -76,6 +75,14 @@ export default function Basket() {
   } = useBasketItems();
 
   const isLargerThanLg = useMediaQuery("(min-width: 1184px)", false, {
+    getInitialValueInEffect: false,
+  });
+
+  const isLargerThanMd = useMediaQuery("(min-width: 768px)", false, {
+    getInitialValueInEffect: false,
+  });
+
+  const isLargerThanSm = useMediaQuery("(min-width: 576px)", false, {
     getInitialValueInEffect: false,
   });
 
@@ -310,7 +317,7 @@ export default function Basket() {
     );
   };
 
-  const [viewMode, setViewMode] = useState<BasketViewMode>("grid");
+  const [viewMode, setViewMode] = useState<BasketViewMode>("card");
 
   const basketItemsRows =
     basketItemsData &&
@@ -381,22 +388,17 @@ export default function Basket() {
   }
 
   return (
-    <Flex
-      gap="md"
-      justify={
-        !isLoadingBasketItems && basketItemsData && basketItemsData.length === 0
-          ? "center"
-          : "flex-start"
-      }
+    <Stack
       align="center"
-      direction="column"
-      style={{ width: "100%", height: "100%" }}
-      mt="sm"
-      px="lg"
+      justify="flex-start"
+      style={{
+        height:
+          basketItemsData && basketItemsData.length > 0
+            ? "auto"
+            : "calc(100vh - 130px)",
+      }}
     >
-      {/* Navigation menue */}
       <Group
-        maw={450}
         py="xs"
         position="apart"
         style={{
@@ -405,6 +407,8 @@ export default function Basket() {
           zIndex: 10,
           backgroundColor: "#f1f3f5",
         }}
+        px="xs"
+        miw={isLargerThanLg ? "45%" : isLargerThanMd ? "70%" : "100%"}
       >
         <Select
           maw="50%"
@@ -416,8 +420,8 @@ export default function Basket() {
         <Group mr="sm">
           <Group>
             <ActionIcon
-              color={viewMode === "grid" ? "brand.7" : "gray"}
-              onClick={() => setViewMode("grid")}
+              color={viewMode === "card" ? "brand.7" : "gray"}
+              onClick={() => setViewMode("card")}
               variant="transparent"
             >
               <IconLayoutGrid size="1.5rem" />
@@ -447,66 +451,70 @@ export default function Basket() {
       ) : basketItemsMetaData &&
         basketItemsData &&
         basketItemsData.length > 0 ? (
-        <Stack maw={450}>
-          {viewMode == "grid" ? (
-            <Grid gutter={0} mx={3}>
-              {basketItemsData.map((item, index) => (
-                <Grid.Col key={item.product.id} span={12}>
-                  <ItemGridView
-                    index={index}
-                    isLargerThanLg={isLargerThanLg}
-                    item={item}
-                    productStates={productStates}
-                    handleIncreaseQuantity={handleIncreaseQuantity}
-                    handleDecreaseQuantity={handleDecreaseQuantity}
-                    clearProduct={clearProduct}
-                  />
-                </Grid.Col>
-              ))}
-            </Grid>
-          ) : viewMode == "list" ? (
-            <Table>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Product</th>
-                  {basketItemsMetaData?.selected_shop === "ALL" && (
-                    <th>Shop</th>
-                  )}
-                  <th>Price</th>
-                  <th>Qty</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>{basketItemsRows}</tbody>
-            </Table>
-          ) : (
-            <BasketInfoView
+        viewMode == "card" ? (
+          basketItemsData.map((item, index) => (
+            <ItemCardView
+              key={item.product.id}
+              index={index}
               isLargerThanLg={isLargerThanLg}
-              basketItemsMetaData={basketItemsMetaData}
+              isLargerThanSm={isLargerThanSm}
+              item={item}
+              productStates={productStates}
+              handleIncreaseQuantity={handleIncreaseQuantity}
+              handleDecreaseQuantity={handleDecreaseQuantity}
+              clearProduct={clearProduct}
             />
-          )}
+          ))
+        ) : viewMode == "list" ? (
+          <Table maw={450} style={{ width: isLargerThanSm ? "100%" : "90%" }}>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Product</th>
+                {basketItemsMetaData?.selected_shop === "ALL" && <th>Shop</th>}
+                <th>Price</th>
+                <th>Qty</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>{basketItemsRows}</tbody>
+          </Table>
+        ) : (
+          <BasketInfoView
+            isLargerThanLg={isLargerThanLg}
+            basketItemsMetaData={basketItemsMetaData}
+          />
+        )
+      ) : (
+        <Stack align="center" justify="center" style={{ height: "100%" }}>
+          <IconShoppingCartOff size={80} stroke={2} />
+          <Text>Your basket is empty</Text>
+        </Stack>
+      )}
 
-          {viewMode !== "summary" && (
-            <>
-              <Flex
-                style={{
-                  width: "100%",
-                }}
-                justify="center"
-                align="center"
-                direction="row"
-                wrap="wrap"
-                maw={450}
-              >
-                {basketItemsMetaData && basketItemsMetaData.total_pages > 1 && (
-                  <Pagination
-                    value={basketItemsMetaData.page}
-                    onChange={handleBasketPageChange}
-                    total={basketItemsMetaData.total_pages}
-                  />
-                )}
-              </Flex>
+      {viewMode !== "summary" &&
+        basketItemsMetaData &&
+        basketItemsData &&
+        basketItemsData.length > 0 && (
+          <>
+            <Flex
+              style={{
+                width: "100%",
+              }}
+              justify="center"
+              align="center"
+              direction="row"
+              wrap="wrap"
+              maw={450}
+              mx="sm"
+            >
+              {basketItemsMetaData.total_pages > 1 && (
+                <Pagination
+                  value={basketItemsMetaData.page}
+                  onChange={handleBasketPageChange}
+                  total={basketItemsMetaData.total_pages}
+                />
+              )}
 
               <Button
                 onClick={() => clearBasket(basketItemsMetaData.selected_shop)}
@@ -517,6 +525,7 @@ export default function Basket() {
                 mt={15}
                 mb={65}
                 loading={loadingClearAll}
+                mx="sm"
               >
                 {`Empty ${
                   basketItemsMetaData.selected_shop !== "ALL"
@@ -527,27 +536,17 @@ export default function Basket() {
                     : "all"
                 } basket items`}
               </Button>
-            </>
-          )}
-        </Stack>
-      ) : (
-        <Stack
-          align="center"
-          justify="center"
-          style={{ height: "100%" }}
-          mt="xl"
-        >
-          <IconShoppingCartOff size={80} stroke={2} />
-          <Text>Your basket is empty</Text>
-        </Stack>
-      )}
-    </Flex>
+            </Flex>
+          </>
+        )}
+    </Stack>
   );
 }
 
-type ItemViewProps = {
+type ItemCardViewProps = {
   index: number;
   isLargerThanLg: boolean;
+  isLargerThanSm: boolean;
   item: BasketItem;
   productStates: ProductStateType;
   handleIncreaseQuantity: (productId: number, index: number) => void;
@@ -555,15 +554,16 @@ type ItemViewProps = {
   clearProduct: (productId: number, productName: string, index: number) => void;
 };
 
-function ItemGridView({
+function ItemCardView({
   index,
   isLargerThanLg,
+  isLargerThanSm,
   item,
   productStates,
   handleIncreaseQuantity,
   handleDecreaseQuantity,
   clearProduct,
-}: ItemViewProps) {
+}: ItemCardViewProps) {
   return (
     <Paper
       maw={450}
@@ -572,9 +572,8 @@ function ItemGridView({
       shadow="md"
       withBorder
       p="md"
-      my="xs"
       radius="md"
-      style={{ width: "100%" }}
+      style={{ width: isLargerThanSm ? "100%" : "90%" }}
     >
       <Group position="apart" noWrap>
         {item.product?.img_src && (
@@ -798,4 +797,7 @@ function BasketInfoView({
       </Group>
     </Paper>
   );
+}
+
+{
 }
