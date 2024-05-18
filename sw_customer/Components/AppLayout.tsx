@@ -88,6 +88,14 @@ export default function MainAppShell({
     // Check for 'password-reset' query parameter
     const passwordResetQuery = router.query["password-reset"];
     setIsPasswordReset(passwordResetQuery === "successful-password-reset");
+
+    if (
+      loginQuery === "successful-email-confirmation" ||
+      loginQuery === "open" ||
+      passwordResetQuery === "successful-password-reset"
+    ) {
+      open();
+    }
   }, [router.query]);
 
   const [opened, { open, close }] = useDisclosure(false);
@@ -157,9 +165,9 @@ export default function MainAppShell({
     },
   ];
 
-  const handleLoginSucess = useCallback(() => {
+  const handleLoginSucess = () => {
     close();
-  }, [close]);
+  };
 
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const handleHideSearchBar = useCallback(() => {
@@ -417,9 +425,7 @@ export default function MainAppShell({
       }
     >
       <Modal
-        opened={
-          opened || isEmailConfirmed || isPasswordReset || isRedirectToLogin
-        }
+        opened={opened}
         onClose={() => {
           if (isEmailConfirmed) setIsEmailConfirmed(false);
           if (isRedirectToLogin) setIsRedirectToLogin(false);

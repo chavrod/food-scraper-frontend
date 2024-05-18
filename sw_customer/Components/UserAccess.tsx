@@ -30,16 +30,18 @@ const UserAccess = React.memo(
     const queryClient = useQueryClient();
 
     const [isLoginFormVisible, setIsLoginFormVisible] = useState(true);
-    const [isAuthSuccess, setIsAuthSuccess] = useState(false);
+    const [isLoginSuccess, setIsLoginSuccess] = useState(false);
 
     const [isRedirecting, setIsRedirecting] = useState("");
 
     const handleAuthSuccess = () => {
-      setIsAuthSuccess(true);
+      setIsLoginSuccess(true);
 
       queryClient.invalidateQueries({
         queryKey: ["session"],
       });
+
+      console.log("isLoginFormVisible: ", isLoginFormVisible);
 
       if (isLoginFormVisible) {
         setTimeout(() => {
@@ -49,7 +51,7 @@ const UserAccess = React.memo(
     };
 
     const handleMoveToLogin = () => {
-      setIsAuthSuccess(false);
+      setIsLoginSuccess(false);
       setIsLoginFormVisible(true);
     };
 
@@ -58,7 +60,7 @@ const UserAccess = React.memo(
         <Paper p="md" style={{ maxWidth: 400, margin: "0 auto" }}>
           {isLoginFormVisible ? (
             <>
-              {isEmailConfirmed && !isAuthSuccess && (
+              {isEmailConfirmed && !isLoginSuccess && (
                 <Notification
                   icon={<IconCheck size="1.2rem" />}
                   withCloseButton={false}
@@ -73,21 +75,21 @@ const UserAccess = React.memo(
               )}
 
               <LoginForm
-                isLoginSuccess={isAuthSuccess}
+                isLoginSuccess={isLoginSuccess}
                 handleLoginSucess={handleAuthSuccess}
               />
             </>
           ) : (
             <RegisterForm
-              isRegistrationSubmitted={isAuthSuccess}
+              isRegistrationSubmitted={isLoginSuccess}
               handleRegistrationSubmission={handleAuthSuccess}
               handleMoveToLogin={handleMoveToLogin}
             />
           )}
 
-          {!isAuthSuccess && (
+          {!isLoginSuccess && (
             <>
-              {" "}
+              {/* Toggle Register / Login Options */}{" "}
               <Divider mb="md" mt="sm" label="or" labelPosition="center" />
               <Stack>
                 <Button
