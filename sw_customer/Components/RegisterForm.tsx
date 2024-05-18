@@ -8,13 +8,60 @@ import {
   Title,
   Anchor,
   PasswordInput,
+  Progress,
+  Popover,
+  Box,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { useDisclosure } from "@mantine/hooks";
-import { IconCircleCheckFilled } from "@tabler/icons-react";
+import { IconCircleCheckFilled, IconX, IconCheck } from "@tabler/icons-react";
 // Internal: Utils
 import getCSRF from "@/utils/getCSRF";
+
+function PasswordRequirement({
+  meets,
+  label,
+}: {
+  meets: boolean;
+  label: string;
+}) {
+  return (
+    <Text
+      color={meets ? "teal" : "red"}
+      sx={{ display: "flex", alignItems: "center" }}
+      mt={7}
+      size="sm"
+    >
+      {meets ? <IconCheck size="0.9rem" /> : <IconX size="0.9rem" />}{" "}
+      <Box ml={10}>{label}</Box>
+    </Text>
+  );
+}
+
+const requirements = [
+  { re: /[0-9]/, label: "Includes number" },
+  { re: /[a-z]/, label: "Includes lowercase letter" },
+  { re: /[A-Z]/, label: "Includes uppercase letter" },
+  { re: /[!@#$%^&*]/, label: "Includes special symbol from !@#$%^&*" },
+  // TODO: Add this, but logic must be flipped
+  // {
+  //   re: /(.)\1{3,}/,
+  //   label: "No repeated characters in sequence four times or more",
+  // },
+];
+
+function getStrength(password: string) {
+  let multiplier = password.length > 5 ? 0 : 1;
+
+  requirements.forEach((requirement) => {
+    if (!requirement.re.test(password)) {
+      multiplier += 1;
+    }
+  });
+
+  return Math.max(100 - (100 / (requirements.length + 1)) * multiplier, 10);
+}
 
 interface RegisterFormProps {
   isRegistrationSubmitted: boolean;
@@ -27,6 +74,13 @@ function RegisterForm({
   handleRegistrationSubmission,
   handleMoveToLogin,
 }: RegisterFormProps) {
+  const [visible, { toggle }] = useDisclosure(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [emailVerificationToResend, setEmailVerificationToResend] =
+    useState("");
+
   const form = useForm({
     initialValues: {
       email: "",
@@ -45,12 +99,6 @@ function RegisterForm({
         value !== values.password1 ? "Passwords must match." : null,
     },
   });
-  const [visible, { toggle }] = useDisclosure(false);
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [emailVerificationToResend, setEmailVerificationToResend] =
-    useState("");
 
   const handleFormSubmit = async () => {
     try {
@@ -97,32 +145,19 @@ function RegisterForm({
     // Handle the response data as required (e.g., show a success message or error message)
   };
 
-  // TODO: Password strength Meter
-  // const [passwordStrength, setPasswordStrength] = useState<number>(0);
+  // Password strength logic
+  const [popoverOpened, setPopoverOpened] = useState(false);
+  const checks = requirements.map((requirement, index) => (
+    <PasswordRequirement
+      key={index}
+      label={requirement.label}
+      meets={requirement.re.test(form.values.password1)}
+    />
+  ));
+  const strength = getStrength(form.values.password1);
+  const color = strength === 100 ? "teal" : strength > 50 ? "yellow" : "red";
 
-  // const requirements = [
-  //   { re: /.{8,}/, label: 'At least 8 characters long' },
-  //   { re: /[A-Z]/, label: 'Includes uppercase letter' },
-  //   { re: /[a-z]/, label: 'Includes lowercase letter' },
-  //   { re: /[0-9]/, label: 'Includes a number' },
-  //   { re: /[!@#$%^&*]/, label: 'Includes special character (!@#$%^&*)' },
-  //   { re: /^(?!.*(.)\1{3,}).*$/,
-  // label: 'Does not contain
-  // repeated characters in sequence more than three times' },
-  // ];
-
-  // function getStrength(password: string) {
-  //   let multiplier = password.length > 5 ? 0 : 1;
-
-  //   requirements.forEach((requirement) => {
-  //     if (!requirement.re.test(password)) {
-  //       multiplier += 1;
-  //     }
-  //   });
-
-  //   return Math.max(100 - (100 / (requirements.length + 1)) * multiplier, 10);
-  // }
-
+  // Email resneding logic
   const [isEmailResend, setIsEmailResend] = useState(false);
 
   const resendEmail = async () => {
@@ -170,17 +205,41 @@ function RegisterForm({
             {...form.getInputProps("email")}
             disabled={isLoading}
           />
-          <PasswordInput
-            id="p1"
-            label="Password"
-            placeholder="Your password"
-            required
-            style={{ marginTop: 15 }}
-            {...form.getInputProps("password1")}
-            disabled={isLoading}
-            visible={visible}
-            onVisibilityChange={toggle}
-          />
+          <Box>
+            <Popover
+              opened={popoverOpened}
+              position="bottom"
+              width="target"
+              transitionProps={{ transition: "pop" }}
+            >
+              <Popover.Target>
+                <div
+                  onFocusCapture={() => setPopoverOpened(true)}
+                  onBlurCapture={() => setPopoverOpened(false)}
+                >
+                  <PasswordInput
+                    id="p1"
+                    label="Password"
+                    placeholder="Your password"
+                    required
+                    style={{ marginTop: 15 }}
+                    {...form.getInputProps("password1")}
+                    disabled={isLoading}
+                    visible={visible}
+                    onVisibilityChange={toggle}
+                  />
+                </div>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <Progress color={color} value={strength} size={5} mb="xs" />
+                <PasswordRequirement
+                  label="Includes at least 8 characters"
+                  meets={form.values.password1.length > 7}
+                />
+                {checks}
+              </Popover.Dropdown>
+            </Popover>
+          </Box>
           <PasswordInput
             id="p2"
             label="Repeat Password"

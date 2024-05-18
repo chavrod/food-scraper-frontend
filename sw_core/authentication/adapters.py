@@ -39,12 +39,13 @@ class MyAccountAdapter(DefaultAccountAdapter):
                 "Password must contain at least one special character from !@#$%^&*."
             )
 
+        # TODO: Add this too
         # No repeated characters
-        repeats_regex = re.compile(r"(.)\1{3,}")
-        if repeats_regex.search(password):
-            raise ValidationError(
-                "Password must not contain repeated characters in sequence."
-            )
+        # repeats_regex = re.compile(r"(.)\1{3,}")
+        # if repeats_regex.search(password):
+        #     raise ValidationError(
+        #         "Password must not contain repeated characters in sequence four times or more."
+        #     )
 
         return super().clean_password(password, user)
 
