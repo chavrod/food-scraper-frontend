@@ -6,11 +6,14 @@ type BasketItemsResponse = {
   metadata: BasketItemMetadata;
 };
 
-const list = (
+const list = async (
   accessToken: string | undefined,
   params?: { [key: string]: string | number }
-): Promise<BasketItemsResponse> =>
-  apiClient.get("basket_items/", accessToken, params);
+): Promise<BasketItemsResponse> => {
+  const response = await apiClient.get("basket_items/", accessToken, params);
+  const data = await response.json();
+  return data as BasketItemsResponse;
+};
 
 const toggleChecked = (accessToken: string | undefined, id: number) =>
   apiClient.post(`basket_items/${id}/toggle_checked/`, accessToken);

@@ -31,18 +31,6 @@ function useSearchedProducts() {
     gcTime: 5 * 60 * 1000,
   });
 
-  // firstTimeSearch = True
-  // "first_time_search": False,
-  // "update_needed": True,
-
-  // firstTimeSearch = False
-  // "first_time_search": True,
-  // "update_needed": True,
-
-  // firstTimeSearch = False
-  // "first_time_search": True,
-  // "update_needed": False,
-
   const firstTimeSearch = Boolean(
     productsQuery?.data?.metadata &&
       "first_time_search" in productsQuery.data.metadata

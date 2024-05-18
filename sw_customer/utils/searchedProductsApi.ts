@@ -14,11 +14,14 @@ type NoProductResponse = {
   metadata: { scraping_under_way: boolean };
 };
 
-const list = (
+const list = async (
   accessToken: string | undefined,
   params?: { [key: string]: string | number }
-): Promise<ExistingProductResponse | NoProductResponse> =>
-  apiClient.get("products/", accessToken, params);
+): Promise<ExistingProductResponse | NoProductResponse> => {
+  const response = await apiClient.get("products/", accessToken, params);
+  const data = await response.json();
+  return data as ExistingProductResponse | NoProductResponse;
+};
 
 const searchedProductsApi = { list };
 

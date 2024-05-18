@@ -176,6 +176,7 @@ export default function BasketPreview() {
   return (
     <Stack
       spacing={0}
+      miw={300}
       style={{
         borderLeft: "1px solid #ADB5BD", // Apply border to the left side
         borderRight: "1px solid #ADB5BD",

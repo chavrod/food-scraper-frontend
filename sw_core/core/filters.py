@@ -20,6 +20,3 @@ class SearchedProductFilter(django_filters.FilterSet):
     class Meta:
         model = core_models.SearchedProduct
         fields = ["price"]
-
-
-# http://127.0.0.1:3000/?query=chicken&unit_type=KG&unit_measurement_range=0.2,0.25

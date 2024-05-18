@@ -453,7 +453,10 @@ function SearchedProductCard({
                       : "default"
                     : "gray.6"
                 }
-                onClick={() => handleAddToBasket(product, index)}
+                onClick={() => {
+                  if (!accessToken) return;
+                  handleAddToBasket(product, index);
+                }}
               >
                 {productStates.added[index] ? "Added!" : "Add"}
               </Button>

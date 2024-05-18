@@ -41,7 +41,7 @@ async def handler(websocket, path):
 
 async def process_events():
     """Listen to events in Redis and process them."""
-    redis = aioredis.from_url("redis://127.0.0.1:6379")
+    redis = aioredis.from_url("redis://localhost:6379")
     pubsub = redis.pubsub()
     await pubsub.subscribe("scraping_queries")
     async for message in pubsub.listen():

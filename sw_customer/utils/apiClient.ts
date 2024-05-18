@@ -1,9 +1,9 @@
-async function request<T>(
+async function request(
   endpoint: string,
   method: string,
   accessToken: string | undefined,
   data: {} | null = null
-): Promise<T> {
+): Promise<Response> {
   const options: any = {
     method,
     cache: "no-store",
@@ -23,32 +23,32 @@ async function request<T>(
 
   const response = await fetch(fullUrl, options);
 
-  return (await response.json()) as T;
+  return response;
 }
 
 const apiClient = {
-  get: <T>(
+  get: (
     endpoint: string,
     accessToken: string | undefined,
     params?: { [key: string]: string | number }
-  ): Promise<T> => {
+  ): Promise<Response> => {
     let fullUrl = endpoint;
     if (params) {
       const queryString = new URLSearchParams(params as any).toString();
       fullUrl = `${endpoint}?${queryString}`;
     }
-    return request<T>(fullUrl, "GET", accessToken);
+    return request(fullUrl, "GET", accessToken);
   },
-  post: <T>(
+  post: (
     endpoint: string,
     accessToken: string | undefined,
     data?: {}
-  ): Promise<T> => request<T>(endpoint, "POST", accessToken, data),
-  delete: <T>(
+  ): Promise<Response> => request(endpoint, "POST", accessToken, data),
+  delete: (
     endpoint: string,
     accessToken: string | undefined,
     data?: {}
-  ): Promise<T> => request<T>(endpoint, "DELETE", accessToken, data),
+  ): Promise<Response> => request(endpoint, "DELETE", accessToken, data),
 };
 
 export default apiClient;

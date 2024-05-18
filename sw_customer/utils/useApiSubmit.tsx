@@ -32,7 +32,7 @@ function useApiSubmit<T>({
     try {
       const res = await apiFunc(accessToken, data);
 
-      if (res) {
+      if (res.ok) {
         if (successMessage) {
           notifications.show({
             title: successMessage.title,
