@@ -203,8 +203,9 @@ export default function SearchResults() {
                   </Text>
                 </Stack>
               )}
-              <Group>
+              <Group position="apart">
                 <Select
+                  maw={200}
                   value={searchedProductsMetadata?.order_by ?? "price"}
                   onChange={handleFilter}
                   placeholder="Pick one"

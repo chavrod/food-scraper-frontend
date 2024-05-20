@@ -63,6 +63,8 @@ const SearchHeader = React.memo(
         >
           <TextInput
             id="1"
+            type="search"
+            enterKeyHint="search"
             placeholder="Search..."
             style={{
               width: isLargerThanSm
