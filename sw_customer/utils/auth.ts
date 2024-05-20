@@ -4,7 +4,7 @@ export default async function logout(refreshToken: string | null) {
   try {
     if (refreshToken) {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}auth/logout/`,
+        `${process.env.NEXT_PUBLIC_API_URL}auth/logout/`,
         {
           method: "POST",
           headers: {

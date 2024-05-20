@@ -54,7 +54,9 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
     isUpdateNeeded: boolean,
     firstTimeSearch: boolean
   ) => {
-    const newSocket = new WebSocket(`ws://localhost:8888/${query}/`);
+    const newSocket = new WebSocket(
+      `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}${query}/`
+    );
 
     newSocket.onopen = () => {
       const messageData = {
@@ -81,7 +83,6 @@ export function GlobalProvider({ children }: GlobalProviderProps) {
     };
 
     newSocket.onmessage = (event) => {
-      console.log("EVENT: ", event);
       const responseData = JSON.parse(event.data);
 
       setLoadingNewProducts(false);
