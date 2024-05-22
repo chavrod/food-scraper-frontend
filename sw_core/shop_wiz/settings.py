@@ -11,58 +11,63 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+import json
 from datetime import timedelta
 from django.utils import timezone
 
 from pathlib import Path
 
-from dotenv import load_dotenv, find_dotenv
+SITE_ID = 1
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(find_dotenv())
+config_path = "/etc/shopwiz_config.json"
+with open(config_path) as f:
+    CONFIG = json.loads(f.read())
 
-SIGNING_KEY = os.environ["SIGNING_KEY"]
-GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
-GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
-DJANGO_SALT_KEY = os.environ["DJANGO_SALT_KEY"]
-ENV = os.environ["ENV"]
+ENV = CONFIG["ENV"]
+HOST = CONFIG["HOST"]
 
 if ENV == "DEV":
-    BASE_DOMAIN_NAME = "http://127.0.0.1:3000"
+    DEBUG = True
     ALLOWED_HOSTS = ["*"]
-    CSRF_COOKIE_SAMESITE = "Lax"
-    CSRF_COOKIE_DOMAIN = "127.0.0.1"
+    # CSRF
+    CSRF_COOKIE_SECURE = False
+    CSRF_COOKIE_DOMAIN = "localhost"
     CSRF_TRUSTED_ORIGINS = []
-else:
-    BASE_DOMAIN_NAME = "https://shop-wiz.ie"
-    ALLOWED_HOSTS = ["shop-wiz.ie", "www.shop-wiz.ie"]
-    # CSRF_COOKIE_SECURE = True
-    # CSRF_TRUSTED_ORIGINS = [] is the default 'django/conf/global_settings.py'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-if DEBUG:
+    # CORS
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000/",
-        "http://127.0.0.1:3000/",
+    DEBUG = False
+    ALLOWED_HOSTS = [HOST]
+    # CSRF
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_DOMAIN = f".{CONFIG["BASE_DOMAIN"]}"
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{CONFIG["BASE_DOMAIN"]}"
     ]
+    # CORS
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = [
+       f"https://{CONFIG["BASE_DOMAIN"]}"
+    ]
+    # Session
+    SESSION_COOKIE_SECURE = True
+
+
+# Other SCRF
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = True
+
+# Other CORS
 CORS_ALLOW_CREDENTIALS = True
 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-SITE_ID = 1
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-SECRET_KEY = DJANGO_SALT_KEY
+SIGNING_KEY = CONFIG["SIGNING_KEY"]
+GOOGLE_CLIENT_ID = CONFIG["GOOGLE_CLIENT_ID"]
+GOOGLE_CLIENT_SECRET = CONFIG["GOOGLE_CLIENT_SECRET"]
+SECRET_KEY = CONFIG["DJANGO_SALT_KEY"]
 
 # Application definition
-
 INSTALLED_APPS = [
     "django_extensions",
     "channels",
@@ -90,13 +95,6 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
 ]
-
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
-#     }
-# }
 
 APPEND_SLASH = True
 
@@ -144,28 +142,28 @@ WSGI_APPLICATION = "shop_wiz.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": str(BASE_DIR / "db.sqlite3"),
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": str(BASE_DIR / "db.sqlite3"),
+        }
     }
-}
-
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.mysql",
-#         "NAME": "shop_wiz",
-#         "USER": "root",
-#         "PASSWORD": "localpass123",
-#         "HOST": "localhost",
-#         "PORT": "3306",
-#     }
-# }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": CONFIG["DB_NAME"],
+            "USER": CONFIG["DB_USER"],
+            "PASSWORD": CONFIG["DB_PASS"],
+            "HOST": CONFIG["DB_HOST"],
+            "PORT": CONFIG["DB_PORT"],
+        }
+    }
 
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -181,10 +179,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "Europe/Dublin"
@@ -205,17 +201,16 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Testing email
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-# For production, use SMTP:
-
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = "smtp.sendgrid.net"
-# EMAIL_HOST_USER = "apikey"
-# EMAIL_HOST_PASSWORD = os.environ["SENDGRID_API_KEY"]
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# DEFAULT_FROM_EMAIL = "Shop Wiz <shop-wiz@shop-wiz.ie>"
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.sendgrid.net"
+    EMAIL_HOST_USER = "apikey"
+    EMAIL_HOST_PASSWORD = CONFIG["SENDGRID_API_KEY"]
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    DEFAULT_FROM_EMAIL = "Shop Wiz <shopwiz@shop-wiz.ie>"
 
 # CACHE
 CACHES = {
@@ -229,7 +224,6 @@ CACHES = {
 # Scraping config
 CACHE_SHOP_SCRAPE_EXECUTION_SECONDS = 50
 ENABLED_SCRAPERS = ["TescoScraper", "AldiScraper", "SuperValuScraper"]
-# "SuperValuScraper"
 RESULTS_EXPIRY_DAYS = 10
 
 
@@ -291,7 +285,7 @@ SOCIALACCOUNT_PROVIDERS = {
         "APP": {
             "client_id": GOOGLE_CLIENT_ID,
             "secret": GOOGLE_CLIENT_SECRET,
-            "key": "",  # leave empty
+            "key": "",
         },
         "SCOPE": [
             "profile",
