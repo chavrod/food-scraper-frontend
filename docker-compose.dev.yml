@@ -2,61 +2,76 @@ version: "3"
 
 services:
   server:
-    platform: linux/x86_64
-    container_name: server
     build:
       context: ./server
-    stdin_open: true
-    tty: true
-    working_dir: /src
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./server:/src
-      - run_vol:/var/run
-      - cache_vol:/var/cache
-      - tmp_vol:/tmp
+    restart: unless-stopped
+    command: ["/docker-cmd.sh", "--debug"]
     env_file:
-      - .env.dev
-    command: >
-      sh -c "sh migrations.sh && python manage.py runserver 0.0.0.0:8000"
+      - /etc/.env.server_dev
+    volumes:
+      - /etc/.env.server_dev:/etc/.env:ro
     depends_on:
       - db
+      - redis
+      - celery_worker
+      - celery_beat
 
   client:
     container_name: client
     build: ./client
-    stdin_open: true
-    tty: true
     working_dir: /src
     ports:
       - "3000:3000"
     volumes:
       - ./client:/src
     env_file:
-      - .env.dev
+      - /etc/.client_prod.env
     command: >
       sh -c "npm install -g npm@latest && npm install && npm run dev"
     depends_on:
       - server
-      - db
 
   db:
-    container_name: db
-    image: postgres
+    image: postgres:15
+    restart: unless-stopped
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data/"
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_HOST: ${DB_HOST}
+      POSTGRES_PORT: ${DB_PORT}
     env_file:
-      - .env.dev
+      - path: /etc/.env.server_dev
+      - required: true
 
-volumes:
-  run_vol:
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
-  cache_vol:
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
-  tmp_vol:
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    build:
+      context: ./server
+    command: celery -A shop_wiz worker --loglevel=INFO
+    volumes:
+      - ./server:/app
+    env_file:
+      - /etc/.env_shopwiz_server_dev
+    depends_on:
+      - redis
+      - db
+
+  celery_beat:
+    build:
+      context: ./server
+    command: celery -A shop_wiz beat --loglevel=INFO
+    volumes:
+      - ./server:/app
+    env_file:
+      - /etc/.env_shopwiz_server_dev
+    depends_on:
+      - redis
+      - db

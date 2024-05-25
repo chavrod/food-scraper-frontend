@@ -2,28 +2,17 @@ version: "3"
 
 services:
   server:
-    container_name: server
     build:
       context: ./server
-    stdin_open: true
-    tty: true
-    working_dir: /src
-    ports:
-      - "8000:8000"
+    restart: unless-stopped
+    command: ["/docker-cmd.sh", "--debug"]
+    depends_on:
+      - db
     volumes:
       - ./server:/src
       - run_vol:/var/run
-      - cache_vol:/var/cache
       - tmp_vol:/tmp
-    env_file:
-      - .env.dev
-    environment:
-      - DJANGO_DEBUG=False
-      - GUNICORN_WORKERS=5
-    command: >
-      sh -c "sh migrations.sh && gunicorn -w 5 --reload -b 0.0.0.0:8000 --log-level info server.wsgi"
-    depends_on:
-      - db
+      - /etc/shopwiz_config.json:/etc/shopwiz_config.json:ro
 
   client:
     container_name: client
@@ -42,11 +31,12 @@ services:
       - db
 
   db:
-    container_name: db
-    image: postgres
-    env_file:
-      - .env.dev
-
+    image: postgres:15
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data/"
+      
 volumes:
   run_vol:
     driver_opts:
