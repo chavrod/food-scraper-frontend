@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir --prefix=/install -r ./requirements.txt
 
 FROM base
 
-ARG USER=user
+ARG USER=django_user
 ARG USER_UID=1001
 ARG PROJECT_NAME=backend
 ARG GUNICORN_PORT=8000
@@ -21,10 +21,7 @@ ARG DJANGO_BASE_DIR=/usr/src/$PROJECT_NAME
 ARG DJANGO_STATIC_ROOT=/var/www/static
 ARG DJANGO_MEDIA_ROOT=/var/www/media
 ARG DJANGO_SQLITE_DIR=/sqlite
-# The superuser with the data below will be created only if there are no users in the database!
-ARG DJANGO_SUPERUSER_USERNAME=admin
-ARG DJANGO_SUPERUSER_PASSWORD=admin
-ARG DJANGO_SUPERUSER_EMAIL=admin@example.com
+
 ARG DJANGO_DEV_SERVER_PORT=8000
 
 
@@ -40,19 +37,20 @@ ENV \
   DJANGO_STATIC_ROOT=$DJANGO_STATIC_ROOT \
   DJANGO_MEDIA_ROOT=$DJANGO_MEDIA_ROOT \
   DJANGO_SQLITE_DIR=$DJANGO_SQLITE_DIR \
-  DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME \
-  DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD \
-  DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL \
   DJANGO_DEV_SERVER_PORT=$DJANGO_DEV_SERVER_PORT
 
 
 COPY --from=builder /install /usr/local
 COPY docker-entrypoint.sh /
 COPY docker-cmd.sh /
+
+COPY runsocket.sh /
+COPY websocket.py /
+
 COPY $PROJECT_NAME $DJANGO_BASE_DIR
 
 # User
-RUN chmod +x /docker-entrypoint.sh /docker-cmd.sh && \
+RUN chmod +x /docker-entrypoint.sh /docker-cmd.sh && runsocket.sh && \
   apk --no-cache add su-exec libpq-dev && \
   mkdir -p $DJANGO_STATIC_ROOT $DJANGO_MEDIA_ROOT $DJANGO_SQLITE_DIR && \
   adduser -s /bin/sh -D -u $USER_UID $USER && \
@@ -63,3 +61,4 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["/docker-cmd.sh"]
 
 EXPOSE $GUNICORN_PORT
+EXPOSE 8888
