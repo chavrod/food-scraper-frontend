@@ -16,16 +16,16 @@ from datetime import timedelta
 from django.utils import timezone
 
 from pathlib import Path
+from dotenv import load_dotenv, find_dotenv
 
 SITE_ID = 1
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-config_path = "/etc/shopwiz_config.json"
-with open(config_path) as f:
-    CONFIG = json.loads(f.read())
 
-ENV = CONFIG["ENV"]
-HOST = CONFIG["HOST"]
+load_dotenv(find_dotenv())
+
+ENV = os.environ["ENV"]
+HOST = os.environ["HOST"]
 
 if ENV == "DEV":
     DEBUG = True
@@ -41,14 +41,14 @@ else:
     ALLOWED_HOSTS = [HOST]
     # CSRF
     CSRF_COOKIE_SECURE = True
-    CSRF_COOKIE_DOMAIN = f".{CONFIG["BASE_DOMAIN"]}"
+    CSRF_COOKIE_DOMAIN = f".{os.environ["BASE_DOMAIN"]}"
     CSRF_TRUSTED_ORIGINS = [
-        f"https://{CONFIG["BASE_DOMAIN"]}"
+        f"https://{os.environ["BASE_DOMAIN"]}"
     ]
     # CORS
     CORS_ALLOW_ALL_ORIGINS = False
     CORS_ALLOWED_ORIGINS = [
-       f"https://{CONFIG["BASE_DOMAIN"]}"
+       f"https://{os.environ["BASE_DOMAIN"]}"
     ]
     # Session
     SESSION_COOKIE_SECURE = True
@@ -62,10 +62,10 @@ CSRF_COOKIE_HTTPONLY = True
 CORS_ALLOW_CREDENTIALS = True
 
 
-SIGNING_KEY = CONFIG["SIGNING_KEY"]
-GOOGLE_CLIENT_ID = CONFIG["GOOGLE_CLIENT_ID"]
-GOOGLE_CLIENT_SECRET = CONFIG["GOOGLE_CLIENT_SECRET"]
-SECRET_KEY = CONFIG["DJANGO_SALT_KEY"]
+SIGNING_KEY = os.environ["SIGNING_KEY"]
+GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
+GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
+SECRET_KEY = os.environ["DJANGO_SALT_KEY"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -153,11 +153,11 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.mysql",
-            "NAME": CONFIG["DB_NAME"],
-            "USER": CONFIG["DB_USER"],
-            "PASSWORD": CONFIG["DB_PASS"],
-            "HOST": CONFIG["DB_HOST"],
-            "PORT": CONFIG["DB_PORT"],
+            "NAME": os.environ["DB_NAME"],
+            "USER": os.environ["DB_USER"],
+            "PASSWORD": os.environ["DB_PASS"],
+            "HOST": os.environ["DB_HOST"],
+            "PORT": os.environ["DB_PORT"],
         }
     }
 
@@ -207,7 +207,7 @@ else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = "smtp.sendgrid.net"
     EMAIL_HOST_USER = "apikey"
-    EMAIL_HOST_PASSWORD = CONFIG["SENDGRID_API_KEY"]
+    EMAIL_HOST_PASSWORD = os.environ["SENDGRID_API_KEY"]
     EMAIL_PORT = 587
     EMAIL_USE_TLS = True
     DEFAULT_FROM_EMAIL = "Shop Wiz <shopwiz@shop-wiz.ie>"
