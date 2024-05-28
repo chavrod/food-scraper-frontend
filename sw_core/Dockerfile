@@ -11,7 +11,7 @@ FROM base
 
 ARG USER=django_user
 ARG USER_UID=1001
-ARG PROJECT_NAME=backend
+ARG PROJECT_NAME=sw_core
 ARG GUNICORN_PORT=8000
 ARG GUNICORN_WORKERS=2
 # the value is in seconds

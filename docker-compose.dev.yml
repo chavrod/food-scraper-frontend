@@ -3,13 +3,13 @@ version: "3"
 services:
   server:
     build:
-      context: ./server
+      context: ./sw_core
     restart: unless-stopped
     command: ["/docker-cmd.sh", "--debug"]
-    env_file:
-      - /etc/.env.server_dev
     volumes:
-      - /etc/.env.server_dev:/etc/.env:ro
+      - "./sw_core:/usr/src/sw_core"  # mount the source code for watching changes
+    env_file:
+      - ./.server.dev.env
     depends_on:
       - db
       - redis
@@ -18,16 +18,16 @@ services:
 
   client:
     container_name: client
-    build: ./client
+    build: ./sw_customer
     working_dir: /src
     ports:
       - "3000:3000"
     volumes:
-      - ./client:/src
-    env_file:
-      - /etc/.client_prod.env
+      - ./sw_customer:/src
     command: >
       sh -c "npm install -g npm@latest && npm install && npm run dev"
+    env_file:
+      - ./.client.dev.env
     depends_on:
       - server
 
@@ -43,8 +43,7 @@ services:
       POSTGRES_HOST: ${DB_HOST}
       POSTGRES_PORT: ${DB_PORT}
     env_file:
-      - path: /etc/.env.server_dev
-      - required: true
+      - ./.server.dev.env
 
   redis:
     image: redis:latest
@@ -54,24 +53,23 @@ services:
 
   celery_worker:
     build:
-      context: ./server
+      context: ./sw_core
     command: celery -A shop_wiz worker --loglevel=INFO
     volumes:
       - ./server:/app
-    env_file:
-      - /etc/.env_shopwiz_server_dev
     depends_on:
       - redis
       - db
 
   celery_beat:
     build:
-      context: ./server
+      context: ./sw_core
     command: celery -A shop_wiz beat --loglevel=INFO
     volumes:
       - ./server:/app
-    env_file:
-      - /etc/.env_shopwiz_server_dev
     depends_on:
       - redis
       - db
+
+volumes:
+  postgres-data:
