@@ -1,3 +1,33 @@
-.client.dev.env
-.server.dev.env
-.env
+# Ignore all .env files everywhere
+**/*.env
+
+# Ignore all .gitignore files everywhere
+**/*.gitignore
+
+**//.vscode/
+**//my_env/
+**/__pycache__/
+
+**/.next/
+**/node_modules/
+**/next-env.d.ts
+**/*.tsbuildinfo
+
+*.pyc
+*.pyo
+*.mo
+**/*.db
+**/*.sqlite3
+**/*.css.map
+**/*.egg-info
+**/*.sql.gz
+**/*.cache
+**/*.project
+**/*.idea
+**/*.pydevproject
+**/*.idea/workspace.xml
+**/.DS_Store
+**/.git/
+**/.sass-cache
+**/.vagrant/
+**/__pycache__
