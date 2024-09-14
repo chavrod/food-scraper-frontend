@@ -21,13 +21,20 @@ from dotenv import load_dotenv, find_dotenv
 SITE_ID = 1
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load config
+with open("/etc/shopwiz_config.json") as f:
+    CONFIG = json.loads(f.read())
 
-load_dotenv(find_dotenv())
+# Load environment variables from .env file
+dotenv_path = find_dotenv()
+if not dotenv_path:
+    raise FileNotFoundError("Could not find the .env file")
+load_dotenv(dotenv_path)
 
-ENV = os.environ["ENV"]
-HOST = os.environ["HOST"]
+ENV = os.getenv("ENV", "DEV")
 
 if ENV == "DEV":
+    # CSRF_COOKIE_DOMAIN = f".{os.environ["BASE_DOMAINNN"]}"
     DEBUG = True
     ALLOWED_HOSTS = ["*"]
     # CSRF
@@ -38,34 +45,33 @@ if ENV == "DEV":
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     DEBUG = False
+
+    HOST = os.getenv["HOST"]
     ALLOWED_HOSTS = [HOST]
     # CSRF
     CSRF_COOKIE_SECURE = True
-    CSRF_COOKIE_DOMAIN = f".{os.environ["BASE_DOMAIN"]}"
-    CSRF_TRUSTED_ORIGINS = [
-        f"https://{os.environ["BASE_DOMAIN"]}"
-    ]
+    # TODO: Change once fixed
+    CSRF_COOKIE_DOMAIN = f".{CONFIG['BASE_DOMAIN']}"
+    CSRF_TRUSTED_ORIGINS = [f"https://{CONFIG['BASE_DOMAIN']}"]
     # CORS
     CORS_ALLOW_ALL_ORIGINS = False
-    CORS_ALLOWED_ORIGINS = [
-       f"https://{os.environ["BASE_DOMAIN"]}"
-    ]
+    CORS_ALLOWED_ORIGINS = [f"https://{CONFIG['BASE_DOMAIN']}"]
     # Session
     SESSION_COOKIE_SECURE = True
 
 
 # Other SCRF
-CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_HTTPONLY = True
 
 # Other CORS
 CORS_ALLOW_CREDENTIALS = True
 
 
-SIGNING_KEY = os.environ["SIGNING_KEY"]
+SIGNING_KEY = CONFIG["SIGNING_KEY"]
+SECRET_KEY = CONFIG["DJANGO_SALT_KEY"]
 GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
 GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
-SECRET_KEY = os.environ["DJANGO_SALT_KEY"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -207,7 +213,7 @@ else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = "smtp.sendgrid.net"
     EMAIL_HOST_USER = "apikey"
-    EMAIL_HOST_PASSWORD = os.environ["SENDGRID_API_KEY"]
+    EMAIL_HOST_PASSWORD = CONFIG["SENDGRID_API_KEY"]
     EMAIL_PORT = 587
     EMAIL_USE_TLS = True
     DEFAULT_FROM_EMAIL = "Shop Wiz <shopwiz@shop-wiz.ie>"
