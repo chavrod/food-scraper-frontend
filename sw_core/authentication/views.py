@@ -34,7 +34,7 @@ from dj_rest_auth.views import (
 from authentication.serializers import CustomPasswordResetConfirmSerializer
 import authentication.models as authentication_models
 from core.models import Customer, Basket
-from shop_wiz.settings import BASE_DOMAIN_NAME
+from shop_wiz.settings import BASE_DOMAIN
 import tools.abuse_detection as abuse_detection
 
 
@@ -71,7 +71,7 @@ class CustomConfirmEmailView(ConfirmEmailView):
         # This is because, in case of errors or other conditions, the base class might not return a redirect.
         if isinstance(super_response, HttpResponseRedirect):
             # Replace the super response's redirect URL with 'example.com'
-            return redirect(f"{BASE_DOMAIN_NAME}?login=successful-email-confirmation")
+            return redirect(f"{BASE_DOMAIN}?login=successful-email-confirmation")
 
         return super_response
 
@@ -182,7 +182,7 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             # If the reset was successful, redirect to a success page or login page.
             if response.status_code == 200:
                 return redirect(
-                    f"{BASE_DOMAIN_NAME}?password-reset=successful-password-reset"
+                    f"{BASE_DOMAIN}?password-reset=successful-password-reset"
                 )
             else:
                 raise ValueError("Unexpected response status.")

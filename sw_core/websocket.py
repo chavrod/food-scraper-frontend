@@ -8,8 +8,6 @@ import websockets
 
 django.setup()
 
-from django.contrib.contenttypes.models import ContentType
-from websockets.frames import CloseCode
 
 # This dictionary will store connections based on queries
 CONNECTIONS = {}

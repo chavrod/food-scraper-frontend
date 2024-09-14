@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-import os
 import json
 from datetime import timedelta
 from django.utils import timezone
@@ -25,16 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 with open("/etc/shopwiz_config.json") as f:
     CONFIG = json.loads(f.read())
 
-# Load environment variables from .env file
-dotenv_path = find_dotenv()
-if not dotenv_path:
-    raise FileNotFoundError("Could not find the .env file")
-load_dotenv(dotenv_path)
-
-ENV = os.getenv("ENV", "DEV")
+ENV = CONFIG["ENV"]
 
 if ENV == "DEV":
-    # CSRF_COOKIE_DOMAIN = f".{os.environ["BASE_DOMAINNN"]}"
+    BASE_DOMAIN = "localhost"
+    # CSRF_COOKIE_DOMAIN = f".{CONFIG["BASE_DOMAINNN"]}"
     DEBUG = True
     ALLOWED_HOSTS = ["*"]
     # CSRF
@@ -46,16 +40,17 @@ if ENV == "DEV":
 else:
     DEBUG = False
 
-    HOST = os.getenv["HOST"]
+    BASE_DOMAIN = CONFIG["BASE_DOMAIN"]
+    HOST = CONFIG["HOST"]
     ALLOWED_HOSTS = [HOST]
     # CSRF
     CSRF_COOKIE_SECURE = True
     # TODO: Change once fixed
-    CSRF_COOKIE_DOMAIN = f".{CONFIG['BASE_DOMAIN']}"
-    CSRF_TRUSTED_ORIGINS = [f"https://{CONFIG['BASE_DOMAIN']}"]
+    CSRF_COOKIE_DOMAIN = f".{BASE_DOMAIN}"
+    CSRF_TRUSTED_ORIGINS = [f"https://{BASE_DOMAIN}"]
     # CORS
     CORS_ALLOW_ALL_ORIGINS = False
-    CORS_ALLOWED_ORIGINS = [f"https://{CONFIG['BASE_DOMAIN']}"]
+    CORS_ALLOWED_ORIGINS = [f"https://{BASE_DOMAIN}"]
     # Session
     SESSION_COOKIE_SECURE = True
 
@@ -70,8 +65,8 @@ CORS_ALLOW_CREDENTIALS = True
 
 SIGNING_KEY = CONFIG["SIGNING_KEY"]
 SECRET_KEY = CONFIG["DJANGO_SALT_KEY"]
-GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
-GOOGLE_CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
+GOOGLE_CLIENT_ID = CONFIG["GOOGLE_CLIENT_ID"]
+GOOGLE_CLIENT_SECRET = CONFIG["GOOGLE_CLIENT_SECRET"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -159,11 +154,11 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.mysql",
-            "NAME": os.environ["DB_NAME"],
-            "USER": os.environ["DB_USER"],
-            "PASSWORD": os.environ["DB_PASS"],
-            "HOST": os.environ["DB_HOST"],
-            "PORT": os.environ["DB_PORT"],
+            "NAME": CONFIG["DB_NAME"],
+            "USER": CONFIG["DB_USER"],
+            "PASSWORD": CONFIG["DB_PASS"],
+            "HOST": CONFIG["DB_HOST"],
+            "PORT": CONFIG["DB_PORT"],
         }
     }
 
@@ -223,7 +218,7 @@ CACHES = {
     "default": {
         # "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379",
+        "LOCATION": "redis://localhost:6379",
     }
 }
 
@@ -234,7 +229,7 @@ RESULTS_EXPIRY_DAYS = 10
 
 
 # CELERY config
-CELERY_BROKER_URL = "redis://127.0.0.1:6379"
+CELERY_BROKER_URL = "redis://localhost:6379"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 

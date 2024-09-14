@@ -352,5 +352,5 @@ class Basket(serializers.ModelSerializer):
         fields = ["items"]
 
 
-if ENV == "DEV":
-    generate_ts("../sw_customer/types/customer_types.ts")
+# if ENV == "DEV":
+#     generate_ts("../sw_customer/types/customer_types.ts")

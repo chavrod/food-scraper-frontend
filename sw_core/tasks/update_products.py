@@ -12,7 +12,7 @@ from celery import shared_task
 
 import django
 
-sys.path.append("/Users/dmitry/projects/shopping_wiz/sw_core")
+# sys.path.append("/Users/dmitry/projects/shopping_wiz/sw_core")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shop_wiz.settings")
 django.setup()
 
