@@ -44,7 +44,7 @@ class SearchedProductViewSet(
             )
         )
 
-        # Potential scenarious
+        # Potential scenarios
         # 1. no recent_batch -> no products -> yes update_needed
         # 2. yes recent_batch -> yes products -> yes update_needed
         # 3. yes recent_batch -> yes products -> no update_needed

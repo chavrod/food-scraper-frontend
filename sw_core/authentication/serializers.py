@@ -43,5 +43,5 @@ class CustomPasswordResetConfirmSerializer(PasswordResetConfirmSerializer):
         get_adapter().clean_password(password)
 
 
-# if ENV == "DEV":
-#     generate_ts("../sw_customer/types/customer_types.ts")
+if ENV == "DEV":
+    generate_ts("../sw_customer/types/customer_types.ts")
