@@ -67,6 +67,7 @@ python manage.py migrate
 # python manage.py createdefaultusers
 # python manage.py create_default_accounts
 # python manage.py create_default_settings
-# python manage.py collectstatic
 # python manage.py send_test_email
 # python manage.py send_example_emails --email dchavro@gmail.com
+
+# create other test scripts....
