@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  server:
+  django: &django
     build:
       context: ./sw_core
     restart: unless-stopped
@@ -13,8 +13,6 @@ services:
     depends_on:
       - db
       - redis
-      - celery_worker
-      - celery_beat
 
   client:
     container_name: client
@@ -29,7 +27,7 @@ services:
     env_file:
       - ./.client.dev.env
     depends_on:
-      - server
+      - django
 
   db:
     image: postgres:15
@@ -52,27 +50,15 @@ services:
       - "redis:/data"
 
   celery_worker:
-    build:
-      context: ./sw_core
+    <<: *django
     command: celery -A shop_wiz worker --loglevel=INFO
-    volumes:
-      - "./sw_core:/usr/src/sw_core"
-      - ${CONFIG}:/etc/shopwiz_config.json:ro
-    env_file:
-      - .env
     depends_on:
       - redis
       - db
 
   celery_beat:
-    build:
-      context: ./sw_core
+    <<: *django
     command: celery -A shop_wiz beat --loglevel=INFO
-    volumes:
-      - "./sw_core:/usr/src/sw_core"
-      - ${CONFIG}:/etc/shopwiz_config.json:ro
-    env_file:
-      - .env
     depends_on:
       - redis
       - db
