@@ -1,21 +1,15 @@
 # Ignore all .env files everywhere
 **/*.env
 
-# Ignore all .gitignore files everywhere
-**/*.gitignore
-
-**//.vscode/
-**//my_env/
-**/__pycache__/
-
-**/.next/
-**/node_modules/
-**/next-env.d.ts
-**/*.tsbuildinfo
+my_venv
+.gitignore
+celerybeat-schedule
 
 *.pyc
 *.pyo
 *.mo
+
+**/.vscode/
 **/*.db
 **/*.sqlite3
 **/*.css.map

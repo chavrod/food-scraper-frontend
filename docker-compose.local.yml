@@ -4,9 +4,11 @@ services:
   django: &django
     build:
       context: ./sw_core
+      dockerfile: ./sw_core/compose/local/django/Dockerfile
+    image: sw_local_django
+    container_name: sw_local_django
     restart: unless-stopped
     volumes:
-      - "./sw_core:/usr/src/sw_core"  # mount the source code for watching changes
       - ${CONFIG}:/etc/shopwiz_config.json:ro
     env_file:
       - .env

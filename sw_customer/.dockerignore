@@ -1,0 +1,14 @@
+# Ignore all .env files everywhere
+**/*.env
+
+# Ignore all .gitignore files everywhere
+.gitignore
+
+.next
+node_modules/
+**/.vscode/
+**/next-env.d.ts
+**/*.tsbuildinfo
+**/.DS_Store
+**/.git
+**/.sass-cache
