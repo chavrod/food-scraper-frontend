@@ -71,7 +71,6 @@ GOOGLE_CLIENT_SECRET = CONFIG["GOOGLE_CLIENT_SECRET"]
 # Application definition
 INSTALLED_APPS = [
     "django_extensions",
-    "channels",
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
