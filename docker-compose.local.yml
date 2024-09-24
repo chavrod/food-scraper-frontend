@@ -7,14 +7,54 @@ services:
       dockerfile: ./sw_core/compose/local/django/Dockerfile
     image: sw_local_django
     container_name: sw_local_django
-    restart: unless-stopped
-    volumes:
-      - ${CONFIG}:/etc/shopwiz_config.json:ro
-    env_file:
-      - .env
     depends_on:
       - db
       - redis
+    restart: unless-stopped
+    volumes:
+      - ${CONFIG}:/etc/shopwiz_config.json:ro
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - '8000:8000'
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: sw_production_postgres
+    container_name: sw_local_postgres
+    restart: unless-stopped
+    volumes:
+      - sw_local_postgres_data:/var/lib/postgresql/data
+      - sw_local_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.local/.postgres
+
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis:/data"
+
+  celery_worker:
+    <<: *django
+    image: sw_local_celeryworker
+    container_name: sw_local_celeryworker
+    ports: []
+    command: /start-celeryworker
+
+  celery_beat:
+    <<: *django
+    image: sw_local_celerybeat
+    container_name: sw_local_celerybeat
+    ports: []
+    command: /start-celerybeat
 
   client:
     container_name: client
@@ -30,40 +70,6 @@ services:
       - ./.client.dev.env
     depends_on:
       - django
-
-  db:
-    image: postgres:15
-    restart: unless-stopped
-    volumes:
-      - "postgres-data:/var/lib/postgresql/data/"
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_HOST: ${DB_HOST}
-      POSTGRES_PORT: ${DB_PORT}
-
-  redis:
-    image: redis:latest
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - "redis:/data"
-
-  celery_worker:
-    <<: *django
-    command: celery -A shop_wiz worker --loglevel=INFO
-    depends_on:
-      - redis
-      - db
-
-  celery_beat:
-    <<: *django
-    command: celery -A shop_wiz beat --loglevel=INFO
-    depends_on:
-      - redis
-      - db
 
 volumes:
   postgres-data:
