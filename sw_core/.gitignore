@@ -3,7 +3,7 @@
 my_venv
 .DS_Store
 .dockerignore
-
+.ockerignore
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

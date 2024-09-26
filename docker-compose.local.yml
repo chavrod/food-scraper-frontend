@@ -8,7 +8,7 @@ services:
     image: sw_local_django
     container_name: sw_local_django
     depends_on:
-      - db
+      - postgres
       - redis
     restart: unless-stopped
     volumes:
@@ -35,12 +35,13 @@ services:
       - ./.envs/.local/.postgres
 
   redis:
-    image: redis:latest
+    image: docker.io/redis:6
+    container_name: sw_local_redis
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
-      - "redis:/data"
+      - sw_local_redis_data:/data
 
   celery_worker:
     <<: *django
@@ -72,5 +73,6 @@ services:
       - django
 
 volumes:
-  postgres-data:
-  redis:
+  sw_local_postgres_data: {}
+  sw_local_postgres_data_backups: {}
+  sw_local_redis_data: {}
