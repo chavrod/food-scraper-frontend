@@ -3,11 +3,9 @@ from dj_rest_auth.serializers import PasswordResetConfirmSerializer
 from dj_rest_auth.serializers import UserDetailsSerializer, JWTSerializer
 from allauth.account.adapter import get_adapter
 from allauth.socialaccount.models import SocialAccount
-
-from core.serializers import Customer
-
 from django_typomatic import ts_interface, generate_ts
 
+from shopwiz.apps.core.serializers import Customer
 from config.settings import ENV
 
 

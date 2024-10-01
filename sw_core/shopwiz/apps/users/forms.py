@@ -1,6 +1,7 @@
-from django.contrib.auth.forms import SetPasswordForm
-from allauth.account.adapter import get_adapter
 from django.core.exceptions import ValidationError
+from django.contrib.auth.forms import SetPasswordForm
+
+from allauth.account.adapter import get_adapter
 
 
 class CustomSetPasswordForm(SetPasswordForm):

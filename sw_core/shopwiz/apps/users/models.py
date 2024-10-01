@@ -1,6 +1,6 @@
 from django.db import models
 
-import core.models as core_models
+from shopwiz.apps.core.models import Customer
 
 
 class BlacklistActions(models.TextChoices):
@@ -9,7 +9,7 @@ class BlacklistActions(models.TextChoices):
 
 
 class CustomerRequestBlacklist(models.Model):
-    customer = models.ForeignKey(core_models.Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     action = models.CharField(max_length=50, choices=BlacklistActions.choices)
     request_count = models.IntegerField(default=0)
 

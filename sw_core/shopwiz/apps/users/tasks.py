@@ -1,16 +1,15 @@
-from celery import shared_task
-
 import logging
-
-logger = logging.getLogger(__name__)
-
 from datetime import timedelta
-from django.utils import timezone
 
-from allauth.account.models import EmailAddress
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 
+from allauth.account.models import EmailAddress
+from celery import shared_task
+
 import models as authentication_models
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 

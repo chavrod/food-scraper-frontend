@@ -11,10 +11,18 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
 from tools.concurrent_tasks.update_products import begin_updating_products
-import core.serializers as core_serializers
-import core.models as core_models
-import core.pagination as core_paginaton
-import core.filters as core_filters
+from .serializers import (
+    SearchedProductSerialiser,
+    SearchedProductParamsSerialiser,
+    SearchedProductMetadataSerialiser,
+    BasketItemParamsSerialiser,
+    BasketItemSerialiser,
+    BasketItemMetadataSerialiser,
+    BasketProductCreateOrUpdateSerialiser,
+)
+from .models import SearchedProduct, Basket, BasketItem
+from .pagination import BasketItemsPagination, SearchedProductsPagination
+from .filters import SearchedProductFilter
 
 
 @csrf_protect
@@ -28,18 +36,18 @@ def ping(request):
 class SearchedProductViewSet(
     viewsets.GenericViewSet,
 ):
-    serializer_class = core_serializers.SearchedProduct
-    queryset = core_models.SearchedProduct.objects.all()
-    pagination_class = core_paginaton.SearchedProductsPagination
+    serializer_class = SearchedProductSerialiser
+    queryset = SearchedProduct.objects.all()
+    pagination_class = SearchedProductsPagination
 
     def list(self, request, *args, **kwargs):
-        serializer = core_serializers.SearchedProductParams(data=request.query_params)
+        serializer = SearchedProductParamsSerialiser(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         validated_params = serializer.validated_data
 
         # Check if we have up to date data for this query
         recent_batch, recent_products, update_date, update_needed = (
-            core_models.SearchedProduct.objects.get_most_recent_and_check_freshness(
+            SearchedProduct.objects.get_most_recent_and_check_freshness(
                 validated_params["query"]
             )
         )
@@ -88,30 +96,26 @@ class SearchedProductViewSet(
             begin_updating_products(validated_params["query"])
 
         # If recent products exists, gather relevant data
-        filtered_products = core_filters.SearchedProductFilter(
-            validated_params, recent_products
-        ).qs
+        filtered_products = SearchedProductFilter(validated_params, recent_products).qs
 
         # Paginate and serilize results
         paginator = Paginator(filtered_products, self.pagination_class.page_size)
         page_obj = paginator.get_page(validated_params["page"])
-        serializer = core_serializers.SearchedProduct(page_obj, many=True)
+        serializer = SearchedProductSerialiser(page_obj, many=True)
 
         # Get range summaries
-        price_range_info = (
-            core_models.SearchedProduct.objects.get_selected_price_range_info(
-                recent_products, validated_params.get("price_range")
-            )
+        price_range_info = SearchedProduct.objects.get_selected_price_range_info(
+            recent_products, validated_params.get("price_range")
         )
         total_unit_range_info_list = (
-            core_models.SearchedProduct.objects.get_selected_unit_range_info_list(
+            SearchedProduct.objects.get_selected_unit_range_info_list(
                 recent_products,
                 validated_params.get("unit_type"),
                 validated_params.get("unit_measurement_range"),
             )
         )
 
-        metadata_serializer = core_serializers.SearchedProductMetadata(
+        metadata_serializer = SearchedProductMetadataSerialiser(
             data={
                 "is_full_metadata": True,
                 "query": validated_params["query"],
@@ -124,7 +128,7 @@ class SearchedProductViewSet(
                 "active_unit": validated_params.get("unit_type"),
                 "units_range_list": total_unit_range_info_list,
                 "price_range_info": price_range_info,
-                "filter_count": core_models.SearchedProduct.objects.count_filters(
+                "filter_count": SearchedProduct.objects.count_filters(
                     price_range_info,
                     validated_params.get("unit_type"),
                     total_unit_range_info_list,
@@ -149,14 +153,14 @@ class BasketViewSet(viewsets.GenericViewSet):
 
 class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
-    pagination_class = core_paginaton.BasketItemsPagination
+    pagination_class = BasketItemsPagination
 
     def _get_basket_item(self, request, pk):
         """Helper method to retrieve basket and item, handling common validation."""
         customer = request.user.customer
         try:
-            basket = core_models.Basket.objects.get(customer=customer)
-        except core_models.Basket.DoesNotExist:
+            basket = Basket.objects.get(customer=customer)
+        except Basket.DoesNotExist:
             return (
                 None,
                 Response(
@@ -165,8 +169,8 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             )
 
         try:
-            basket_item = core_models.BasketItem.objects.get(pk=pk, basket=basket)
-        except core_models.BasketItem.DoesNotExist:
+            basket_item = BasketItem.objects.get(pk=pk, basket=basket)
+        except BasketItem.DoesNotExist:
             return (
                 None,
                 Response(
@@ -180,37 +184,35 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     def list(self, request, pk=None):
         # Get customers basket
         customer = request.user.customer
-        basket, created = core_models.Basket.objects.get_or_create(customer=customer)
+        basket, created = Basket.objects.get_or_create(customer=customer)
         # Validated search params
-        serializer = core_serializers.BasketItemParams(data=request.query_params)
+        serializer = BasketItemParamsSerialiser(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         validated_params = serializer.validated_data
 
         # Get the queryset, paginate, and serialize
-        queryset = core_models.BasketItem.objects.customer_ordered_basket(
+        queryset = BasketItem.objects.customer_ordered_basket(
             basket=basket
         ).filtered_by_shop(validated_params.get("shop"))
 
         paginator = Paginator(queryset, self.pagination_class.page_size)
         page_obj = paginator.get_page(validated_params.get("page"))
 
-        serializer = core_serializers.BasketItem(page_obj, many=True)
+        serializer = BasketItemSerialiser(page_obj, many=True)
 
         # Aggregated total qty and price
-        total_qty, total_price = (
-            core_models.BasketItem.objects.customer_basket_total_qty_and_price(
-                basket=basket
-            )
+        total_qty, total_price = BasketItem.objects.customer_basket_total_qty_and_price(
+            basket=basket
         )
         # Serialize the metadata
-        metadata_serializer = core_serializers.BasketItemMetadata(
+        metadata_serializer = BasketItemMetadataSerialiser(
             data={
                 "total_items": queryset.count(),
                 "total_quantity": total_qty,
                 "total_price": total_price.quantize(
                     Decimal("0.01"), rounding=ROUND_HALF_UP
                 ),
-                "shop_breakdown": core_models.BasketItem.objects.customer_basket_summary_by_shop(
+                "shop_breakdown": BasketItem.objects.customer_basket_summary_by_shop(
                     basket
                 ),
                 "page": page_obj.number,
@@ -257,9 +259,9 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             basket_item.quantity += 1
             basket_item.save()
 
-            basket_item_serializer = core_serializers.BasketItem(basket_item)
+            basket_item_serializer = BasketItemSerialiser(basket_item)
             return Response(basket_item_serializer.data, status=status.HTTP_200_OK)
-        except core_models.BasketItem.DoesNotExist:
+        except BasketItem.DoesNotExist:
             return Response(
                 {"error": "Item not found in basket"},
                 status=status.HTTP_404_NOT_FOUND,
@@ -267,18 +269,18 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def _add_or_update_item_in_basket(self, request):
         customer = request.user.customer
-        basket, _ = core_models.Basket.objects.get_or_create(customer=customer)
-        serializer = core_serializers.BasketProductCreateOrUpdate(data=request.data)
+        basket, _ = Basket.objects.get_or_create(customer=customer)
+        serializer = BasketProductCreateOrUpdateSerialiser(data=request.data)
         if serializer.is_valid():
             product = serializer.save()
-            basket_item, item_created = core_models.BasketItem.objects.get_or_create(
+            basket_item, item_created = BasketItem.objects.get_or_create(
                 basket=basket, product=product
             )
             if not item_created:
                 basket_item.quantity += 1
                 basket_item.save()
 
-            basket_item_serializer = core_serializers.BasketItem(basket_item)
+            basket_item_serializer = BasketItemSerialiser(basket_item)
             return Response(basket_item_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -319,13 +321,13 @@ class BasketItemViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     @action(detail=False, methods=["delete"])
     def clear_all(self, request, pk=None):
         customer = request.user.customer
-        basket = core_models.Basket.objects.get(customer=customer)
+        basket = Basket.objects.get(customer=customer)
         if not basket:
             return Response(
                 {"error": "Basket not found."}, status=status.HTTP_404_NOT_FOUND
             )
         # Validated shop name if present
-        serializer = core_serializers.BasketItemParams(data=request.data)
+        serializer = BasketItemParamsSerialiser(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_shop_name = serializer.validated_data.get("shop", None)
 

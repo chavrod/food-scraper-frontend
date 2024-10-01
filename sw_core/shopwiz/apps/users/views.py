@@ -1,4 +1,5 @@
 import json
+
 from django.shortcuts import redirect, render
 from django.http import HttpResponseRedirect
 from django.contrib.auth import get_user_model
@@ -17,7 +18,6 @@ from rest_framework.decorators import (
     permission_classes,
 )
 from rest_framework import status
-
 from allauth.account.views import ConfirmEmailView, EmailAddress
 from allauth.account.utils import send_email_confirmation
 from dj_rest_auth.registration.views import RegisterView
@@ -32,7 +32,7 @@ from dj_rest_auth.views import (
 )
 
 from users.serializers import CustomPasswordResetConfirmSerializer
-import users.models as authentication_models
+from users.models import BlacklistActions
 from core.models import Customer, Basket
 from config.settings import BASE_DOMAIN
 import tools.abuse_detection as abuse_detection
@@ -116,7 +116,7 @@ class SendValidationEmailView(View):
         ) = abuse_detection.check_rate_limit(
             request=request,
             customer=user.customer,
-            action=authentication_models.BlacklistActions.VALIDATE_EMAIL,
+            action=BlacklistActions.VALIDATE_EMAIL,
         )
         if is_rate_limited:
             return HttpResponse(status=429)  # 429 Too Many Requests
@@ -153,7 +153,7 @@ class CustomPasswordResetView(PasswordResetView):
         ) = abuse_detection.check_rate_limit(
             request=request,
             customer=user.customer,
-            action=authentication_models.BlacklistActions.RESET_PASSWORD,
+            action=BlacklistActions.RESET_PASSWORD,
         )
         if is_rate_limited:
             return HttpResponse(status=429)  # 429 Too Many Requests

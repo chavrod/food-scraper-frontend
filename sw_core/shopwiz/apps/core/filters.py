@@ -1,6 +1,6 @@
 import django_filters
 
-import core.models as core_models
+from .models import SearchedProduct
 
 
 class NumberRangeFilter(django_filters.BaseRangeFilter, django_filters.NumberFilter):
@@ -18,5 +18,5 @@ class SearchedProductFilter(django_filters.FilterSet):
     )
 
     class Meta:
-        model = core_models.SearchedProduct
+        model = SearchedProduct
         fields = ["price"]

@@ -1,9 +1,12 @@
 import re
-from allauth.account.adapter import DefaultAccountAdapter
-from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
-from core.models import Customer, Basket
+
+from allauth.account.adapter import DefaultAccountAdapter
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+
+from shopwiz.apps.core.models import Customer, Basket
 
 
 class MyAccountAdapter(DefaultAccountAdapter):

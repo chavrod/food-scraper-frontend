@@ -5,30 +5,38 @@ import math
 from django_typomatic import ts_interface, generate_ts
 
 from config.settings import ENV
-import core.models as core_models
-import users.models as authentication_models
+from users.models import CustomerRequestBlacklist, BlacklistActions
+from .models import (
+    Customer,
+    SearchedProduct,
+    Basket,
+    BasketItem,
+    BasketProduct,
+    UnitType,
+    ShopName,
+)
 
 
 @ts_interface()
-class Customer(serializers.ModelSerializer):
+class CustomerSerialiser(serializers.ModelSerializer):
     password_reset_attempts = serializers.SerializerMethodField()
 
     class Meta:
-        model = core_models.Customer
+        model = Customer
         fields = "__all__"
 
     def get_password_reset_attempts(self, obj):
         try:
             # Specifically filter by the RESET_PASSWORD action
-            return authentication_models.CustomerRequestBlacklist.objects.get(
+            return CustomerRequestBlacklist.objects.get(
                 customer=obj,
-                action=authentication_models.BlacklistActions.RESET_PASSWORD,
+                action=BlacklistActions.RESET_PASSWORD,
             ).request_count
-        except authentication_models.CustomerRequestBlacklist.DoesNotExist:
+        except CustomerRequestBlacklist.DoesNotExist:
             return 0
 
 
-class CaseInsensitiveChoiceField(serializers.ChoiceField):
+class CaseInsensitiveChoiceFieldSerialiser(serializers.ChoiceField):
     def to_internal_value(self, data):
         data_lower = str(data).lower()
         for choice, _ in self.choices.items():
@@ -38,13 +46,13 @@ class CaseInsensitiveChoiceField(serializers.ChoiceField):
 
 
 @ts_interface()
-class SearchedProductParams(serializers.Serializer):
+class SearchedProductParamsSerialiser(serializers.Serializer):
     query = serializers.CharField(max_length=60, required=True)
     page = serializers.IntegerField(default=1)
     order_by = serializers.CharField(default="price", required=False)
     price_range = serializers.CharField(required=False)
-    unit_type = CaseInsensitiveChoiceField(
-        choices=core_models.UnitType.choices, required=False
+    unit_type = CaseInsensitiveChoiceFieldSerialiser(
+        choices=UnitType.choices, required=False
     )
     unit_measurement_range = serializers.CharField(required=False)
 
@@ -124,18 +132,18 @@ class SearchedProductParams(serializers.Serializer):
 
 
 @ts_interface()
-class SearchedProduct(serializers.Serializer):
+class SearchedProductSerialiser(serializers.Serializer):
     name = serializers.CharField(required=True, allow_blank=False)
     price = serializers.FloatField(required=True)
     price_per_unit = serializers.FloatField(required=True)
     unit_type = serializers.ChoiceField(
-        required=True, allow_blank=False, choices=core_models.UnitType.choices
+        required=True, allow_blank=False, choices=UnitType.choices
     )
     unit_measurement = serializers.FloatField(required=True)
     img_src = serializers.CharField(required=True, allow_null=True)
     product_url = serializers.CharField(required=True, allow_null=True)
     shop_name = serializers.ChoiceField(
-        required=True, allow_blank=False, choices=core_models.ShopName.choices
+        required=True, allow_blank=False, choices=ShopName.choices
     )
 
     def validate_price(self, value):
@@ -144,7 +152,7 @@ class SearchedProduct(serializers.Serializer):
         return value
 
     class Meta:
-        model = core_models.SearchedProduct
+        model = SearchedProduct
         exclude = ["id"]
 
 
@@ -159,10 +167,8 @@ class SearchedProduct(serializers.Serializer):
 
 
 @ts_interface()
-class SearchedProductAvailableUnitRangesInfo(serializers.Serializer):
-    name = serializers.ChoiceField(
-        allow_blank=False, choices=core_models.UnitType.choices
-    )
+class SearchedProductAvailableUnitRangesInfoSerialiser(serializers.Serializer):
+    name = serializers.ChoiceField(allow_blank=False, choices=UnitType.choices)
     count = serializers.IntegerField()
     min = serializers.FloatField()
     max = serializers.FloatField()
@@ -190,7 +196,7 @@ class SearchedProductAvailableUnitRangesInfo(serializers.Serializer):
             if (
                 ret.get(field) is not None
             ):  # Check if the field value exists and is not None
-                if ret["name"] in [core_models.UnitType.KG, core_models.UnitType.L]:
+                if ret["name"] in [UnitType.KG, UnitType.L]:
                     if "min" in field:
                         # For KG or L and 'min' fields, round down to 1 decimal place
                         ret[field] = self.round_down_to_1_decimal(ret[field])
@@ -208,7 +214,7 @@ class SearchedProductAvailableUnitRangesInfo(serializers.Serializer):
 
 
 @ts_interface()
-class SearchedProductPriceRangeInfo(serializers.Serializer):
+class SearchedProductPriceRangeInfoSerialiser(serializers.Serializer):
     name = serializers.CharField(max_length=50)
     min = serializers.FloatField()
     max = serializers.FloatField()
@@ -223,7 +229,7 @@ class SearchedProductPriceRangeInfo(serializers.Serializer):
 
 
 @ts_interface()
-class SearchedProductMetadata(serializers.Serializer):
+class SearchedProductMetadataSerialiser(serializers.Serializer):
     query = serializers.CharField(max_length=60, required=True)
     is_full_metadata = serializers.BooleanField(required=True)
     is_update_needed = serializers.BooleanField(required=True)
@@ -232,24 +238,22 @@ class SearchedProductMetadata(serializers.Serializer):
     total_pages = serializers.IntegerField()
     order_by = serializers.CharField()
     total_results = serializers.IntegerField()
-    active_unit = serializers.ChoiceField(
-        choices=core_models.UnitType.choices, allow_null=True
-    )
+    active_unit = serializers.ChoiceField(choices=UnitType.choices, allow_null=True)
     units_range_list = serializers.ListField(
-        child=SearchedProductAvailableUnitRangesInfo()
+        child=SearchedProductAvailableUnitRangesInfoSerialiser()
     )
-    price_range_info = SearchedProductPriceRangeInfo()
+    price_range_info = SearchedProductPriceRangeInfoSerialiser()
     filter_count = serializers.IntegerField()
 
 
 @ts_interface()
-class BasketProduct(serializers.ModelSerializer):
+class BasketProductSerialiser(serializers.ModelSerializer):
     class Meta:
-        model = core_models.BasketProduct
+        model = BasketProduct
         fields = "__all__"
 
 
-class BasketProductCreateOrUpdate(serializers.ModelSerializer):
+class BasketProductCreateOrUpdateSerialiser(serializers.ModelSerializer):
     name = serializers.CharField(trim_whitespace=True, required=False)
 
     def validate(self, attrs):
@@ -273,7 +277,7 @@ class BasketProductCreateOrUpdate(serializers.ModelSerializer):
         shop_name = validated_data.get("shop_name")
 
         if name and shop_name:
-            product, created = core_models.BasketProduct.objects.get_or_create(
+            product, created = BasketProduct.objects.get_or_create(
                 name=name, shop_name=shop_name, defaults=validated_data
             )
             if not created:
@@ -288,7 +292,7 @@ class BasketProductCreateOrUpdate(serializers.ModelSerializer):
             )
 
     class Meta:
-        model = core_models.BasketProduct
+        model = BasketProduct
         fields = ["name", "price", "img_src", "product_url", "shop_name"]
         extra_kwargs = {
             "name": {"required": False},
@@ -300,29 +304,29 @@ class BasketProductCreateOrUpdate(serializers.ModelSerializer):
 
 
 @ts_interface()
-class BasketItemParams(serializers.Serializer):
+class BasketItemParamsSerialiser(serializers.Serializer):
     page = serializers.IntegerField(default=1)
-    shop = CaseInsensitiveChoiceField(
-        choices=core_models.ShopName.choices, required=False
+    shop = CaseInsensitiveChoiceFieldSerialiser(
+        choices=ShopName.choices, required=False
     )
 
 
 @ts_interface()
-class BasketItem(serializers.Serializer):
+class BasketItemSerialiser(serializers.Serializer):
     id = serializers.IntegerField(required=True)
     product = BasketProduct(required=True)
     quantity = serializers.IntegerField(required=True)
     checked = serializers.BooleanField(required=True)
 
     class Meta:
-        model = core_models.BasketItem
+        model = BasketItem
         exclude = []
 
 
 @ts_interface()
-class BasketItemShopBreakdown(serializers.Serializer):
+class BasketItemShopBreakdownSerialiser(serializers.Serializer):
     name = serializers.ChoiceField(
-        source="product__shop_name", choices=core_models.ShopName.choices
+        source="product__shop_name", choices=ShopName.choices
     )
     total_price = serializers.DecimalField(
         max_digits=100, decimal_places=2, coerce_to_string=False
@@ -331,24 +335,24 @@ class BasketItemShopBreakdown(serializers.Serializer):
 
 
 @ts_interface()
-class BasketItemMetadata(serializers.Serializer):
+class BasketItemMetadataSerialiser(serializers.Serializer):
     total_items = serializers.IntegerField()
     total_quantity = serializers.IntegerField()
     total_price = serializers.DecimalField(
         max_digits=100, decimal_places=2, coerce_to_string=False
     )
-    shop_breakdown = BasketItemShopBreakdown(many=True)
+    shop_breakdown = BasketItemShopBreakdownSerialiser(many=True)
     page = serializers.IntegerField()
     total_pages = serializers.IntegerField()
-    selected_shop = serializers.ChoiceField(choices=core_models.ShopName.choices)
+    selected_shop = serializers.ChoiceField(choices=ShopName.choices)
 
 
 @ts_interface()
-class Basket(serializers.ModelSerializer):
-    items = BasketItem(many=True, read_only=True)
+class BasketSerialiser(serializers.ModelSerializer):
+    items = BasketItemSerialiser(many=True, read_only=True)
 
     class Meta:
-        model = core_models.Basket
+        model = Basket
         fields = ["items"]
 
 

@@ -82,7 +82,6 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "rest_framework",
     # Authentication
-    "authentication.apps.AuthenticationConfig",
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
@@ -161,6 +160,7 @@ else:
             "PORT": CONFIG["DB_PORT"],
         }
     }
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # Password validation
@@ -277,10 +277,10 @@ SIMPLE_JWT = {
 REST_AUTH = {
     "USE_JWT": True,
     "JWT_AUTH_HTTPONLY": False,
-    "USER_DETAILS_SERIALIZER": "authentication.serializers.CustomUserDetailsSerializer",
+    "USER_DETAILS_SERIALIZER": "shopwiz.apps.users.serializers.CustomUserDetailsSerializer",
 }
 
-SOCIALACCOUNT_ADAPTER = "authentication.adapters.CustomSocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "users.adapters.CustomSocialAccountAdapter"
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
