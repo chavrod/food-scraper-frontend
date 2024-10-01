@@ -10,7 +10,7 @@ from dj_rest_auth.views import (
 
 from rest_framework_simplejwt.views import TokenVerifyView
 
-from authentication.views import (
+from users.views import (
     GoogleLogin,
     LogoutView,
     SendValidationEmailView,

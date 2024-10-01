@@ -8,7 +8,7 @@ from core.serializers import Customer
 
 from django_typomatic import ts_interface, generate_ts
 
-from shop_wiz.settings import ENV
+from config.settings import ENV
 
 
 @ts_interface()

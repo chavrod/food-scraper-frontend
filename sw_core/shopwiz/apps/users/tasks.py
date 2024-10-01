@@ -10,7 +10,7 @@ from django.utils import timezone
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 
-import authentication.models as authentication_models
+import models as authentication_models
 
 User = get_user_model()
 

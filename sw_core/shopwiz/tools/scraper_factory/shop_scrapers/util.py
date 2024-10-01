@@ -7,10 +7,10 @@ import re
 
 
 # sys.path.append("/Users/dmitry/projects/shopping_wiz/sw_core")
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shop_wiz.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-import core.models as core_models
+import shopwiz.apps.core.models as core_models
 
 # Conversion metrics for specific units to their standardized unit
 conversion_metrics = {

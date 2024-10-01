@@ -1,32 +1,28 @@
-from typing import List, Dict
-from decimal import Decimal
+from typing import Dict
 import os
-import sys
 from datetime import timedelta
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
-import time
 
 from celery import shared_task
 
 import django
 
 # sys.path.append("/Users/dmitry/projects/shopping_wiz/sw_core")
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shop_wiz.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from django.core.cache import cache
 from django.utils import timezone
 from django.db import transaction
 
-from shop_wiz.settings import (
+from config.settings import (
     ENABLED_SCRAPERS,
     CACHE_SHOP_SCRAPE_EXECUTION_SECONDS,
 )
-import core.models as core_models
-from core.scraper_factory import ScraperFactory
-from core.scraper_factory.shop_scrapers import ShopScraper
+import apps.core.models as core_models
+from tools.scraper_factory import ScraperFactory
+from tools.scraper_factory.shop_scrapers import ShopScraper
 from tools import websocket_util
 
 factory = ScraperFactory()

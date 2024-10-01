@@ -4,9 +4,9 @@ import math
 
 from django_typomatic import ts_interface, generate_ts
 
-from shop_wiz.settings import ENV
+from config.settings import ENV
 import core.models as core_models
-import authentication.models as authentication_models
+import users.models as authentication_models
 
 
 @ts_interface()

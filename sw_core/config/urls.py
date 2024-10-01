@@ -14,14 +14,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include, re_path
 
-from authentication.views import CustomConfirmEmailView, CustomPasswordResetConfirmView
+from shopwiz.apps.users.views import CustomConfirmEmailView, CustomPasswordResetConfirmView
 from dj_rest_auth.views import (
     PasswordResetConfirmView,
 )
-from core.views import ping
+from shopwiz.apps.core.views import ping
 
 urlpatterns = [
     path("api/admin/", admin.site.urls),

@@ -19,7 +19,7 @@ from django.db.models import (
     Count,
 )
 
-from shop_wiz.settings import RESULTS_EXPIRY_DAYS
+from config.settings import RESULTS_EXPIRY_DAYS
 
 
 class Customer(models.Model):

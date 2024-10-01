@@ -2,8 +2,8 @@ import json
 from typing import Union, Optional
 
 
-import authentication.models as authentication_models
-from shop_wiz.settings import EMAIL_RESEND_LIMIT, ENV
+import users.models as authentication_models
+from config.settings import EMAIL_RESEND_LIMIT, ENV
 
 
 def _get_client_ip(request):

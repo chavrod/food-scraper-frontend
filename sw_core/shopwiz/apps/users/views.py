@@ -31,10 +31,10 @@ from dj_rest_auth.views import (
     PasswordResetConfirmView,
 )
 
-from authentication.serializers import CustomPasswordResetConfirmSerializer
-import authentication.models as authentication_models
+from users.serializers import CustomPasswordResetConfirmSerializer
+import users.models as authentication_models
 from core.models import Customer, Basket
-from shop_wiz.settings import BASE_DOMAIN
+from config.settings import BASE_DOMAIN
 import tools.abuse_detection as abuse_detection
 
 
