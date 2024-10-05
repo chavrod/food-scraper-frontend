@@ -1,11 +1,11 @@
-export interface Customer {
+export interface CustomerSerialiser {
     id?: number;
     password_reset_attempts?: null;
     phone_number?: string | null;
     user: number | string;
 }
 
-export interface SearchedProductParams {
+export interface SearchedProductParamsSerialiser {
     query: string;
     page?: number;
     order_by?: string;
@@ -14,7 +14,7 @@ export interface SearchedProductParams {
     unit_measurement_range?: string;
 }
 
-export interface SearchedProduct {
+export interface SearchedProductSerialiser {
     name: string;
     price: number;
     price_per_unit: number;
@@ -25,7 +25,7 @@ export interface SearchedProduct {
     shop_name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
 }
 
-export interface SearchedProductAvailableUnitRangesInfo {
+export interface SearchedProductAvailableUnitRangesInfoSerialiser {
     name: "KG" | "L" | "M" | "M2" | "EACH" | "HUNDRED_SHEETS";
     count: number;
     min: number;
@@ -34,7 +34,7 @@ export interface SearchedProductAvailableUnitRangesInfo {
     max_selected: number | null;
 }
 
-export interface SearchedProductPriceRangeInfo {
+export interface SearchedProductPriceRangeInfoSerialiser {
     name: string;
     min: number;
     max: number;
@@ -42,7 +42,7 @@ export interface SearchedProductPriceRangeInfo {
     max_selected: number | null;
 }
 
-export interface SearchedProductMetadata {
+export interface SearchedProductMetadataSerialiser {
     query: string;
     is_full_metadata: boolean;
     is_update_needed: boolean;
@@ -52,12 +52,12 @@ export interface SearchedProductMetadata {
     order_by: string;
     total_results: number;
     active_unit: "KG" | "L" | "M" | "M2" | "EACH" | "HUNDRED_SHEETS" | null;
-    units_range_list: SearchedProductAvailableUnitRangesInfo[];
-    price_range_info: SearchedProductPriceRangeInfo;
+    units_range_list: SearchedProductAvailableUnitRangesInfoSerialiser[];
+    price_range_info: SearchedProductPriceRangeInfoSerialiser;
     filter_count: number;
 }
 
-export interface BasketProduct {
+export interface BasketProductSerialiser {
     id?: number;
     name: string;
     price: number;
@@ -68,36 +68,36 @@ export interface BasketProduct {
     updated_at?: string;
 }
 
-export interface BasketItemParams {
+export interface BasketItemParamsSerialiser {
     page?: number;
     shop?: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
 }
 
-export interface BasketItem {
+export interface BasketItemSerialiser {
     id: number;
-    product: BasketProduct;
+    product: BasketProductSerialiser;
     quantity: number;
     checked: boolean;
 }
 
-export interface BasketItemShopBreakdown {
+export interface BasketItemShopBreakdownSerialiser {
     name: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
     total_price: number;
     total_quantity: number;
 }
 
-export interface BasketItemMetadata {
+export interface BasketItemMetadataSerialiser {
     total_items: number;
     total_quantity: number;
     total_price: number;
-    shop_breakdown: BasketItemShopBreakdown[];
+    shop_breakdown: BasketItemShopBreakdownSerialiser[];
     page: number;
     total_pages: number;
     selected_shop: "ALDI" | "TESCO" | "SUPERVALU" | "ALL";
 }
 
-export interface Basket {
-    items?: BasketItem[];
+export interface BasketSerialiser {
+    items?: BasketItemSerialiser[];
 }
 
 export interface SocialAccountSerializer {
@@ -110,7 +110,7 @@ export interface CustomUserDetailsSerializer {
     email?: string;
     first_name?: string;
     last_name?: string;
-    customer?: Customer;
+    customer?: CustomerSerialiser;
     social_accounts?: SocialAccountSerializer[];
 }
 
