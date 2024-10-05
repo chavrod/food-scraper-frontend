@@ -9,7 +9,7 @@ from dj_rest_auth.views import (
 )
 from rest_framework_simplejwt.views import TokenVerifyView
 
-from users.views import (
+from .views import (
     GoogleLogin,
     LogoutView,
     SendValidationEmailView,
@@ -17,8 +17,6 @@ from users.views import (
     CustomRegisterView,
     delete_account,
 )
-
-app_name = "accounts"
 
 urlpatterns = [
     path("register/", CustomRegisterView.as_view(), name="rest_register"),
