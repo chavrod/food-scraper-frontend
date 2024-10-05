@@ -4,21 +4,21 @@ import time
 
 from playwright.sync_api import sync_playwright, Page
 
+from shopwiz.apps.core.models import ShopName, ShopPageCount
+from shopwiz.apps.core.serializers import SearchedProductSerialiser
 from .shop_scraper import ShopScraper
-import core.models as core_models
-import core.serializers as core_serializers
-import core.scraper_factory.shop_scrapers.util as scraper_util
+from . import util as scraper_util
 
 
 class TescoScraper(ShopScraper):
     def __init__(self):
-        self.shop_name = core_models.ShopName.TESCO
+        self.shop_name = ShopName.TESCO
         self.start_time = 0
         self.products = []
         self.total_number_of_items = 0
         self.total_number_of_pages = 0
         self.current_page = 1
-        self.items_per_page = core_models.ShopPageCount.TESCO_LONG
+        self.items_per_page = ShopPageCount.TESCO_LONG
 
     def _build_url(self, query: str, is_relevant_only: bool):
         if is_relevant_only:
@@ -163,7 +163,7 @@ class TescoScraper(ShopScraper):
                     product["product_url"] = full_url
 
             # Create an instance of the serializer with the product data
-            serializer = core_serializers.SearchedProduct(data=product)
+            serializer = SearchedProductSerialiser(data=product)
             if serializer.is_valid():
                 self.products.append(serializer.validated_data)
             else:

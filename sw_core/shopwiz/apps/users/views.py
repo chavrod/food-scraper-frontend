@@ -31,11 +31,11 @@ from dj_rest_auth.views import (
     PasswordResetConfirmView,
 )
 
-from users.serializers import CustomPasswordResetConfirmSerializer
-from users.models import BlacklistActions
-from core.models import Customer, Basket
 from config.settings import BASE_DOMAIN
-import tools.abuse_detection as abuse_detection
+import shopwiz.tools.abuse_detection as abuse_detection
+from shopwiz.apps.core.models import Customer, Basket
+from .serializers import CustomPasswordResetConfirmSerializer
+from .models import BlacklistActions
 
 
 User = get_user_model()

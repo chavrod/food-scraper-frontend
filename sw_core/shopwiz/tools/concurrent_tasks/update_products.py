@@ -20,10 +20,10 @@ from config.settings import (
     ENABLED_SCRAPERS,
     CACHE_SHOP_SCRAPE_EXECUTION_SECONDS,
 )
-import apps.core.models as core_models
-from tools.scraper_factory import ScraperFactory
-from tools.scraper_factory.shop_scrapers import ShopScraper
-from tools import websocket_util
+from shopwiz.apps.core.models import SearchedProduct, BatchUpload
+from ..scraper_factory.scraper_factory import ScraperFactory
+from ..scraper_factory.shop_scrapers import ShopScraper
+from .. import websocket_util
 
 factory = ScraperFactory()
 
@@ -99,11 +99,11 @@ def scrape_data(query: str, is_relevant_only: bool) -> Dict:
 
 def save_results_to_db(query, products_list):
     with transaction.atomic():
-        batch_instance = core_models.BatchUpload.objects.create(query=query)
+        batch_instance = BatchUpload.objects.create(query=query)
 
         products_to_create = []
         for product in products_list:
-            product_instance = core_models.SearchedProduct(
+            product_instance = SearchedProduct(
                 batch=batch_instance,
                 name=product["name"],
                 price=product["price"],
@@ -116,7 +116,7 @@ def save_results_to_db(query, products_list):
             )
             products_to_create.append(product_instance)
 
-        core_models.SearchedProduct.objects.bulk_create(products_to_create)
+        SearchedProduct.objects.bulk_create(products_to_create)
         websocket_util.notify_scrape_completion(query)
 
 

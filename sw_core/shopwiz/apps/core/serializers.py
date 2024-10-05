@@ -5,7 +5,7 @@ import math
 from django_typomatic import ts_interface, generate_ts
 
 from config.settings import ENV
-from users.models import CustomerRequestBlacklist, BlacklistActions
+from shopwiz.apps.users.models import CustomerRequestBlacklist, BlacklistActions
 from .models import (
     Customer,
     SearchedProduct,
@@ -314,7 +314,7 @@ class BasketItemParamsSerialiser(serializers.Serializer):
 @ts_interface()
 class BasketItemSerialiser(serializers.Serializer):
     id = serializers.IntegerField(required=True)
-    product = BasketProduct(required=True)
+    product = BasketProductSerialiser(required=True)
     quantity = serializers.IntegerField(required=True)
     checked = serializers.BooleanField(required=True)
 

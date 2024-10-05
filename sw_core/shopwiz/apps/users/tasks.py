@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from allauth.account.models import EmailAddress
 from celery import shared_task
 
-import models as authentication_models
+from .models import CustomerRequestBlacklist, BlacklistActions, IPRequestBlacklist
 
 logger = logging.getLogger(__name__)
 
@@ -33,13 +33,13 @@ def delete_unverified_emails():
 @shared_task
 def reset_password_request_counts():
     # Filter CustomerRequestBlacklist entries with action RESET_PASSWORD
-    customer_entries = authentication_models.CustomerRequestBlacklist.objects.filter(
-        action=authentication_models.BlacklistActions.RESET_PASSWORD
+    customer_entries = CustomerRequestBlacklist.objects.filter(
+        action=BlacklistActions.RESET_PASSWORD
     )
     customer_entries.update(request_count=0)
 
     # Filter IPRequestBlacklist entries with action RESET_PASSWORD
-    ip_entries = authentication_models.IPRequestBlacklist.objects.filter(
-        action=authentication_models.BlacklistActions.RESET_PASSWORD
+    ip_entries = IPRequestBlacklist.objects.filter(
+        action=BlacklistActions.RESET_PASSWORD
     )
     ip_entries.update(request_count=0)

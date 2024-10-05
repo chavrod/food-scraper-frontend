@@ -2,8 +2,12 @@ import json
 from typing import Union, Optional
 
 
-import users.models as authentication_models
 from config.settings import EMAIL_RESEND_LIMIT, ENV
+from shopwiz.apps.users.models import (
+    BlacklistActions,
+    CustomerRequestBlacklist,
+    IPRequestBlacklist,
+)
 
 
 def _get_client_ip(request):
@@ -17,15 +21,13 @@ def _get_client_ip(request):
     return None
 
 
-def check_rate_limit(request, customer, action: authentication_models.BlacklistActions):
+def check_rate_limit(request, customer, action: BlacklistActions):
     """
     Check if the email or IP exceeded the rate limit.
     Returns a tuple: (is_rate_limited, email_entry, ip_entry)
     """
     # Assert that the provided action is valid
-    assert (
-        action in authentication_models.BlacklistActions.values
-    ), f"Invalid action: {action}"
+    assert action in BlacklistActions.values, f"Invalid action: {action}"
 
     client_ip = _get_client_ip(request)
 
@@ -33,14 +35,12 @@ def check_rate_limit(request, customer, action: authentication_models.BlacklistA
     (
         customer_entry,
         _,
-    ) = authentication_models.CustomerRequestBlacklist.objects.get_or_create(
-        customer=customer, action=action
-    )
+    ) = CustomerRequestBlacklist.objects.get_or_create(customer=customer, action=action)
     if client_ip:
         (
             ip_entry,
             _,
-        ) = authentication_models.IPRequestBlacklist.objects.get_or_create(
+        ) = IPRequestBlacklist.objects.get_or_create(
             ip_address=client_ip, action=action
         )
 
@@ -53,8 +53,8 @@ def check_rate_limit(request, customer, action: authentication_models.BlacklistA
 
 
 def add_to_rate_limit(
-    ip_entry: Optional[authentication_models.IPRequestBlacklist],
-    customer_entry: authentication_models.CustomerRequestBlacklist,
+    ip_entry: Optional[IPRequestBlacklist],
+    customer_entry: CustomerRequestBlacklist,
 ):
     """
     Increment the count for email and IP entries

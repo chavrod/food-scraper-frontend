@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
-from tools.concurrent_tasks.update_products import begin_updating_products
+from shopwiz.tools.concurrent_tasks.update_products import begin_updating_products
 from .serializers import (
     SearchedProductSerialiser,
     SearchedProductParamsSerialiser,

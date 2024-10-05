@@ -1,4 +1,5 @@
 from inspect import getmembers, isclass, isabstract
+
 from . import shop_scrapers
 
 

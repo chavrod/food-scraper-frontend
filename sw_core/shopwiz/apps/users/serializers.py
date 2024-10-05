@@ -5,7 +5,7 @@ from allauth.account.adapter import get_adapter
 from allauth.socialaccount.models import SocialAccount
 from django_typomatic import ts_interface, generate_ts
 
-from shopwiz.apps.core.serializers import Customer
+from shopwiz.apps.core.serializers import CustomerSerialiser
 from config.settings import ENV
 
 
@@ -18,7 +18,7 @@ class SocialAccountSerializer(serializers.ModelSerializer):
 
 @ts_interface()
 class CustomUserDetailsSerializer(UserDetailsSerializer):
-    customer = Customer(read_only=True)
+    customer = CustomerSerialiser(read_only=True)
     social_accounts = SocialAccountSerializer(
         source="socialaccount_set", many=True, read_only=True
     )
