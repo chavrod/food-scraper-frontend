@@ -15,20 +15,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.contrib import admin
 from django.urls import path, include, re_path
 
-from shopwiz.apps.users.views import CustomConfirmEmailView, CustomPasswordResetConfirmView
+from shopwiz.apps.users.views import (
+    CustomConfirmEmailView,
+    CustomPasswordResetConfirmView,
+)
 from dj_rest_auth.views import (
     PasswordResetConfirmView,
 )
-from shopwiz.apps.core.views import ping
 
 urlpatterns = [
-    path("api/admin/", admin.site.urls),
     path(
         "api/auth/",
-        include(("authentication.urls", "authentication"), namespace="authentication"),
+        include(("shopwiz.apps.users.urls", "users"), namespace="users"),
     ),
     path(
         "password-reset-confirm/<uidb64>/<token>/",
@@ -41,6 +41,5 @@ urlpatterns = [
         name="account_confirm_email",
     ),
     path("accounts/", include("allauth.urls")),
-    path("api/", include(("core.urls", "core"), namespace="core")),
-    path("api/ping/", ping, name="ping"),
+    path("api/", include(("shopwiz.apps.core.urls", "core"), namespace="core")),
 ]
