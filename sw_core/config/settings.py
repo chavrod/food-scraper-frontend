@@ -12,10 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import json
 from datetime import timedelta
-from django.utils import timezone
 
 from pathlib import Path
-from dotenv import load_dotenv, find_dotenv
 
 SITE_ID = 1
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -85,9 +83,8 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
-    "dj_rest_auth",
-    "dj_rest_auth.registration",
-    "allauth",
+    "allauth.headless",
+    "allauth.usersessions",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
@@ -251,8 +248,40 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 
+
+HEADLESS_ONLY = True
+# HEADLESS_FRONTEND_URLS = {
+#     "account_confirm_email": "/account/verify-email/{key}",
+#     "account_reset_password": "/account/password/reset",
+#     "account_reset_password_from_key": "/account/password/reset/key/{key}",
+#     "account_signup": "/account/signup",
+#     "socialaccount_login_error": "/account/provider/callback",
+# }
+# HEADLESS_FRONTEND_URLS = {
+#     "account_confirm_email": "https://app.project.org/account/verify-email/{key}",
+#     # Key placeholders are automatically populated. You are free to adjust this
+#     # to your own needs, e.g.
+#     #
+#     # "https://app.project.org/account/email/verify-email?token={key}",
+#     "account_reset_password": "https://app.project.org/account/password/reset",
+#     "account_reset_password_from_key": "https://app.project.org/account/password/reset/key/{key}",
+#     "account_signup": "https://app.project.org/account/signup",
+#     # Fallback in case the state containing the `next` URL is lost and the handshake
+#     # with the third-party provider fails.
+#     "socialaccount_login_error": "https://app.project.org/account/provider/callback",
+# }
+
 # Enforce good password practices
 ACCOUNT_ADAPTER = "shopwiz.apps.users.adapters.MyAccountAdapter"
+
+ACCOUNT_PRESERVE_USERNAME_CASING = False
+
+# TODO: Figure out how to send a verification email anyway?
+# ACCOUNT_PREVENT_ENUMERATION
+
+# TODO: Allow users to remember?
+# ACCOUNT_SESSION_REMEMBER
+
 
 # Use email for authentication instead of usernames.
 ACCOUNT_AUTHENTICATION_METHOD = "email"
@@ -274,11 +303,11 @@ SIMPLE_JWT = {
     "ALGORITHM": "HS512",
 }
 
-REST_AUTH = {
-    "USE_JWT": True,
-    "JWT_AUTH_HTTPONLY": False,
-    "USER_DETAILS_SERIALIZER": "shopwiz.apps.users.serializers.CustomUserDetailsSerializer",
-}
+# REST_AUTH = {
+#     "USE_JWT": True,
+#     "JWT_AUTH_HTTPONLY": False,
+#     "USER_DETAILS_SERIALIZER": "shopwiz.apps.users.serializers.CustomUserDetailsSerializer",
+# }
 
 SOCIALACCOUNT_ADAPTER = "users.adapters.CustomSocialAccountAdapter"
 SOCIALACCOUNT_PROVIDERS = {
