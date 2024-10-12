@@ -27,7 +27,7 @@ from dj_rest_auth.views import (
 
 urlpatterns = [
     path(
-        "api/auth/",
+        "api/users/",
         include(("shopwiz.apps.users.urls", "users"), namespace="users"),
     ),
     path(
