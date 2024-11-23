@@ -18,6 +18,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconCircleCheckFilled, IconX, IconCheck } from "@tabler/icons-react";
 // Internal: Utils
 import getCSRF from "@/utils/getCSRF";
+import { signUp } from "@/utils/allauth";
 
 function PasswordRequirement({
   meets,
@@ -104,27 +105,12 @@ function RegisterForm({
     try {
       setIsLoading(true);
 
-      const { email, password1, password2 } = form.values;
-      const username = email.includes("@") ? email.split("@")[0] : email;
+      const { email, password1 } = form.values;
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}auth/register/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            username,
-            password1,
-            password2,
-          }),
-        }
-      );
-      const data = await response.json();
+      const response = await signUp({ email, password: password1 });
 
-      // TODO: Handle non-field errors
+      console.log("data: ", response);
+      // const data = await response.json();
 
       if (!response.ok) {
         form.setErrors(data);

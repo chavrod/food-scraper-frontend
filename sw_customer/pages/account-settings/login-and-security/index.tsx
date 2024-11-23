@@ -14,8 +14,8 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 // Internal: Components
-import ResetPasswordModal from "@/Components/ResetPasswordModal";
-import DeleteAccountModal from "@/Components/DeleteAccountModal";
+import ResetPasswordModal from "@/Components/account/ResetPasswordModal";
+import DeleteAccountModal from "@/Components/account/DeleteAccountModal";
 
 export default function SecurityPage() {
   const items = [

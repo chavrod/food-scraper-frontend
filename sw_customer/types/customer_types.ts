@@ -100,17 +100,3 @@ export interface BasketSerialiser {
     items?: BasketItemSerialiser[];
 }
 
-export interface SocialAccountSerializer {
-    provider: "google";
-}
-
-export interface CustomUserDetailsSerializer {
-    pk?: number;
-    username: string;
-    email?: string;
-    first_name?: string;
-    last_name?: string;
-    customer?: CustomerSerialiser;
-    social_accounts?: SocialAccountSerializer[];
-}
-

@@ -40,7 +40,7 @@ import { useSessionContext } from "@/Context/SessionContext";
 import useBasketItems from "@/hooks/useBasketItems";
 import useSearchedProducts from "@/hooks/useProducts";
 import logout from "@/utils/auth";
-import UserAccess from "./UserAccess";
+import UserAccess from "./account/UserAccess";
 import SearchHeader from "./SearchHeader";
 
 interface Route {
