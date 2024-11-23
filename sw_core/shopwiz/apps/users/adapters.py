@@ -11,14 +11,15 @@ from shopwiz.apps.core.models import Customer, Basket
 
 class MyAccountAdapter(DefaultAccountAdapter):
     def clean_password(self, password, user=None):
+
         # Use Django's built-in validators
         validate_password(password, user)
 
         # Your custom validations:
 
         # Minimum length
-        if len(password) < 8:
-            raise ValidationError("Password must be at least 8 characters long.")
+        if len(password) < 80:
+            raise ValidationError("Password must be at least 80 characters long.")
 
         # At least one uppercase letter
         if not any(char.isupper() for char in password):
@@ -55,6 +56,7 @@ class MyAccountAdapter(DefaultAccountAdapter):
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def save_user(self, request, sociallogin, form):
+        print("HELLO CustomSocialAccountAdapter save_user")
         user = super(CustomSocialAccountAdapter, self).save_user(
             request, sociallogin, form
         )

@@ -7,8 +7,8 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.views import View
 
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.authentication import JWTAuthentication
+# from rest_framework_simplejwt.tokens import RefreshToken
+# from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -20,47 +20,50 @@ from rest_framework.decorators import (
 from rest_framework import status
 from allauth.account.views import ConfirmEmailView, EmailAddress
 from allauth.account.utils import send_email_confirmation
-from dj_rest_auth.registration.views import RegisterView
+
+# from dj_rest_auth.registration.views import RegisterView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from dj_rest_auth.registration.views import SocialLoginView
-from dj_rest_auth.views import (
-    LogoutView as DefaultLogoutView,
-    PasswordResetConfirmView,
-    PasswordResetView,
-    PasswordResetConfirmView,
-)
+
+# from dj_rest_auth.registration.views import SocialLoginView
+# from dj_rest_auth.views import (
+#     LogoutView as DefaultLogoutView,
+#     PasswordResetConfirmView,
+#     PasswordResetView,
+#     PasswordResetConfirmView,
+# )
 
 from config.settings import BASE_DOMAIN
 import shopwiz.tools.abuse_detection as abuse_detection
 from shopwiz.apps.core.models import Customer, Basket
-from .serializers import CustomPasswordResetConfirmSerializer
+
+# from .serializers import CustomPasswordResetConfirmSerializer
 from .models import BlacklistActions
 
 
 User = get_user_model()
 
 
-class CustomRegisterView(RegisterView):
-    def perform_create(self, serializer):
-        user = super().perform_create(serializer)
-        customer = Customer.objects.create(user=user)
-        # Create empty basket and associate it with a customer
-        Basket.objects.create(customer=customer)
-        return user
+# class CustomRegisterView(RegisterView):
+#     def perform_create(self, serializer):
+#         user = super().perform_create(serializer)
+#         customer = Customer.objects.create(user=user)
+#         # Create empty basket and associate it with a customer
+#         Basket.objects.create(customer=customer)
+#         return user
 
 
-class GoogleLogin(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
-    callback_url = "http://localhost:3000/"
-    client_class = OAuth2Client
+# class GoogleLogin(SocialLoginView):
+#     adapter_class = GoogleOAuth2Adapter
+#     callback_url = "http://localhost:3000/"
+#     client_class = OAuth2Client
 
 
-class LogoutView(DefaultLogoutView):
-    def post(self, request):
-        refresh_token = RefreshToken(request.data["refresh"])
-        refresh_token.blacklist()
-        return Response(status=200)
+# class LogoutView(DefaultLogoutView):
+#     def post(self, request):
+#         refresh_token = RefreshToken(request.data["refresh"])
+#         refresh_token.blacklist()
+#         return Response(status=200)
 
 
 class CustomConfirmEmailView(ConfirmEmailView):
@@ -132,90 +135,90 @@ class SendValidationEmailView(View):
         return HttpResponse(status=200)
 
 
-class CustomPasswordResetView(PasswordResetView):
-    def post(self, request, *args, **kwargs):
-        payload = json.loads(request.body)
-        email = payload.get("email")
-        if email is None:
-            return HttpResponseBadRequest("No email provided")
+# class CustomPasswordResetView(PasswordResetView):
+#     def post(self, request, *args, **kwargs):
+#         payload = json.loads(request.body)
+#         email = payload.get("email")
+#         if email is None:
+#             return HttpResponseBadRequest("No email provided")
 
-        try:
-            user = User.objects.get(email=email)
-            print("FOUND USER: ", user)
-        except User.DoesNotExist:
-            # avoid leaking information about user existence
-            return HttpResponse(status=200)
+#         try:
+#             user = User.objects.get(email=email)
+#             print("FOUND USER: ", user)
+#         except User.DoesNotExist:
+#             # avoid leaking information about user existence
+#             return HttpResponse(status=200)
 
-        (
-            is_rate_limited,
-            customer_entry,
-            ip_entry,
-        ) = abuse_detection.check_rate_limit(
-            request=request,
-            customer=user.customer,
-            action=BlacklistActions.RESET_PASSWORD,
-        )
-        if is_rate_limited:
-            return HttpResponse(status=429)  # 429 Too Many Requests
+#         (
+#             is_rate_limited,
+#             customer_entry,
+#             ip_entry,
+#         ) = abuse_detection.check_rate_limit(
+#             request=request,
+#             customer=user.customer,
+#             action=BlacklistActions.RESET_PASSWORD,
+#         )
+#         if is_rate_limited:
+#             return HttpResponse(status=429)  # 429 Too Many Requests
 
-        # Call the post method of the original PasswordResetView
-        response = super().post(request, *args, **kwargs)
+#         # Call the post method of the original PasswordResetView
+#         response = super().post(request, *args, **kwargs)
 
-        abuse_detection.add_to_rate_limit(
-            ip_entry=ip_entry, customer_entry=customer_entry
-        )
+#         abuse_detection.add_to_rate_limit(
+#             ip_entry=ip_entry, customer_entry=customer_entry
+#         )
 
-        return response
-
-
-class CustomPasswordResetConfirmView(PasswordResetConfirmView):
-    serializer_class = CustomPasswordResetConfirmSerializer
-
-    def get(self, request, *args, **kwargs):
-        context = {"uid": kwargs.get("uidb64"), "token": kwargs.get("token")}
-        return render(request, "account/password_reset_confirm.html", context)
-
-    def post(self, request, *args, **kwargs):
-        try:
-            response = super().post(request, *args, **kwargs)
-
-            # If the reset was successful, redirect to a success page or login page.
-            if response.status_code == 200:
-                return redirect(
-                    f"{BASE_DOMAIN}?password-reset=successful-password-reset"
-                )
-            else:
-                raise ValueError("Unexpected response status.")
-        except Exception as e:
-            print("Exception occurred.")
-
-            # Capture all errors from the exception
-            if hasattr(e, "detail"):
-                errors = e.detail
-            elif isinstance(e, dict):
-                errors = "; ".join(
-                    [f"{key}: {' '.join(val)}" for key, val in e.items()]
-                )
-            else:
-                errors = str(e)
-
-            print(f"Errors: {errors}")
-
-            context = {
-                "uid": request.POST.get("uid"),
-                "token": request.POST.get("token"),
-                "errors": errors,
-            }
-            return render(request, "account/password_reset_confirm.html", context)
+#         return response
 
 
-@api_view(["POST"])
-@authentication_classes([JWTAuthentication])
-@permission_classes([IsAuthenticated])
-def delete_account(request):
-    user = request.user
-    if user.is_authenticated:
-        user.delete()
-        return Response({"message": "Account deleted successfully."})
-    else:
-        return Response({"error": "Unauthorized user."}, status=401)
+# class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+#     serializer_class = CustomPasswordResetConfirmSerializer
+
+#     def get(self, request, *args, **kwargs):
+#         context = {"uid": kwargs.get("uidb64"), "token": kwargs.get("token")}
+#         return render(request, "account/password_reset_confirm.html", context)
+
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             response = super().post(request, *args, **kwargs)
+
+#             # If the reset was successful, redirect to a success page or login page.
+#             if response.status_code == 200:
+#                 return redirect(
+#                     f"{BASE_DOMAIN}?password-reset=successful-password-reset"
+#                 )
+#             else:
+#                 raise ValueError("Unexpected response status.")
+#         except Exception as e:
+#             print("Exception occurred.")
+
+#             # Capture all errors from the exception
+#             if hasattr(e, "detail"):
+#                 errors = e.detail
+#             elif isinstance(e, dict):
+#                 errors = "; ".join(
+#                     [f"{key}: {' '.join(val)}" for key, val in e.items()]
+#                 )
+#             else:
+#                 errors = str(e)
+
+#             print(f"Errors: {errors}")
+
+#             context = {
+#                 "uid": request.POST.get("uid"),
+#                 "token": request.POST.get("token"),
+#                 "errors": errors,
+#             }
+#             return render(request, "account/password_reset_confirm.html", context)
+
+
+# @api_view(["POST"])
+# @authentication_classes([JWTAuthentication])
+# @permission_classes([IsAuthenticated])
+# def delete_account(request):
+#     user = request.user
+#     if user.is_authenticated:
+#         user.delete()
+#         return Response({"message": "Account deleted successfully."})
+#     else:
+#         return Response({"error": "Unauthorized user."}, status=401)

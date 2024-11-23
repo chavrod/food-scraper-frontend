@@ -1,22 +1,22 @@
 from django.urls import path, include
 
-from dj_rest_auth.jwt_auth import get_refresh_view
-from dj_rest_auth.registration.views import RegisterView
-from dj_rest_auth.views import (
-    LoginView,
-    UserDetailsView,
-    PasswordResetView,
-)
-from rest_framework_simplejwt.views import TokenVerifyView
+# from dj_rest_auth.jwt_auth import get_refresh_view
+# from dj_rest_auth.registration.views import RegisterView
+# from dj_rest_auth.views import (
+#     LoginView,
+#     UserDetailsView,
+#     PasswordResetView,
+# )
+# from rest_framework_simplejwt.views import TokenVerifyView
 
-from .views import (
-    GoogleLogin,
-    LogoutView,
-    SendValidationEmailView,
-    CustomPasswordResetView,
-    CustomRegisterView,
-    delete_account,
-)
+# from .views import (
+#     GoogleLogin,
+#     LogoutView,
+#     SendValidationEmailView,
+#     CustomPasswordResetView,
+#     CustomRegisterView,
+#     delete_account,
+# )
 
 urlpatterns = [
     path("accounts/", include("allauth.urls")),

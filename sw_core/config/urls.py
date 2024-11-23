@@ -17,29 +17,29 @@ Including another URLconf
 
 from django.urls import path, include, re_path
 
-from shopwiz.apps.users.views import (
-    CustomConfirmEmailView,
-    CustomPasswordResetConfirmView,
-)
-from dj_rest_auth.views import (
-    PasswordResetConfirmView,
-)
+# from shopwiz.apps.users.views import (
+#     CustomConfirmEmailView,
+#     CustomPasswordResetConfirmView,
+# )
+# from dj_rest_auth.views import (
+#     PasswordResetConfirmView,
+# )
 
 urlpatterns = [
     path(
         "api/users/",
         include(("shopwiz.apps.users.urls", "users"), namespace="users"),
     ),
-    path(
-        "password-reset-confirm/<uidb64>/<token>/",
-        CustomPasswordResetConfirmView.as_view(),
-        name="password_reset_confirm",
-    ),
-    re_path(
-        r"^accounts/confirm-email/(?P<key>[-:\w]+)/$",
-        CustomConfirmEmailView.as_view(),
-        name="account_confirm_email",
-    ),
-    path("accounts/", include("allauth.urls")),
+    # path(
+    #     "password-reset-confirm/<uidb64>/<token>/",
+    #     CustomPasswordResetConfirmView.as_view(),
+    #     name="password_reset_confirm",
+    # ),
+    # re_path(
+    #     r"^accounts/confirm-email/(?P<key>[-:\w]+)/$",
+    #     CustomConfirmEmailView.as_view(),
+    #     name="account_confirm_email",
+    # ),
+    # path("accounts/", include("allauth.urls")),
     path("api/", include(("shopwiz.apps.core.urls", "core"), namespace="core")),
 ]

@@ -31,10 +31,13 @@ if ENV == "DEV":
     ALLOWED_HOSTS = ["*"]
     # CSRF
     CSRF_COOKIE_SECURE = False
-    CSRF_COOKIE_DOMAIN = "localhost"
-    CSRF_TRUSTED_ORIGINS = []
+    CSRF_COOKIE_DOMAIN = "localhost:3000"
+    CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
     # CORS
     CORS_ALLOW_ALL_ORIGINS = True
+
+    SESSION_COOKIE_DOMAIN = BASE_DOMAIN
+    SESSION_COOKIE_SECURE = False
 else:
     DEBUG = False
 
@@ -53,9 +56,9 @@ else:
     SESSION_COOKIE_SECURE = True
 
 
-# Other SCRF
+# Other CSRF
 CSRF_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
 
 # Other CORS
 CORS_ALLOW_CREDENTIALS = True
@@ -80,12 +83,10 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "rest_framework",
     # Authentication
-    "rest_framework.authtoken",
-    "rest_framework_simplejwt",
-    "rest_framework_simplejwt.token_blacklist",
+    "allauth",
+    "allauth.account",
     "allauth.headless",
     "allauth.usersessions",
-    "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     # Local Apps
@@ -104,15 +105,15 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # "allauth.account.middleware.AccountMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ],
+    # "DEFAULT_AUTHENTICATION_CLASSES": [
+    #     "rest_framework_simplejwt.authentication.JWTAuthentication",
+    # ],
     "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
     # "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
 }
@@ -248,15 +249,14 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 
-
 HEADLESS_ONLY = True
-# HEADLESS_FRONTEND_URLS = {
-#     "account_confirm_email": "/account/verify-email/{key}",
-#     "account_reset_password": "/account/password/reset",
-#     "account_reset_password_from_key": "/account/password/reset/key/{key}",
-#     "account_signup": "/account/signup",
-#     "socialaccount_login_error": "/account/provider/callback",
-# }
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email": "/account/verify-email/{key}",
+    "account_reset_password": "/account/password/reset",
+    "account_reset_password_from_key": "/account/password/reset/key/{key}",
+    "account_signup": "/account/signup",
+    "socialaccount_login_error": "/account/provider/callback",
+}
 # HEADLESS_FRONTEND_URLS = {
 #     "account_confirm_email": "https://app.project.org/account/verify-email/{key}",
 #     # Key placeholders are automatically populated. You are free to adjust this
@@ -294,15 +294,15 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = "\u200B"
 # Optional: Use this if you want the user to confirm their email before they can login.
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": True,
-    "SIGNING_KEY": SIGNING_KEY,
-    "ALGORITHM": "HS512",
-}
+# SIMPLE_JWT = {
+#     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+#     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+#     "ROTATE_REFRESH_TOKENS": True,
+#     "BLACKLIST_AFTER_ROTATION": True,
+#     "UPDATE_LAST_LOGIN": True,
+#     "SIGNING_KEY": SIGNING_KEY,
+#     "ALGORITHM": "HS512",
+# }
 
 # REST_AUTH = {
 #     "USE_JWT": True,
