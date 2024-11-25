@@ -1,4 +1,4 @@
-import getCSRF from "./getCSRF";
+import getCSRF from "../getCSRF";
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}users/_allauth/browser/v1`;
 const ACCEPT_JSON = {
@@ -24,6 +24,9 @@ export const Flows = Object.freeze({
 });
 
 export const URLs = Object.freeze({
+  // Meta
+  CONFIG: BASE_URL + "/config",
+
   // Account management
   CHANGE_PASSWORD: BASE_URL + "/account/password/change",
   EMAIL: BASE_URL + "/account/email",
@@ -49,10 +52,6 @@ export const URLs = Object.freeze({
   SESSIONS: BASE_URL + "/auth/sessions",
 });
 
-// TODO: this does not work
-// const tokenStorage = window.sessionStorage;
-let tokenStorage: any = {};
-
 async function request(
   method: string,
   path: string,
@@ -68,7 +67,10 @@ async function request(
     credentials: "include",
   };
 
-  options.headers["X-CSRFToken"] = await getCSRF();
+  // Don't pass along authentication related headers to the config endpoint.
+  if (path !== URLs.CONFIG) {
+    options.headers["X-CSRFToken"] = await getCSRF();
+  }
 
   if (typeof data !== "undefined") {
     options.body = JSON.stringify(data);
@@ -76,12 +78,7 @@ async function request(
   }
   const resp = await fetch(path, options);
   const msg = await resp.json();
-  if (msg.status === 410) {
-    tokenStorage.removeItem("sessionToken");
-  }
-  if (msg.meta?.session_token) {
-    tokenStorage.setItem("sessionToken", msg.meta.session_token);
-  }
+
   if (
     [401, 410].includes(msg.status) ||
     (msg.status === 200 && msg.meta?.is_authenticated)
@@ -90,6 +87,10 @@ async function request(
     document.dispatchEvent(event);
   }
   return msg;
+}
+
+export async function getConfig() {
+  return await request("GET", URLs.CONFIG);
 }
 
 export async function login(data: any) {
