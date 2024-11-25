@@ -9,7 +9,7 @@ import { Notifications } from "@mantine/notifications";
 import MainAppShell from "@/Components/AppLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { SessionProvider } from "@/Context/SessionContext";
+import { AuthContextProvider } from "@/utils/auth/index";
 import { GlobalProvider } from "@/Context/globalContext";
 
 const queryClient = new QueryClient();
@@ -69,8 +69,8 @@ export default function App({
             },
           }}
         >
-          <QueryClientProvider client={queryClient}>
-            <SessionProvider>
+          <AuthContextProvider>
+            <QueryClientProvider client={queryClient}>
               <GlobalProvider>
                 <Notifications position="top-right" />
                 <MainAppShell>
@@ -79,8 +79,8 @@ export default function App({
                   <ReactQueryDevtools />
                 </MainAppShell>
               </GlobalProvider>
-            </SessionProvider>
-          </QueryClientProvider>
+            </QueryClientProvider>
+          </AuthContextProvider>
         </MantineProvider>
       </ColorSchemeProvider>
     </>
