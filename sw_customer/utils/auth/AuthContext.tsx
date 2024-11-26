@@ -20,7 +20,19 @@ interface AuthContextProviderProps {
   children: ReactNode;
 }
 
-type AuthType = any;
+type AuthFlow = {
+  is_pending: boolean;
+};
+
+export type AuthType = {
+  status: number;
+  data: {
+    flows: AuthFlow[];
+  };
+  meta: {
+    is_authenticated: boolean;
+  };
+};
 
 export const AuthContextProvider: FC<AuthContextProviderProps> = ({
   children,
