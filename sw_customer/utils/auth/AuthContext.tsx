@@ -1,8 +1,33 @@
 import { useEffect, createContext, useState, ReactNode, FC } from "react";
 import { getAuth, getConfig } from "./api";
 
+interface AuthContextProviderProps {
+  children: ReactNode;
+}
+
+type AuthFlow = {
+  id: string;
+  is_pending: boolean;
+};
+
+type User = {
+  id: string;
+};
+
+export type AuthType = {
+  status: number;
+  data: {
+    flows?: AuthFlow[];
+    user?: User;
+    methods: any;
+  };
+  meta: {
+    is_authenticated: boolean;
+  };
+};
+
 interface AuthContextType {
-  auth: any;
+  auth: AuthType;
   config: any;
 }
 
@@ -16,33 +41,15 @@ function LoadingError() {
   return <div>Loading error!</div>;
 }
 
-interface AuthContextProviderProps {
-  children: ReactNode;
-}
-
-type AuthFlow = {
-  is_pending: boolean;
-};
-
-export type AuthType = {
-  status: number;
-  data: {
-    flows: AuthFlow[];
-  };
-  meta: {
-    is_authenticated: boolean;
-  };
-};
-
 export const AuthContextProvider: FC<AuthContextProviderProps> = ({
   children,
 }) => {
-  const [auth, setAuth] = useState<any | undefined>(undefined);
+  const [auth, setAuth] = useState<AuthType | false | undefined>(undefined);
   const [config, setConfig] = useState<any | undefined>(undefined);
 
   useEffect(() => {
     function onAuthChanged(e: CustomEvent) {
-      setAuth((auth: AuthType | undefined) => {
+      setAuth((auth: AuthType | boolean | undefined) => {
         if (typeof auth === "undefined") {
           console.log("Authentication status loaded");
         } else {
@@ -75,9 +82,15 @@ export const AuthContextProvider: FC<AuthContextProviderProps> = ({
     };
   }, []);
   const loading = typeof auth === "undefined" || config?.status !== 200;
+
+  // Only provide a value to AuthContext.Provider when auth is correctly typed
+  if (loading || auth === false) {
+    return loading ? <Loading /> : <LoadingError />;
+  }
+
   return (
     <AuthContext.Provider value={{ auth, config }}>
-      {loading ? <Loading /> : auth === false ? <LoadingError /> : children}
+      {children}
     </AuthContext.Provider>
   );
 };

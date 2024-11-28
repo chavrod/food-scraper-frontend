@@ -19,11 +19,12 @@ export function useAuthInfo() {
   return authInfo(auth);
 }
 
-function authInfo(auth: AuthType) {
+function authInfo(auth?: AuthType) {
   const isAuthenticated =
-    auth.status === 200 || (auth.status === 401 && auth.meta.is_authenticated);
+    auth?.status === 200 ||
+    (auth?.status === 401 && auth?.meta.is_authenticated);
   const requiresReauthentication = isAuthenticated && auth.status === 401;
-  const pendingFlow = auth.data?.flows?.find((flow) => flow.is_pending);
+  const pendingFlow = auth?.data?.flows?.find((flow) => flow.is_pending);
   return {
     isAuthenticated,
     requiresReauthentication,
@@ -39,11 +40,12 @@ export const AuthChangeEvent = Object.freeze({
   REAUTHENTICATION_REQUIRED: "REAUTHENTICATION_REQUIRED",
   FLOW_UPDATED: "FLOW_UPDATED",
 });
+type AuthChangeEventType = keyof typeof AuthChangeEvent | null;
 
-function determineAuthChangeEvent(fromAuth, toAuth) {
+function determineAuthChangeEvent(fromAuth?: AuthType, toAuth?: AuthType) {
   let fromInfo = authInfo(fromAuth);
   const toInfo = authInfo(toAuth);
-  if (toAuth.status === 410) {
+  if (toAuth?.status === 410) {
     return AuthChangeEvent.LOGGED_OUT;
   }
   // Corner case: user ID change. Treat as if we're transitioning from anonymous state.
@@ -52,6 +54,7 @@ function determineAuthChangeEvent(fromAuth, toAuth) {
       isAuthenticated: false,
       requiresReauthentication: false,
       user: null,
+      pendingFlow: fromInfo.pendingFlow,
     };
   }
   if (!fromInfo.isAuthenticated && toInfo.isAuthenticated) {
@@ -64,7 +67,7 @@ function determineAuthChangeEvent(fromAuth, toAuth) {
       return AuthChangeEvent.REAUTHENTICATION_REQUIRED;
     } else if (fromInfo.requiresReauthentication) {
       return AuthChangeEvent.REAUTHENTICATED;
-    } else if (fromAuth.data.methods.length < toAuth.data.methods.length) {
+    } else if (fromAuth?.data?.methods.length < toAuth?.data.methods.length) {
       // If you do a page reload when on the reauthentication page, both fromAuth
       // and toAuth are authenticated, and it won't see the change when
       // reauthentication without this.
@@ -83,7 +86,10 @@ function determineAuthChangeEvent(fromAuth, toAuth) {
 
 export function useAuthChange() {
   const auth = useAuth();
-  const ref = useRef({ prevAuth: auth, event: null });
+  const ref = useRef<{
+    prevAuth?: AuthType;
+    event: AuthChangeEventType;
+  }>({ prevAuth: auth, event: null });
   const [, setForcedUpdate] = useState(0);
 
   useEffect(() => {
