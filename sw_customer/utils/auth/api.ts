@@ -13,7 +13,6 @@ export const AuthProcess = Object.freeze({
 export const Flows = Object.freeze({
   VERIFY_EMAIL: "verify_email",
   LOGIN: "login",
-  LOGIN_BY_CODE: "login_by_code",
   SIGNUP: "signup",
   PROVIDER_REDIRECT: "provider_redirect",
   PROVIDER_SIGNUP: "provider_signup",
