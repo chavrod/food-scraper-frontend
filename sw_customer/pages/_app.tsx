@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AuthContextProvider } from "@/utils/auth/index";
 import { GlobalProvider } from "@/Context/globalContext";
+import { AuthRoutingProvider } from "@/utils/auth/routing";
 
 const queryClient = new QueryClient();
 
@@ -70,16 +71,18 @@ export default function App({
           }}
         >
           <AuthContextProvider>
-            <QueryClientProvider client={queryClient}>
-              <GlobalProvider>
-                <Notifications position="top-right" />
-                <MainAppShell>
-                  {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                  <Component {...pageProps} />
-                  <ReactQueryDevtools />
-                </MainAppShell>
-              </GlobalProvider>
-            </QueryClientProvider>
+            <AuthRoutingProvider>
+              <QueryClientProvider client={queryClient}>
+                <GlobalProvider>
+                  <Notifications position="top-right" />
+                  <MainAppShell>
+                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                    <Component {...pageProps} />
+                    <ReactQueryDevtools />
+                  </MainAppShell>
+                </GlobalProvider>
+              </QueryClientProvider>
+            </AuthRoutingProvider>
           </AuthContextProvider>
         </MantineProvider>
       </ColorSchemeProvider>

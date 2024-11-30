@@ -1,17 +1,20 @@
 import { useEffect, createContext, useState, ReactNode, FC } from "react";
-import { getAuth, getConfig } from "./api";
+import { getAuth, getConfig, Flows } from "./api";
 
 interface AuthContextProviderProps {
   children: ReactNode;
 }
 
-type AuthFlow = {
-  id: string;
+// type FlowId = (typeof Flows)[keyof typeof Flows];
+export type AuthFlow = {
+  id: (typeof Flows)[keyof typeof Flows];
   is_pending: boolean;
 };
 
 type User = {
   id: string;
+  username: string;
+  email: string;
 };
 
 export type AuthType = {
@@ -23,6 +26,7 @@ export type AuthType = {
   };
   meta: {
     is_authenticated: boolean;
+    access_token: string;
   };
 };
 
@@ -33,8 +37,9 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
+// TODO: Something not annoying??
 function Loading() {
-  return <div>Starting...</div>;
+  return <div></div>;
 }
 
 function LoadingError() {
@@ -54,6 +59,7 @@ export const AuthContextProvider: FC<AuthContextProviderProps> = ({
           console.log("Authentication status loaded");
         } else {
           console.log("Authentication status updated");
+          console.log("auth: ", auth);
         }
         return e.detail;
       });

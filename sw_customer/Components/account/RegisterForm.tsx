@@ -18,7 +18,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconCircleCheckFilled, IconX, IconCheck } from "@tabler/icons-react";
 // Internal: Utils
 import getCSRF from "@/utils/getCSRF";
-import { signUp } from "@/utils/allauth";
+import { signUp } from "@/utils/auth/index";
 
 function PasswordRequirement({
   meets,
@@ -107,13 +107,13 @@ function RegisterForm({
 
       const { email, password1 } = form.values;
 
-      const response = await signUp({ email, password: password1 });
+      const msg = await signUp({ email, password: password1 });
 
-      console.log("data: ", response);
+      console.log("data: ", msg);
       // const data = await response.json();
 
-      if (!response.ok) {
-        form.setErrors(data);
+      if (msg.status == 400) {
+        form.setErrors(msg.data);
       } else {
         handleRegistrationSubmission();
         setEmailVerificationToResend(email);

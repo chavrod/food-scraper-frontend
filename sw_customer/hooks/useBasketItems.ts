@@ -2,13 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter, NextRouter } from "next/router";
 import { normalizeQueryParams } from "@/utils/paramsUtil";
 import basketItemsApi from "@/utils/basketItemsApi";
-import { useSessionContext } from "@/Context/SessionContext";
+import { useAuthInfo } from "@/utils/auth/index";
 
 function useBasketItems() {
   const router = useRouter();
 
-  const { session } = useSessionContext();
-  const accessToken = session?.access_token;
+  const { accessToken } = useAuthInfo();
 
   const queryParams = normalizeQueryParams(
     router.query,

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import React, { useState } from "react";
-import { useSessionContext } from "@/Context/SessionContext";
+import { useAuthInfo } from "@/utils/auth/index";
 import {
   Paper,
   Text,
@@ -48,8 +48,7 @@ export default function BasketPreview() {
 
   const queryClient = useQueryClient();
 
-  const { session, isLoading } = useSessionContext();
-  const accessToken = session?.access_token;
+  const { accessToken, user } = useAuthInfo();
 
   const {
     isLoading: isLoadingBasketItems,
@@ -169,7 +168,7 @@ export default function BasketPreview() {
     }));
   };
 
-  if (!isLargerThanSm || !session) {
+  if (!isLargerThanSm || !user) {
     return undefined;
   }
 
@@ -237,20 +236,20 @@ export default function BasketPreview() {
             </Group>
             <Tooltip
               label="Log in to access the basket"
-              disabled={!!session}
+              disabled={!!user}
               events={{
                 hover: true,
                 focus: false,
                 touch: true,
               }}
             >
-              <Link href={session ? "/basket" : "#"} passHref>
+              <Link href={user ? "/basket" : "#"} passHref>
                 <Button
                   style={{ width: "100%" }}
                   variant="filled"
                   radius="xl"
                   size="sm"
-                  color={session ? "default" : "gray.6"}
+                  color={user ? "default" : "gray.6"}
                 >
                   Go to basket
                 </Button>
@@ -266,7 +265,7 @@ export default function BasketPreview() {
         </Box>
       </Stack>
 
-      {session ? (
+      {user ? (
         isLoadingBasketItems ? (
           <Paper>
             <Stack align="center" m="xl">

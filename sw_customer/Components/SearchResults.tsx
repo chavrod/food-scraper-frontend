@@ -28,7 +28,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import { BasketProduct, SearchedProduct } from "@/types/customer_types";
 import useSearchedProducts from "@/hooks/useProducts";
-import { useSessionContext } from "@/Context/SessionContext";
+import { useAuthInfo } from "@/utils/auth/index";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
 import CountdownCircle from "@/Components/CountdownCircle";
@@ -59,8 +59,7 @@ export default function SearchResults() {
     firstTimeSearch,
   } = useSearchedProducts();
 
-  const { session } = useSessionContext();
-  const accessToken = session?.access_token;
+  const { accessToken } = useAuthInfo();
 
   const isLargerThanSm = useMediaQuery("(min-width: 768px)", undefined, {
     getInitialValueInEffect: false,
@@ -324,7 +323,7 @@ type ProductCardProps = {
   product: SearchedProduct;
   index: number;
   productStates: ProductStateType;
-  accessToken: string | undefined;
+  accessToken: string | null;
   handleAddToBasket: (product: SearchedProduct, index: number) => void;
 };
 

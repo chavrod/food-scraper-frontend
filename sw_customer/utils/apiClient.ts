@@ -1,7 +1,7 @@
 async function request(
   endpoint: string,
   method: string,
-  accessToken: string | undefined,
+  accessToken: string | null,
   data: {} | null = null
 ): Promise<Response> {
   const options: any = {
@@ -29,7 +29,7 @@ async function request(
 const apiClient = {
   get: (
     endpoint: string,
-    accessToken: string | undefined,
+    accessToken: string | null,
     params?: { [key: string]: string | number }
   ): Promise<Response> => {
     let fullUrl = endpoint;
@@ -41,12 +41,12 @@ const apiClient = {
   },
   post: (
     endpoint: string,
-    accessToken: string | undefined,
+    accessToken: string | null,
     data?: {}
   ): Promise<Response> => request(endpoint, "POST", accessToken, data),
   delete: (
     endpoint: string,
-    accessToken: string | undefined,
+    accessToken: string | null,
     data?: {}
   ): Promise<Response> => request(endpoint, "DELETE", accessToken, data),
 };

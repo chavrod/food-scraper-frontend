@@ -1,98 +1,104 @@
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuthChange, AuthChangeEvent, useAuthStatus } from "./hooks";
-import { Flows, AuthenticatorType } from "../lib/allauth";
+import React from "react";
+import { useRouter } from "next/router";
+import { useAuthChange, AuthChangeEvent, authInfo } from "./hooks";
+// import { Flows, AuthFlowType, AuthenticatorType } from "../lib/allauth";
+import { Flows } from "./api";
+import { AuthFlow, AuthType } from "./AuthContext";
 
 export const URLs = Object.freeze({
-  LOGIN_URL: "/account/login",
-  LOGIN_REDIRECT_URL: "/dashboard",
+  LOGIN_URL: "/?login=open",
+  LOGIN_REDIRECT_URL: "/",
   LOGOUT_REDIRECT_URL: "/",
 });
 
-const flow2path = {};
-flow2path[Flows.LOGIN] = "/account/login";
-flow2path[Flows.SIGNUP] = "/account/signup";
-flow2path[Flows.VERIFY_EMAIL] = "/account/verify-email";
-flow2path[Flows.PROVIDER_SIGNUP] = "/account/provider/signup";
-flow2path[Flows.REAUTHENTICATE] = "/account/reauthenticate";
+export const Flow2Path = Object.freeze({
+  [Flows.LOGIN]: "/?login=open",
+  [Flows.SIGNUP]: "signup", // TODO: Change
+  [Flows.VERIFY_EMAIL]: "verify_email", // TODO: Change
+  [Flows.PROVIDER_REDIRECT]: "provider_redirect", // TODO: Change
+  [Flows.PROVIDER_SIGNUP]: "provider_signup", // TODO: Change
+  [Flows.REAUTHENTICATE]: "reauthenticate", // TODO: Change
+});
 
-export function pathForFlow(flow, typ) {
-  let key = flow.id;
-  if (typeof flow.types !== "undefined") {
-    typ = typ ?? flow.types[0];
-    key = `${key}:${typ}`;
+export function pathForFlow(flow?: AuthFlow) {
+  if (!flow) {
+    throw new Error("No flow provided");
   }
-  const path = flow2path[key] ?? flow2path[flow.id];
+
+  const path = Flow2Path[flow.id];
   if (!path) {
     throw new Error(`Unknown path for flow: ${flow.id}`);
   }
   return path;
 }
 
-export function pathForPendingFlow(auth) {
-  const flow = auth.data.flows.find((flow) => flow.is_pending);
+export function pathForPendingFlow(auth?: AuthType) {
+  if (!auth) return null;
+
+  const flow = auth?.data?.flows?.find((flow) => flow.is_pending);
   if (flow) {
     return pathForFlow(flow);
   }
   return null;
 }
 
-function navigateToPendingFlow(auth) {
-  const path = pathForPendingFlow(auth);
-  if (path) {
-    return <Navigate to={path} />;
-  }
-  return null;
+// Define protected routes (as patterns)
+const PROTECTED_ROUTES = Object.freeze(["/account-settings"]);
+
+// Function to check if the current path is a protected route
+function isProtectedRoute(pathname: string) {
+  return PROTECTED_ROUTES.some((protectedRoute) =>
+    pathname.startsWith(protectedRoute)
+  );
 }
 
-export function AuthenticatedRoute({ children }) {
-  const location = useLocation();
-  const [, status] = useAuthStatus();
-  const next = `next=${encodeURIComponent(
-    location.pathname + location.search
-  )}`;
-  if (status.isAuthenticated) {
-    return children;
-  } else {
-    return <Navigate to={`${URLs.LOGIN_URL}?${next}`} />;
-  }
-}
-
-export function AnonymousRoute({ children }) {
-  const [, status] = useAuthStatus();
-  if (!status.isAuthenticated) {
-    return children;
-  } else {
-    return <Navigate to={URLs.LOGIN_REDIRECT_URL} />;
-  }
-}
-
-export function AuthChangeRedirector({ children }) {
+export function AuthRoutingProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
   const [auth, event] = useAuthChange();
+  const status = authInfo(auth);
 
   switch (event) {
     case AuthChangeEvent.LOGGED_OUT:
-      return <Navigate to={URLs.LOGOUT_REDIRECT_URL} />;
+      router.push(URLs.LOGOUT_REDIRECT_URL);
+      break;
     case AuthChangeEvent.LOGGED_IN:
-      return <Navigate to={URLs.LOGIN_REDIRECT_URL} />;
+      router.push(URLs.LOGIN_REDIRECT_URL);
     case AuthChangeEvent.REAUTHENTICATED: {
       const next = new URLSearchParams(location.search).get("next") || "/";
-      return <Navigate to={next} />;
+      router.push(next);
+      break;
     }
     case AuthChangeEvent.REAUTHENTICATION_REQUIRED: {
       const next = `next=${encodeURIComponent(
         location.pathname + location.search
       )}`;
-      const path = pathForFlow(auth.data.flows[0]);
-      return <Navigate to={`${path}?${next}`} state={{ reauth: auth }} />;
+      const path = pathForFlow(auth?.data?.flows?.[0]);
+      router.push({
+        pathname: path,
+        query: { next },
+      });
+      break;
     }
     case AuthChangeEvent.FLOW_UPDATED:
-      const pendingFlow = navigateToPendingFlow(auth);
-      if (!pendingFlow) {
+      const path = pathForPendingFlow(auth);
+      if (!path) {
         throw new Error();
       }
-      return pendingFlow;
+      router.push(path);
     default:
-      break;
+      // Check if the route is protected
+      if (isProtectedRoute(router.pathname)) {
+        if (!status.isAuthenticated) {
+          // Redirect to login if the user is not authenticated
+          const next = `next=${encodeURIComponent(router.asPath)}`;
+          router.push(`${URLs.LOGIN_URL}?${next}`);
+          return null;
+        }
+      }
   }
   // ...stay where we are
   return children;

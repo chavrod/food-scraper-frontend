@@ -1,6 +1,6 @@
 import Link from "next/link";
 import React, { useState } from "react";
-import { useSessionContext } from "@/Context/SessionContext";
+import { useAuthInfo } from "@/utils/auth/index";
 import {
   Stack,
   Title,
@@ -27,12 +27,10 @@ export default function SecurityPage() {
     </Link>
   ));
 
-  const { session, isLoading } = useSessionContext();
+  const { accessToken, user } = useAuthInfo();
 
-  const accressToken = session?.access_token || null;
   const refreshToken = session?.refresh_token || null;
 
-  const user = session?.user;
   const userEmail = user?.email;
   const userPasswordResetAttempts =
     user?.customer?.password_reset_attempts || 0;

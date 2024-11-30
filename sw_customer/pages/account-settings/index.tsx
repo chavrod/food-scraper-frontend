@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Stack, Title, Text, Grid, Paper } from "@mantine/core";
 import { IconEye, IconId, IconShield } from "@tabler/icons-react";
 
-import { useSessionContext } from "@/Context/SessionContext";
+import { useAuthInfo } from "@/utils/auth/index";
 
 interface AccountSettingsMainMenuCardProps extends PropsWithChildren {
   href: string;
@@ -51,13 +51,13 @@ function AccountSettingsMainMenuCard({
 }
 
 export default function EstimatePage() {
-  const { session, isLoading } = useSessionContext();
+  const { user } = useAuthInfo();
 
   return (
     <div>
       <Stack spacing="xs" mb={80} mt="md" px="lg">
         <Title order={2}>Account Settings</Title>
-        <Text mb="lg">{session?.user.email}</Text>
+        <Text mb="lg">{user?.email}</Text>
         <Grid
           maw="1050px"
           sx={(theme) => ({

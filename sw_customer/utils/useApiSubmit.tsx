@@ -7,7 +7,7 @@ import notifyError from "./notifyError";
 interface UseApiSubmitProps<T> {
   apiFunc: (accessToken: string | undefined, data: T) => Promise<any>;
   onSuccess: () => void;
-  accessToken: string | undefined;
+  accessToken: string | null;
 }
 
 function useApiSubmit<T>({

@@ -19,17 +19,19 @@ export function useAuthInfo() {
   return authInfo(auth);
 }
 
-function authInfo(auth?: AuthType) {
+export function authInfo(auth?: AuthType) {
   const isAuthenticated =
     auth?.status === 200 ||
     (auth?.status === 401 && auth?.meta.is_authenticated);
   const requiresReauthentication = isAuthenticated && auth.status === 401;
   const pendingFlow = auth?.data?.flows?.find((flow) => flow.is_pending);
+  const accessToken = (isAuthenticated && auth.meta.access_token) || null;
   return {
     isAuthenticated,
     requiresReauthentication,
     user: isAuthenticated ? auth.data.user : null,
     pendingFlow,
+    accessToken,
   };
 }
 
@@ -108,7 +110,7 @@ export function useAuthChange() {
     ref.current.event = null;
   }
 
-  return [auth, event];
+  return [auth, event] as [AuthType | undefined, AuthChangeEventType | null];
 }
 
 export function useAuthStatus() {

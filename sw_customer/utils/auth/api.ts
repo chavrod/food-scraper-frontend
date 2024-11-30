@@ -16,10 +16,7 @@ export const Flows = Object.freeze({
   SIGNUP: "signup",
   PROVIDER_REDIRECT: "provider_redirect",
   PROVIDER_SIGNUP: "provider_signup",
-  MFA_AUTHENTICATE: "mfa_authenticate",
   REAUTHENTICATE: "reauthenticate",
-  MFA_REAUTHENTICATE: "mfa_reauthenticate",
-  MFA_WEBAUTHN_SIGNUP: "mfa_signup_webauthn",
 });
 
 export const URLs = Object.freeze({

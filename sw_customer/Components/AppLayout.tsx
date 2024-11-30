@@ -35,7 +35,7 @@ import {
   IconShoppingCart,
   IconSearch,
 } from "@tabler/icons-react";
-import { useSessionContext } from "@/Context/SessionContext";
+import { useUser } from "@/utils/auth/index";
 // Internal: Utils
 import useBasketItems from "@/hooks/useBasketItems";
 import useSearchedProducts from "@/hooks/useProducts";
@@ -100,7 +100,7 @@ export default function MainAppShell({
 
   const [opened, { open, close }] = useDisclosure(false);
 
-  const { session } = useSessionContext();
+  const user = useUser();
 
   const routes: Route[] = [
     {
@@ -125,7 +125,7 @@ export default function MainAppShell({
       isLoggedOutVisible: false,
       onClick: false,
       showStats: true,
-      stat: session && basketQty ? (basketQty > 99 ? "99+" : basketQty) : 0,
+      stat: user && basketQty ? (basketQty > 99 ? "99+" : basketQty) : 0,
     },
 
     {
@@ -294,15 +294,16 @@ export default function MainAppShell({
                     ))}
                 </Group>
               )}
-              {session ? (
+              {user ? (
                 <Menu shadow="md" width={200} position="bottom-end" offset={3}>
                   <Menu.Target>
                     <Avatar
-                      color={session ? "brand" : "gray"}
+                      // TODO: will never render gray
+                      color={user ? "brand" : "gray"}
                       radius={isLargerThanSm ? "" : "sm"}
                     >
-                      {session && session.user.username.length > 2 ? (
-                        session.user.username.slice(0, 2).toUpperCase()
+                      {user.username.length > 2 ? (
+                        user.username.slice(0, 2).toUpperCase()
                       ) : (
                         <IconUserCircle size="1.8rem" stroke="0.09rem" />
                       )}
@@ -310,7 +311,7 @@ export default function MainAppShell({
                   </Menu.Target>
 
                   <Menu.Dropdown>
-                    <Menu.Label>{session.user.email}</Menu.Label>
+                    <Menu.Label>{user.email}</Menu.Label>
                     <Menu.Item icon={<IconLifebuoy size={14} />}>
                       Help
                     </Menu.Item>
@@ -327,7 +328,8 @@ export default function MainAppShell({
                     </Menu.Item>
                     <Menu.Divider />
                     <Menu.Item
-                      onClick={() => logout(session.refresh_token)}
+                      // TODO: Implement
+                      // onClick={() => logout(session.refresh_token)}
                       // onClick={() => signOut()}
                       icon={<IconLogout size={14} />}
                     >
@@ -349,13 +351,13 @@ export default function MainAppShell({
         !isLargerThanSm ? (
           <Footer height={60} p="xs">
             <Group
-              position={session ? "apart" : "center"}
-              spacing={!session ? "xl" : ""}
+              position={user ? "apart" : "center"}
+              spacing={!user ? "xl" : ""}
             >
               {routes
                 .filter((r) => r.footer)
                 .filter((r) =>
-                  session ? r.isLoggedInVisible : r.isLoggedOutVisible
+                  user ? r.isLoggedInVisible : r.isLoggedOutVisible
                 )
                 .map((r, i) =>
                   typeof r.onClick === "function" ? (

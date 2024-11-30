@@ -47,7 +47,7 @@ import {
 import useBasketItems from "@/hooks/useBasketItems";
 import basketItemsApi from "@/utils/basketItemsApi";
 import useApiSubmit from "@/utils/useApiSubmit";
-import { useSessionContext } from "@/Context/SessionContext";
+import { useAuthInfo } from "@/utils/auth/index";
 import BasketViewSkeleton from "@/Components/Skeletons";
 
 type ProductStateType = {
@@ -62,12 +62,12 @@ type ProductStateType = {
 export type BasketViewMode = "card" | "list" | "summary";
 
 export default function Basket() {
+  const authInfo = useAuthInfo();
+  const accessToken = authInfo?.accessToken;
+
   const queryClient = useQueryClient();
   // console.log("RENDER");
   const router = useRouter();
-
-  const { session, isLoading } = useSessionContext();
-  const accessToken = session?.access_token;
 
   const {
     isLoading: isLoadingBasketItems,
@@ -390,7 +390,7 @@ export default function Basket() {
       </tr>
     ));
 
-  if (!session) {
+  if (!authInfo.user) {
     return (
       <Stack align="center" justify="center" style={{ height: "100%" }} mt="xl">
         <IconShoppingCartOff size={80} stroke={2} />
