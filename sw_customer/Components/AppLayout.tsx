@@ -432,9 +432,10 @@ export default function MainAppShell({
           if (isEmailConfirmed) setIsEmailConfirmed(false);
           if (isRedirectToLogin) setIsRedirectToLogin(false);
           if (isPasswordReset) setIsPasswordReset(false);
-          if (isEmailConfirmed || isPasswordReset) {
-            window.history.replaceState(null, "", "/");
-          }
+          // if (isEmailConfirmed || isPasswordReset) {
+          //   window.history.replaceState(null, "", "/");
+          // }
+          window.history.replaceState(null, "", "/");
           close();
         }}
         title={isPasswordReset ? "" : "Log in or sign up"}
