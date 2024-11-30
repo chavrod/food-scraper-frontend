@@ -77,10 +77,8 @@ export function AuthRoutingProvider({
         location.pathname + location.search
       )}`;
       const path = pathForFlow(auth?.data?.flows?.[0]);
-      router.push({
-        pathname: path,
-        query: { next },
-      });
+      // NOTE: We assume all path's have query (?) already here
+      router.push(`${path}&${next}`);
       break;
     }
     case AuthChangeEvent.FLOW_UPDATED:
@@ -95,7 +93,7 @@ export function AuthRoutingProvider({
         if (!status.isAuthenticated) {
           // Redirect to login if the user is not authenticated
           const next = `next=${encodeURIComponent(router.asPath)}`;
-          router.push(`${URLs.LOGIN_URL}?${next}`);
+          router.push(`${URLs.LOGIN_URL}&${next}`);
           return null;
         }
       }
