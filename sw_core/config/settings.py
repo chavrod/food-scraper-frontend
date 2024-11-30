@@ -310,7 +310,7 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 #     "USER_DETAILS_SERIALIZER": "shopwiz.apps.users.serializers.CustomUserDetailsSerializer",
 # }
 
-SOCIALACCOUNT_ADAPTER = "users.adapters.CustomSocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "shopwiz.apps.users.adapters.CustomSocialAccountAdapter"
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
