@@ -72,9 +72,18 @@ async function request(
     options.body = JSON.stringify(data);
     options.headers["Content-Type"] = "application/json";
   }
-  const resp = await fetch(path, options);
-  const msg = await resp.json();
 
+  const resp = await fetch(path, options);
+  let msg;
+  try {
+    msg = await resp.json();
+  } catch {
+    msg = {
+      status: 500,
+      data: "Server Error. Please try again later",
+      meta: { is_authenticated: null },
+    };
+  }
   if (
     [401, 410].includes(msg.status) ||
     (msg.status === 200 && msg.meta?.is_authenticated)
