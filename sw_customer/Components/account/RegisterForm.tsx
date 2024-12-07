@@ -109,16 +109,15 @@ function RegisterForm({
 
       const msg = await signUp({ email, password: password1 });
 
-      console.log("data: ", msg);
-      // const data = await response.json();
-
       if (msg.status == 400) {
         form.setErrors(msg.data);
-      } else {
+        // 401 indicates that email verificaiton is required
+      } else if (msg.status == 401) {
         handleRegistrationSubmission();
         setEmailVerificationToResend(email);
+      } else {
+        throw new Error(msg.data);
       }
-      setIsLoading(false);
     } catch (error: any) {
       setIsLoading(false);
       notifications.show({
@@ -126,6 +125,8 @@ function RegisterForm({
         message: error?.message || "Unknown error. Please try again later.",
         color: "red",
       });
+    } finally {
+      setIsLoading(false);
     }
 
     // Handle the response data as required (e.g., show a success message or error message)
