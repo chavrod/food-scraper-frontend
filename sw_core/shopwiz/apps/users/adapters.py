@@ -11,40 +11,38 @@ from shopwiz.apps.core.models import Customer, Basket
 
 class MyAccountAdapter(DefaultAccountAdapter):
     def clean_password(self, password, user=None):
-
-        # Use Django's built-in validators
-        validate_password(password, user)
-
-        # Your custom validations:
+        password_errors = []
 
         # Minimum length
-        if len(password) < 80:
-            raise ValidationError("Password must be at least 80 characters long.")
+        if len(password) < 8:
+            password_errors.append("Password must be at least 8 characters long")
 
         # At least one uppercase letter
         if not any(char.isupper() for char in password):
-            raise ValidationError(
-                "Password must contain at least one uppercase letter."
+            password_errors.append(
+                "Password must contain at least one uppercase letter"
             )
 
         # At least one lowercase letter
         if not any(char.islower() for char in password):
-            raise ValidationError(
-                "Password must contain at least one lowercase letter."
+            password_errors.append(
+                "Password must contain at least one uppercase letter"
             )
 
         # At least one number
         if not any(char.isdigit() for char in password):
-            raise ValidationError("Password must contain at least one digit.")
+            password_errors.append("Password must contain at least one digit")
 
         # At least one special character
         if not any(char in "!@#$%^&*" for char in password):
-            raise ValidationError(
-                "Password must contain at least one special character from !@#$%^&*."
+            password_errors.append(
+                "Password must contain at least one special character from !@#$%^&*"
             )
 
-        # TODO: Add this too
-        # No repeated characters
+        if password_errors:
+            raise ValidationError(password_errors)
+
+        # TODO: Add 'No repeated characters'
         # repeats_regex = re.compile(r"(.)\1{3,}")
         # if repeats_regex.search(password):
         #     raise ValidationError(

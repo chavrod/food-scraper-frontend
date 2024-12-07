@@ -14,4 +14,4 @@ export {
 //   AuthenticatedRoute,
 //   AnonymousRoute,
 // } from "./routing";
-export { signUp } from "./api";
+export { signUp, formatAuthErrors } from "./api";

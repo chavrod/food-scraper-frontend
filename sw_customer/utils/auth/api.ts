@@ -164,3 +164,31 @@ export async function changePassword(data: any) {
 export async function getAuth() {
   return await request("GET", URLs.SESSION);
 }
+
+interface ErrorObject {
+  message: string;
+  code: string;
+  param: string;
+}
+type CustomMapping = Record<string, string>;
+
+export function formatAuthErrors(
+  errorList: ErrorObject[],
+  customMapping: CustomMapping = {}
+): Record<string, string> {
+  const formattedErrors: Record<string, string> = {};
+
+  errorList.forEach((error) => {
+    const { message, param } = error;
+    // Use the custom mapping to determine the correct key, otherwise use the original param
+    const key = customMapping[param] || param;
+
+    if (formattedErrors[key]) {
+      formattedErrors[key] += `; ${message}`;
+    } else {
+      formattedErrors[key] = message;
+    }
+  });
+
+  return formattedErrors;
+}

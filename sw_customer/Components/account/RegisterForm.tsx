@@ -18,7 +18,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconCircleCheckFilled, IconX, IconCheck } from "@tabler/icons-react";
 // Internal: Utils
 import getCSRF from "@/utils/getCSRF";
-import { signUp } from "@/utils/auth/index";
+import { signUp, formatAuthErrors } from "@/utils/auth/index";
 
 function PasswordRequirement({
   meets,
@@ -109,8 +109,10 @@ function RegisterForm({
 
       const msg = await signUp({ email, password: password1 });
 
+      console.log("SIGNUP RES: ", msg);
+
       if (msg.status == 400) {
-        form.setErrors(msg.data);
+        form.setErrors(formatAuthErrors(msg.errors, { password: "password1" }));
         // 401 indicates that email verificaiton is required
       } else if (msg.status == 401) {
         handleRegistrationSubmission();
