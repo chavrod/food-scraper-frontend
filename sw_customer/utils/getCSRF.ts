@@ -8,7 +8,7 @@ const setCookie = (name: string, value: string, days?: number) => {
   document.cookie = `${name}=${value || ""}${expires}; path=/`;
 };
 
-export default async function getCSRF(): Promise<string | null> {
+export default async function getClientSideCSRF(): Promise<string | null> {
   // Make a request to the Django endpoint
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}ping/`); // Adjust this to the path of your Django endpoint
 

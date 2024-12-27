@@ -17,7 +17,7 @@ import { notifications } from "@mantine/notifications";
 import { useDisclosure } from "@mantine/hooks";
 import { IconCircleCheckFilled, IconX, IconCheck } from "@tabler/icons-react";
 // Internal: Utils
-import getCSRF from "@/utils/getCSRF";
+import getClientSideCSRF from "@/utils/getCSRF";
 import { signUp, formatAuthErrors } from "@/utils/auth/index";
 
 function PasswordRequirement({
@@ -118,7 +118,7 @@ function RegisterForm({
         handleRegistrationSubmission();
         setEmailVerificationToResend(email);
       } else {
-        throw new Error(msg.data);
+        throw new Error(msg.errors[0].message);
       }
     } catch (error: any) {
       setIsLoading(false);
@@ -153,7 +153,7 @@ function RegisterForm({
     try {
       if (!emailVerificationToResend) return;
 
-      const csrfToken = await getCSRF();
+      const csrfToken = await getClientSideCSRF();
       if (!csrfToken) return;
 
       const response = await fetch(

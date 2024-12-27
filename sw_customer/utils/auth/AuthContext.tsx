@@ -22,11 +22,12 @@ export type AuthType = {
   data: {
     flows?: AuthFlow[];
     user?: User;
-    methods: any;
+    methods?: any;
+    email?: string;
   };
   meta: {
     is_authenticated: boolean;
-    access_token: string;
+    access_token?: string;
   };
 };
 

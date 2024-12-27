@@ -1,4 +1,5 @@
-import getCSRF from "../getCSRF";
+import { error } from "console";
+import getClientSideCSRF from "../getCSRF";
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}users/_allauth/browser/v1`;
 const ACCEPT_JSON = {
@@ -65,7 +66,7 @@ async function request(
 
   // Don't pass along authentication related headers to the config endpoint.
   if (path !== URLs.CONFIG) {
-    options.headers["X-CSRFToken"] = await getCSRF();
+    options.headers["X-CSRFToken"] = await getClientSideCSRF();
   }
 
   if (typeof data !== "undefined") {
@@ -80,14 +81,15 @@ async function request(
   } catch {
     msg = {
       status: 500,
-      data: "Server Error. Please try again later",
+      errors: [
+        {
+          message: "Server Error. Please try again later",
+        },
+      ],
       meta: { is_authenticated: null },
     };
   }
-  if (
-    [401, 410].includes(msg.status) ||
-    (msg.status === 200 && msg.meta?.is_authenticated)
-  ) {
+  if (msg.status == 401 || (msg.status === 200 && msg.meta?.is_authenticated)) {
     const event = new CustomEvent("allauth.auth.change", { detail: msg });
     document.dispatchEvent(event);
   }
@@ -126,6 +128,36 @@ export async function confirmLoginCode(code: any) {
   return await request("POST", URLs.CONFIRM_LOGIN_CODE, { code });
 }
 
+// Define the interface for a successful response (HTTP 200)
+type SuccessResponse = {
+  status: 200;
+  data: {
+    email: string;
+    user: {
+      id: number;
+      display: string;
+      has_usable_password: boolean;
+      email: string;
+      username: string;
+    };
+  };
+  meta: {
+    is_authenticating: boolean;
+  };
+};
+
+// Define the interface for a client error response (HTTP 400)
+type ErrorResponse = {
+  status: 400;
+  errors: Array<{
+    message: string;
+    code: string;
+    param: string;
+  }>;
+};
+
+// Define a type that represents all possible responses
+type EmailVerificationResponse = SuccessResponse | ErrorResponse;
 export async function getEmailVerification(key: any) {
   return await request("GET", URLs.VERIFY_EMAIL, undefined, {
     "X-Email-Verification-Key": key,

@@ -14,7 +14,7 @@ export const URLs = Object.freeze({
 export const Flow2Path = Object.freeze({
   [Flows.LOGIN]: "/?login=open",
   [Flows.SIGNUP]: "signup", // TODO: Change
-  [Flows.VERIFY_EMAIL]: "verify_email", // TODO: Change
+  [Flows.VERIFY_EMAIL]: false,
   [Flows.PROVIDER_REDIRECT]: "provider_redirect", // TODO: Change
   [Flows.PROVIDER_SIGNUP]: "provider_signup", // TODO: Change
   [Flows.REAUTHENTICATE]: "reauthenticate", // TODO: Change
@@ -26,7 +26,7 @@ export function pathForFlow(flow?: AuthFlow) {
   }
 
   const path = Flow2Path[flow.id];
-  if (!path) {
+  if (path === undefined) {
     throw new Error(`Unknown path for flow: ${flow.id}`);
   }
   return path;
@@ -83,8 +83,11 @@ export function AuthRoutingProvider({
     }
     case AuthChangeEvent.FLOW_UPDATED:
       const path = pathForPendingFlow(auth);
-      if (!path) {
+      if (path === null) {
         throw new Error();
+        // When path is false, it indicates we do not need to redirect
+      } else if (path === false) {
+        return;
       }
       router.push(path);
     default:

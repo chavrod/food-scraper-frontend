@@ -6,7 +6,7 @@ import { useForm } from "@mantine/form";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 // Internal: Utils
-import getCSRF from "@/utils/getCSRF";
+import getClientSideCSRF from "@/utils/getCSRF";
 import Link from "next/link";
 
 export default function ForgotPasswordPage() {
@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
       const { email } = form.values;
       if (!email) return;
 
-      const csrfToken = await getCSRF();
+      const csrfToken = await getClientSideCSRF();
       if (!csrfToken) return;
 
       setIsLoading(true);
