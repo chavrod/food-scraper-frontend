@@ -6,6 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 
+from config.settings import BASE_DOMAIN
 from shopwiz.apps.core.models import Customer, Basket
 
 
@@ -50,6 +51,10 @@ class MyAccountAdapter(DefaultAccountAdapter):
         #     )
 
         return super().clean_password(password, user)
+
+    def get_email_verification_redirect_url(self, email_address):
+        print("Redirecting....")
+        return f"{BASE_DOMAIN}?login=successful-email-confirmation"
 
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):

@@ -55,7 +55,7 @@ User = get_user_model()
 
 # class GoogleLogin(SocialLoginView):
 #     adapter_class = GoogleOAuth2Adapter
-#     callback_url = "http://localhost:3000/"
+#     callback_url = "http://127.0.0.1:3000/"
 #     client_class = OAuth2Client
 
 
@@ -66,17 +66,17 @@ User = get_user_model()
 #         return Response(status=200)
 
 
-class CustomConfirmEmailView(ConfirmEmailView):
-    def post(self, *args, **kwargs):
-        super_response = super().post(*args, **kwargs)
+# class CustomConfirmEmailView(ConfirmEmailView):
+#     def post(self, *args, **kwargs):
+#         super_response = super().post(*args, **kwargs)
 
-        # You can check if the returned response from super() call was a redirect response.
-        # This is because, in case of errors or other conditions, the base class might not return a redirect.
-        if isinstance(super_response, HttpResponseRedirect):
-            # Replace the super response's redirect URL with 'example.com'
-            return redirect(f"{BASE_DOMAIN}?login=successful-email-confirmation")
+#         # You can check if the returned response from super() call was a redirect response.
+#         # This is because, in case of errors or other conditions, the base class might not return a redirect.
+#         if isinstance(super_response, HttpResponseRedirect):
+#             # Replace the super response's redirect URL with 'example.com'
+#             return redirect(f"{BASE_DOMAIN}?login=successful-email-confirmation")
 
-        return super_response
+#         return super_response
 
 
 def is_user_email_verified(user, email):

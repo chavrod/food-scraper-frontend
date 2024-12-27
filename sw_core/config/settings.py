@@ -25,14 +25,14 @@ with open("/etc/shopwiz_config.json") as f:
 ENV = CONFIG["ENV"]
 
 if ENV == "DEV":
-    BASE_DOMAIN = "localhost"
+    BASE_DOMAIN = "127.0.0.1:3000"
     # CSRF_COOKIE_DOMAIN = f".{CONFIG["BASE_DOMAINNN"]}"
     DEBUG = True
     ALLOWED_HOSTS = ["*"]
     # CSRF
     CSRF_COOKIE_SECURE = False
-    CSRF_COOKIE_DOMAIN = "localhost:3000"
-    CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
+    CSRF_COOKIE_DOMAIN = "127.0.0.1:3000"
+    CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000"]
     # CORS
     CORS_ALLOW_ALL_ORIGINS = True
 
@@ -55,6 +55,7 @@ else:
     # Session
     SESSION_COOKIE_SECURE = True
 
+CORS_ALLOW_HEADERS = ["x-email-verification-key", "x-csrftoken", "content-type"]
 
 # Other CSRF
 CSRF_COOKIE_SAMESITE = "Lax"
@@ -216,7 +217,7 @@ CACHES = {
     "default": {
         # "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://localhost:6379",
+        "LOCATION": "redis://127.0.0.1:6379",
     }
 }
 
@@ -227,7 +228,7 @@ RESULTS_EXPIRY_DAYS = 10
 
 
 # CELERY config
-CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_BROKER_URL = "redis://127.0.0.1:6379"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
@@ -250,13 +251,23 @@ AUTHENTICATION_BACKENDS = (
 )
 
 HEADLESS_ONLY = True
-HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email": "/account/verify-email/{key}",
-    "account_reset_password": "/account/password/reset",
-    "account_reset_password_from_key": "/account/password/reset/key/{key}",
-    "account_signup": "/account/signup",
-    "socialaccount_login_error": "/account/provider/callback",
-}
+
+if ENV == "DEV":
+    HEADLESS_FRONTEND_URLS = {
+        "account_confirm_email": "http://127.0.0.1:3000/account/verify-email/{key}",
+        "account_reset_password": "/account/password/reset",
+        "account_reset_password_from_key": "/account/password/reset/key/{key}",
+        "account_signup": "/account/signup",
+        "socialaccount_login_error": "/account/provider/callback",
+    }
+else:
+    HEADLESS_FRONTEND_URLS = {
+        "account_confirm_email": "account/verify-email/{code}",
+        "account_reset_password": "/account/password/reset",
+        "account_reset_password_from_key": "/account/password/reset/key/{code}",
+        "account_signup": "/account/signup",
+        "socialaccount_login_error": "/account/provider/callback",
+    }
 # HEADLESS_FRONTEND_URLS = {
 #     "account_confirm_email": "https://app.project.org/account/verify-email/{key}",
 #     # Key placeholders are automatically populated. You are free to adjust this

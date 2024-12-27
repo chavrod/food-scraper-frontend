@@ -39,7 +39,7 @@ async def handler(websocket, path):
 
 async def process_events():
     """Listen to events in Redis and process them."""
-    redis = aioredis.from_url("redis://localhost:6379")
+    redis = aioredis.from_url("redis://127.0.0.1:6379")
     pubsub = redis.pubsub()
     await pubsub.subscribe("scraping_queries")
     async for message in pubsub.listen():
@@ -66,7 +66,7 @@ async def handle_or_exit(websocket, path):
 
 
 async def main():
-    async with websockets.serve(handle_or_exit, "localhost", 8888):
+    async with websockets.serve(handle_or_exit, "127.0.0.1", 8888):
         await process_events()  # runs forever
 
 
