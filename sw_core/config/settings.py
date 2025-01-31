@@ -55,6 +55,23 @@ else:
     # Session
     SESSION_COOKIE_SECURE = True
 
+# TODO: TEMP - change
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {
+#         "console": {
+#             "class": "logging.StreamHandler",
+#         },
+#     },
+#     "loggers": {
+#         "django": {
+#             "handlers": ["console"],
+#             "level": "DEBUG",  # or 'INFO' as needed
+#         },
+#     },
+# }
+
 CORS_ALLOW_HEADERS = ["x-email-verification-key", "x-csrftoken", "content-type"]
 
 # Other CSRF
