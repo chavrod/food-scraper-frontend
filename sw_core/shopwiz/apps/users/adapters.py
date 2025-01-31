@@ -52,10 +52,6 @@ class MyAccountAdapter(DefaultAccountAdapter):
 
         return super().clean_password(password, user)
 
-    def get_email_verification_redirect_url(self, email_address):
-        print("Redirecting....")
-        return f"{BASE_DOMAIN}?login=successful-email-confirmation"
-
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def save_user(self, request, sociallogin, form):
