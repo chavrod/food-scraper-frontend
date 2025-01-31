@@ -1,5 +1,5 @@
 import { useContext, useRef, useState, useEffect } from "react";
-import { AuthContext, AuthType } from "./AuthContext";
+import { AuthContext, AuthRes } from "./AuthContext";
 
 export function useAuth() {
   return useContext(AuthContext)?.auth;
@@ -19,7 +19,7 @@ export function useAuthInfo() {
   return authInfo(auth);
 }
 
-export function authInfo(auth?: AuthType) {
+export function authInfo(auth?: AuthRes) {
   const isAuthenticated =
     auth?.status === 200 ||
     (auth?.status === 401 && auth?.meta.is_authenticated);
@@ -44,7 +44,7 @@ export const AuthChangeEvent = Object.freeze({
 });
 type AuthChangeEventType = keyof typeof AuthChangeEvent | null;
 
-function determineAuthChangeEvent(fromAuth?: AuthType, toAuth?: AuthType) {
+function determineAuthChangeEvent(fromAuth?: AuthRes, toAuth?: AuthRes) {
   let fromInfo = authInfo(fromAuth);
   const toInfo = authInfo(toAuth);
   if (toAuth?.status === 410) {
@@ -89,7 +89,7 @@ function determineAuthChangeEvent(fromAuth?: AuthType, toAuth?: AuthType) {
 export function useAuthChange() {
   const auth = useAuth();
   const ref = useRef<{
-    prevAuth?: AuthType;
+    prevAuth?: AuthRes;
     event: AuthChangeEventType;
   }>({ prevAuth: auth, event: null });
   const [, setForcedUpdate] = useState(0);
@@ -110,7 +110,7 @@ export function useAuthChange() {
     ref.current.event = null;
   }
 
-  return [auth, event] as [AuthType | undefined, AuthChangeEventType | null];
+  return [auth, event] as [AuthRes | undefined, AuthChangeEventType | null];
 }
 
 export function useAuthStatus() {

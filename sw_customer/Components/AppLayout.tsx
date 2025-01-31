@@ -181,6 +181,8 @@ export default function MainAppShell({
     }
   };
 
+  console.log("AppLayout renders");
+
   return (
     <AppShell
       styles={(theme) => ({

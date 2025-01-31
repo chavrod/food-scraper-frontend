@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 
-import { signIn } from "next-auth/react";
-
 import {
   TextInput,
   Text,
@@ -15,6 +13,8 @@ import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 import Link from "next/link";
+
+import { login, AuthFlow, formatAuthErrors } from "@/utils/auth/index";
 
 interface LoginFormProps {
   handleLoginSucess: () => void;
@@ -46,18 +46,33 @@ function LoginForm({ handleLoginSucess, isLoginSuccess }: LoginFormProps) {
 
       const { email, password } = form.values;
 
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
+      const res = await login({ email, password });
+      const resCode: number | undefined = res?.status;
+      console.log("LOGIN RES: ", res);
 
-      setIsLoading(false);
-
-      if (result && result.error) {
-        setError(result.error);
-      } else {
+      if (resCode === 200) {
         handleLoginSucess();
+      } else if (resCode === 400) {
+        // TODO: TEST
+        form.setErrors(formatAuthErrors(res.errors));
+      } else if (resCode === 401) {
+        const verifyEmailPending = res.data.flows.find(
+          (flow: AuthFlow) =>
+            flow.id === "verify_email" && flow.is_pending === true
+        );
+        // TODO: TEST
+        // TODO: REPORT UNKNOW ERROR TO SENTRY
+        setError(
+          verifyEmailPending
+            ? "You must verify your email first"
+            : "Unexpected error. Please try again later or contact help@shopwiz.ie"
+        );
+      } else {
+        // TODO: TEST
+        // TODO: REPORT UNKNOW ERROR TO SENTRY
+        setError(
+          "Unexpected error. Please try again later or contact help@shopwiz.ie"
+        );
       }
     } catch (err: any) {
       notifications.show({
@@ -65,6 +80,8 @@ function LoginForm({ handleLoginSucess, isLoginSuccess }: LoginFormProps) {
         message: err?.message || "Unknown error. Please try again later.",
         color: "red",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 

@@ -17,7 +17,7 @@ type User = {
   email: string;
 };
 
-export type AuthType = {
+export type AuthRes = {
   status: number;
   data: {
     flows?: AuthFlow[];
@@ -32,30 +32,23 @@ export type AuthType = {
 };
 
 interface AuthContextType {
-  auth: AuthType;
-  config: any;
+  auth?: AuthRes | boolean;
+  config?: any;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-// TODO: Something not annoying??
-function Loading() {
-  return <div></div>;
-}
-
-function LoadingError() {
-  return <div>Loading error!</div>;
-}
-
 export const AuthContextProvider: FC<AuthContextProviderProps> = ({
   children,
 }) => {
-  const [auth, setAuth] = useState<AuthType | false | undefined>(undefined);
+  console.log("AuthContextProvider render");
+  const [auth, setAuth] = useState<AuthRes | false | undefined>(undefined);
   const [config, setConfig] = useState<any | undefined>(undefined);
 
   useEffect(() => {
+    console.log("UseEffect triggered");
     function onAuthChanged(e: CustomEvent) {
-      setAuth((auth: AuthType | boolean | undefined) => {
+      setAuth((auth: AuthRes | boolean | undefined) => {
         if (typeof auth === "undefined") {
           console.log("Authentication status loaded");
         } else {
@@ -88,12 +81,9 @@ export const AuthContextProvider: FC<AuthContextProviderProps> = ({
       );
     };
   }, []);
-  const loading = typeof auth === "undefined" || config?.status !== 200;
 
-  // Only provide a value to AuthContext.Provider when auth is correctly typed
-  if (loading || auth === false) {
-    return loading ? <Loading /> : <LoadingError />;
-  }
+  console.log("AUTH: ", auth);
+  console.log("CONFIG: ", config);
 
   return (
     <AuthContext.Provider value={{ auth, config }}>

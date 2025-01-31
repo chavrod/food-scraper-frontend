@@ -107,18 +107,18 @@ function RegisterForm({
 
       const { email, password1 } = form.values;
 
-      const msg = await signUp({ email, password: password1 });
+      const res = await signUp({ email, password: password1 });
 
-      console.log("SIGNUP RES: ", msg);
+      console.log("SIGNUP RES: ", res);
 
-      if (msg.status == 400) {
-        form.setErrors(formatAuthErrors(msg.errors, { password: "password1" }));
+      if (res.status === 400) {
+        form.setErrors(formatAuthErrors(res.errors, { password: "password1" }));
         // 401 indicates that email verificaiton is required
-      } else if (msg.status == 401) {
+      } else if (res.status == 401) {
         handleRegistrationSubmission();
         setEmailVerificationToResend(email);
       } else {
-        throw new Error(msg.errors[0].message);
+        throw new Error(res.errors[0].message);
       }
     } catch (error: any) {
       setIsLoading(false);

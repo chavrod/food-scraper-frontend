@@ -26,7 +26,10 @@ import {
 } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMediaQuery, useDisclosure } from "@mantine/hooks";
-import { BasketProduct, SearchedProduct } from "@/types/customer_types";
+import {
+  BasketProductSerialiser,
+  SearchedProductSerialiser,
+} from "@/types/customer_types";
 import useSearchedProducts from "@/hooks/useProducts";
 import { useAuthInfo } from "@/utils/auth/index";
 import basketItemsApi from "@/utils/basketItemsApi";
@@ -101,7 +104,10 @@ export default function SearchResults() {
     added: {},
   });
 
-  const handleAddToBasket = async (product: BasketProduct, index: number) => {
+  const handleAddToBasket = async (
+    product: BasketProductSerialiser,
+    index: number
+  ) => {
     setProductStates((prevStates) => ({
       ...prevStates,
       loading: { ...prevStates.loading, [index]: true },
@@ -320,14 +326,19 @@ export default function SearchResults() {
 }
 
 type ProductCardProps = {
-  product: SearchedProduct;
+  product: SearchedProductSerialiser;
   index: number;
   productStates: ProductStateType;
   accessToken: string | null;
-  handleAddToBasket: (product: SearchedProduct, index: number) => void;
+  handleAddToBasket: (
+    product: SearchedProductSerialiser,
+    index: number
+  ) => void;
 };
 
-const getPrettyUnitName = (currentUnit: SearchedProduct["unit_type"]) => {
+const getPrettyUnitName = (
+  currentUnit: SearchedProductSerialiser["unit_type"]
+) => {
   switch (currentUnit) {
     case "KG":
       return "kg";

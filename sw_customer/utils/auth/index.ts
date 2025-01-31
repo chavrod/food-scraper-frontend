@@ -1,5 +1,5 @@
 export { AuthContextProvider } from "./AuthContext";
-export type { AuthType } from "./AuthContext";
+export type { AuthRes, AuthFlow } from "./AuthContext";
 export {
   useConfig,
   useAuth,
@@ -16,6 +16,7 @@ export {
 //   AnonymousRoute,
 // } from "./routing";
 export {
+  login,
   signUp,
   formatAuthErrors,
   getEmailVerification,

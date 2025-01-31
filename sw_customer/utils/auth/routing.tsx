@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useAuthChange, AuthChangeEvent, authInfo } from "./hooks";
 // import { Flows, AuthFlowType, AuthenticatorType } from "../lib/allauth";
 import { Flows } from "./api";
-import { AuthFlow, AuthType } from "./AuthContext";
+import { AuthFlow, AuthRes } from "./AuthContext";
 
 export const URLs = Object.freeze({
   LOGIN_URL: "/?login=open",
@@ -32,7 +32,7 @@ export function pathForFlow(flow?: AuthFlow) {
   return path;
 }
 
-export function pathForPendingFlow(auth?: AuthType) {
+export function pathForPendingFlow(auth?: AuthRes) {
   if (!auth) return null;
 
   const flow = auth?.data?.flows?.find((flow) => flow.is_pending);

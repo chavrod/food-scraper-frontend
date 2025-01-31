@@ -1,4 +1,3 @@
-import { error } from "console";
 import getClientSideCSRF from "../getCSRF";
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}users/_allauth/browser/v1`;

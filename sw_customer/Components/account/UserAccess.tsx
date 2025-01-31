@@ -27,6 +27,7 @@ interface LoginFormProps {
 
 const UserAccess = React.memo(
   ({ isEmailConfirmed, handleLoginSucess }: LoginFormProps) => {
+    console.log("UserAccess render");
     const queryClient = useQueryClient();
 
     const [isLoginFormVisible, setIsLoginFormVisible] = useState(true);
