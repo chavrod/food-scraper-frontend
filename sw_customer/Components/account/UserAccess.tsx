@@ -21,12 +21,17 @@ import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 
 interface LoginFormProps {
+  isPasswordReset: boolean;
   isEmailConfirmed: boolean;
   handleLoginSucess: () => void;
 }
 
 const UserAccess = React.memo(
-  ({ isEmailConfirmed, handleLoginSucess }: LoginFormProps) => {
+  ({
+    isPasswordReset,
+    isEmailConfirmed,
+    handleLoginSucess,
+  }: LoginFormProps) => {
     console.log("UserAccess render");
     const queryClient = useQueryClient();
 
@@ -61,17 +66,23 @@ const UserAccess = React.memo(
         <Paper p="md" style={{ maxWidth: 400, margin: "0 auto" }}>
           {isLoginFormVisible ? (
             <>
-              {isEmailConfirmed && !isLoginSuccess && (
+              {(isPasswordReset || isEmailConfirmed) && !isLoginSuccess && (
                 <Notification
                   icon={<IconCheck size="1.2rem" />}
                   withCloseButton={false}
                   color="teal"
-                  title="Great! Your email is confirmed!"
+                  title={`Great! Your ${
+                    isPasswordReset
+                      ? "password has been changed."
+                      : "email is confirmed."
+                  }`}
                   mb="md"
                   withBorder
                   sx={{ boxShadow: "none" }}
                 >
-                  Please login with the verified email
+                  {`Please login with the ${
+                    isPasswordReset ? "new password" : "verified email"
+                  }`}
                 </Notification>
               )}
 

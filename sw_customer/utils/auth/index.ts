@@ -21,4 +21,7 @@ export {
   formatAuthErrors,
   getEmailVerification,
   verifyEmail,
+  requestPasswordReset,
+  getPasswordReset,
+  resetPassword,
 } from "./api";

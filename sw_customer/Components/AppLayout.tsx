@@ -87,12 +87,12 @@ export default function MainAppShell({
 
     // Check for 'password-reset' query parameter
     const passwordResetQuery = router.query["password-reset"];
-    setIsPasswordReset(passwordResetQuery === "successful-password-reset");
+    setIsPasswordReset(passwordResetQuery === "ok");
 
     if (
       loginQuery === "successful-email-confirmation" ||
       loginQuery === "open" ||
-      passwordResetQuery === "successful-password-reset"
+      passwordResetQuery === "ok"
     ) {
       open();
     }
@@ -440,39 +440,14 @@ export default function MainAppShell({
           window.history.replaceState(null, "", "/");
           close();
         }}
-        title={isPasswordReset ? "" : "Log in or sign up"}
+        title="Log in or sign up"
         centered
       >
-        {isPasswordReset ? (
-          <Box maw={400} pos="relative">
-            <Paper p="md" style={{ maxWidth: 400, margin: "0 auto" }}>
-              <Stack
-                justify="center"
-                style={{ textAlign: "center" }}
-                align="center"
-              >
-                <IconCircleCheckFilled
-                  size={80}
-                  style={{ color: "green", marginBottom: "10px" }}
-                />
-                <Title align="center" order={2}>
-                  Great success!
-                  <Title align="center" order={2}>
-                    Password has been reset.
-                  </Title>
-                </Title>
-                <Text align="center" size="lg">
-                  The next time you log in, please use your new password.
-                </Text>
-              </Stack>
-            </Paper>
-          </Box>
-        ) : (
-          <UserAccess
-            isEmailConfirmed={isEmailConfirmed}
-            handleLoginSucess={handleLoginSucess}
-          />
-        )}
+        <UserAccess
+          isPasswordReset={isPasswordReset}
+          isEmailConfirmed={isEmailConfirmed}
+          handleLoginSucess={handleLoginSucess}
+        />
       </Modal>
       {children}
     </AppShell>

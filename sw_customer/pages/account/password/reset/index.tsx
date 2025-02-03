@@ -5,13 +5,11 @@ import { Modal, Button, Paper, TextInput, Stack, Text } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconCircleCheckFilled } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
+import { requestPasswordReset, formatAuthErrors } from "@/utils/auth/index";
 // Internal: Utils
-import getClientSideCSRF from "@/utils/getCSRF";
 import Link from "next/link";
 
 export default function ForgotPasswordPage() {
-  const [opened, { open, close }] = useDisclosure(true);
-
   const [isLoading, setIsLoading] = useState(false);
   const [
     showPasswordResetEmailConfirmation,
@@ -36,29 +34,15 @@ export default function ForgotPasswordPage() {
       const { email } = form.values;
       if (!email) return;
 
-      const csrfToken = await getClientSideCSRF();
-      if (!csrfToken) return;
-
       setIsLoading(true);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}auth/password-reset/`,
-        {
-          method: "POST",
-          headers: {
-            "X-CSRFToken": csrfToken,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-          }),
-        }
-      );
-      if (response.ok) {
-        setIsLoading(false);
+      const res = await requestPasswordReset(email);
+
+      if (res.status == 200) {
         setShowPasswordResetEmailConfirmation(true);
+      } else if (res.status == 400) {
+        form.setErrors(formatAuthErrors(res.errors));
       } else {
-        setIsLoading(false);
         notifications.show({
           title: "Server Error!",
           message: "Please try again later or contact support.",
@@ -66,18 +50,19 @@ export default function ForgotPasswordPage() {
         });
       }
     } catch (error: any) {
-      setIsLoading(false);
       notifications.show({
         title: "Server Error!",
         message: error?.message || "Please try again later or contact support.",
         color: "red",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <Modal
-      opened={opened}
+      opened={true}
       onClose={() => {}}
       fullScreen
       transitionProps={{ transition: "fade", duration: 200 }}

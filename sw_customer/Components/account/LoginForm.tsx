@@ -68,7 +68,6 @@ function LoginForm({ handleLoginSucess, isLoginSuccess }: LoginFormProps) {
             : "Unexpected error. Please try again later or contact help@shopwiz.ie"
         );
       } else {
-        // TODO: TEST
         // TODO: REPORT UNKNOW ERROR TO SENTRY
         setError(
           "Unexpected error. Please try again later or contact help@shopwiz.ie"
@@ -122,7 +121,7 @@ function LoginForm({ handleLoginSucess, isLoginSuccess }: LoginFormProps) {
             >
               Login
             </Button>
-            <Link href="/forgot-password" legacyBehavior>
+            <Link href="account/password/reset" legacyBehavior>
               <Text
                 mt="xs"
                 align="right"

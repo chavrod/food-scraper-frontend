@@ -10,8 +10,11 @@
  */
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { getEmailVerification, verifyEmail, AuthRes } from "@/utils/auth/index";
+
 import { Button, Stack, Title, Text } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+
+import { getEmailVerification, verifyEmail, AuthRes } from "@/utils/auth/index";
 import notifyError from "@/utils/notifyError";
 
 // This function will run on every request
@@ -27,34 +30,38 @@ interface VerifyEmailProps {
 export default function VerifyEmail({ access_key }: VerifyEmailProps) {
   const router = useRouter();
 
-  const [response, setResponse] = useState<{
+  const [confirmationRes, setConfirmationRes] = useState<{
     fetching: boolean;
     content: AuthRes | null;
   }>({ fetching: false, content: null });
-  const [verification, setVerification] = useState<AuthRes | null>(null);
+  const [keyRes, setKeyRes] = useState<AuthRes | null>(null);
 
   useEffect(() => {
-    const fetchVerification = async (access_key: string) => {
+    const fetchVerificationDetails = async (access_key: string) => {
       try {
-        const verificationData = await getEmailVerification(access_key);
-        setVerification(verificationData);
+        const keyRes = await getEmailVerification(access_key);
+        setKeyRes(keyRes);
       } catch (error) {
-        console.error("Failed to get email verification:", error);
+        // TODO: REPORT UNKNOW ERROR TO SENTRY
+        notifications.show({
+          title: "Server Error!",
+          message:
+            "Unexpected error. Please try again later or contact help@shopwiz.ie",
+          color: "red",
+        });
       }
     };
 
-    console.log("fetching verification....");
     if (access_key) {
-      fetchVerification(access_key);
+      fetchVerificationDetails(access_key);
     }
   }, [access_key]);
 
   function submit() {
-    setResponse({ ...response, fetching: true });
+    setConfirmationRes({ ...confirmationRes, fetching: true });
     verifyEmail(access_key)
       .then((content) => {
-        console.log("content: ", content);
-        setResponse((r) => {
+        setConfirmationRes((r) => {
           return { ...r, content };
         });
         if (content.status == 500) {
@@ -62,53 +69,53 @@ export default function VerifyEmail({ access_key }: VerifyEmailProps) {
         }
       })
       .catch((e) => {
-        console.error(e);
         notifyError({ message: e.data });
       })
       .then(() => {
-        setResponse((r) => {
+        setConfirmationRes((r) => {
           return { ...r, fetching: false };
         });
       });
   }
 
   if (
-    response.content?.status &&
-    [200, 401].includes(response.content?.status)
+    confirmationRes.content?.status &&
+    [401].includes(confirmationRes.content?.status)
   ) {
     router.push("/?login=successful-email-confirmation");
   }
 
-  if (!verification) {
+  if (!keyRes) {
     return <></>;
   }
 
   let body = null;
-  if (verification.status === 200) {
+  if (keyRes.status === 200) {
     body = (
       <>
         <Text>
           Please confirm that{" "}
-          <a href={"mailto:" + verification.data.email}>
-            {verification.data.email}
-          </a>{" "}
-          is an email address for user {verification?.data?.user?.username}.
+          <a href={"mailto:" + keyRes.data.email}>{keyRes.data.email}</a> is an
+          email address for user {keyRes?.data?.user?.username}.
         </Text>
-        <Button size="lg" disabled={response.fetching} onClick={() => submit()}>
+        <Button
+          size="lg"
+          disabled={confirmationRes.fetching}
+          loading={confirmationRes.fetching}
+          onClick={() => submit()}
+        >
           Confirm
         </Button>
       </>
     );
-  } else if (!verification.data?.email) {
+  } else if (!keyRes.data?.email) {
     body = <Text>Invalid verification link.</Text>;
   } else {
     body = (
       <Text>
         Unable to confirm email{" "}
-        <a href={"mailto:" + verification.data.email}>
-          {verification.data.email}
-        </a>{" "}
-        because it is already confirmed.
+        <a href={"mailto:" + keyRes.data.email}>{keyRes.data.email}</a> because
+        it is already confirmed.
       </Text>
     );
   }
