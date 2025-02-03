@@ -24,14 +24,22 @@ with open("/etc/shopwiz_config.json") as f:
 
 ENV = CONFIG["ENV"]
 
+"""
+so it worked when I removed port SESSION_COOKIE_DOMAIN
+but my CSRF_TRUSTED_ORIGINS still need the port why ? 
+
+"""
+
+# TODO: Figure out most optimal security setup for this...
+# e.g. SameSite is Lax atm???
 if ENV == "DEV":
-    BASE_DOMAIN = "127.0.0.1:3000"
+    BASE_DOMAIN = "127.0.0.1"
     # CSRF_COOKIE_DOMAIN = f".{CONFIG["BASE_DOMAINNN"]}"
     DEBUG = True
     ALLOWED_HOSTS = ["*"]
     # CSRF
     CSRF_COOKIE_SECURE = False
-    CSRF_COOKIE_DOMAIN = "127.0.0.1:3000"
+    CSRF_COOKIE_DOMAIN = "127.0.0.1"
     CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000"]
     # CORS
     CORS_ALLOW_ALL_ORIGINS = True
@@ -72,7 +80,12 @@ else:
 #     },
 # }
 
-CORS_ALLOW_HEADERS = ["x-email-verification-key", "x-csrftoken", "content-type"]
+CORS_ALLOW_HEADERS = [
+    "x-email-verification-key",
+    "x-csrftoken",
+    "content-type",
+    "x-password-reset-key",
+]
 
 # Other CSRF
 CSRF_COOKIE_SAMESITE = "Lax"
@@ -100,6 +113,8 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "django_celery_beat",
     "rest_framework",
+    # mail
+    "anymail",
     # Authentication
     "allauth",
     "allauth.account",
@@ -221,13 +236,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 else:
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = "smtp.sendgrid.net"
-    EMAIL_HOST_USER = "apikey"
-    EMAIL_HOST_PASSWORD = CONFIG["SENDGRID_API_KEY"]
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    DEFAULT_FROM_EMAIL = "Shop Wiz <shopwiz@shop-wiz.ie>"
+    ANYMAIL = {"POSTMARK_SERVER_TOKEN": CONFIG["POSTMARK_API_KEY"]}
+    EMAIL_BACKEND = "anymail.backends.postmark.EmailBackend"
+    DEFAULT_FROM_EMAIL = "dmitry@bookiebase.ie"
 
 # CACHE
 CACHES = {
@@ -272,16 +283,16 @@ HEADLESS_ONLY = True
 if ENV == "DEV":
     HEADLESS_FRONTEND_URLS = {
         "account_confirm_email": "http://127.0.0.1:3000/account/verify-email/{key}",
-        "account_reset_password": "/account/password/reset",
-        "account_reset_password_from_key": "/account/password/reset/key/{key}",
+        "account_reset_password": "http://127.0.0.1:3000/account/password/reset",
+        "account_reset_password_from_key": "http://127.0.0.1:3000/account/password/key/{key}",
         "account_signup": "/account/signup",
         "socialaccount_login_error": "/account/provider/callback",
     }
 else:
     HEADLESS_FRONTEND_URLS = {
-        "account_confirm_email": "account/verify-email/{code}",
-        "account_reset_password": "/account/password/reset",
-        "account_reset_password_from_key": "/account/password/reset/key/{code}",
+        "account_confirm_email": "account/verify-email/{key}",
+        "account_reset_password": "account/password/reset",
+        "account_reset_password_from_key": "/account/password/reset/key/{key}",
         "account_signup": "/account/signup",
         "socialaccount_login_error": "/account/provider/callback",
     }
