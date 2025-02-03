@@ -24,14 +24,7 @@ with open("/etc/shopwiz_config.json") as f:
 
 ENV = CONFIG["ENV"]
 
-"""
-so it worked when I removed port SESSION_COOKIE_DOMAIN
-but my CSRF_TRUSTED_ORIGINS still need the port why ? 
 
-"""
-
-# TODO: Figure out most optimal security setup for this...
-# e.g. SameSite is Lax atm???
 if ENV == "DEV":
     BASE_DOMAIN = "127.0.0.1"
     # CSRF_COOKIE_DOMAIN = f".{CONFIG["BASE_DOMAINNN"]}"

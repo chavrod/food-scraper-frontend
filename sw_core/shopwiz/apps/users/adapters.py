@@ -16,32 +16,30 @@ class MyAccountAdapter(DefaultAccountAdapter):
 
         # Minimum length
         if len(password) < 8:
-            password_errors.append("Password must be at least 8 characters long")
+            password_errors.append("at least 8 characters")
 
         # At least one uppercase letter
         if not any(char.isupper() for char in password):
-            password_errors.append(
-                "Password must contain at least one uppercase letter"
-            )
+            password_errors.append("at least one uppercase letter")
 
         # At least one lowercase letter
         if not any(char.islower() for char in password):
-            password_errors.append(
-                "Password must contain at least one uppercase letter"
-            )
+            password_errors.append("at least one uppercase letter")
 
         # At least one number
         if not any(char.isdigit() for char in password):
-            password_errors.append("Password must contain at least one digit")
+            password_errors.append("at least one digit")
 
         # At least one special character
         if not any(char in "!@#$%^&*" for char in password):
-            password_errors.append(
-                "Password must contain at least one special character from !@#$%^&*"
-            )
+            password_errors.append("at least one special character from !@#$%^&*")
 
         if password_errors:
-            raise ValidationError(password_errors)
+            # Join the error messages with bullet points and a newline at the start
+            error_message = "Password must contain:\n - " + "\n - ".join(
+                password_errors
+            )
+            raise ValidationError({"password": error_message})
 
         # TODO: Add 'No repeated characters'
         # repeats_regex = re.compile(r"(.)\1{3,}")
